@@ -1,0 +1,286 @@
+{
+  "Metadata": {
+    "title": "Friendszy",
+    "description": "Fais de nouveaux amis autour de tes centres d'intérêt."
+  },
+  "Auth": {
+    "signUp": {
+      "title": "Créer un compte",
+      "tabLabel": "S'inscrire",
+      "email": "Courriel",
+      "password": "Mot de passe",
+      "submit": "Créer un compte",
+      "success": "Compte créé. Vérifie ton courriel pour confirmer ton adresse.",
+      "error": "Une erreur est survenue lors de l'inscription.",
+      "welcomeTitle": "Bienvenue ! 👋",
+      "welcomeSubtitle": "Rejoins Friendszy et fais de nouveaux amis"
+    },
+    "signIn": {
+      "title": "Connexion",
+      "email": "Courriel",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "error": "Courriel ou mot de passe incorrect.",
+      "welcomeTitle": "Bon retour ! 👋",
+      "welcomeSubtitle": "Content de te revoir sur Friendszy"
+    },
+    "signOut": {
+      "submit": "Se déconnecter"
+    },
+    "switchToSignUp": "Pas encore de compte ?",
+    "switchToSignUpLink": "Crée-en un",
+    "switchToSignIn": "Déjà un compte ?",
+    "switchToSignInLink": "Connecte-toi",
+    "forgotPasswordLink": "Mot de passe oublié ?",
+    "backToSignIn": "Retour à la connexion",
+    "errorDetail": "Détail",
+    "genericError": "Une erreur est survenue.",
+    "emailExample": "ton@courriel.com",
+    "close": "Fermer",
+    "loadingSession": "Chargement...",
+    "resetPassword": {
+      "requestTitle": "Mot de passe oublié",
+      "email": "Courriel",
+      "requestSubmit": "Envoyer le lien de réinitialisation",
+      "requestSuccess": "Si un compte existe avec ce courriel, un lien de réinitialisation a été envoyé.",
+      "updateTitle": "Nouveau mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "updateSubmit": "Mettre à jour le mot de passe",
+      "updateSuccess": "Mot de passe mis à jour."
+    }
+  },
+  "Shell": {
+    "security": "Sécurité"
+  },
+  "Nav": {
+    "home": "Accueil",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "friends": "Mes amis",
+    "search": "Rechercher",
+    "profile": "Mon profil",
+    "admin": "Admin"
+  },
+  "Dashboard": {
+    "welcomeBack": "Bon retour, {name} !",
+    "stats": {
+      "friends": "Amis",
+      "unread": "Nouveaux messages",
+      "interests": "Mes intérêts"
+    },
+    "quickAccess": "Accès rapide",
+    "cards": {
+      "searchTitle": "Trouver des amis",
+      "searchSubtitle": "Rechercher par intérêts",
+      "messagesTitle": "Mes messages",
+      "messagesSubtitle": "{count} non lus",
+      "friendsTitle": "Cercle d'amis",
+      "friendsSubtitle": "{count} amis",
+      "profileTitle": "Mon profil",
+      "profileSubtitle": "Modifier ma fiche"
+    },
+    "recentActivity": "Activité récente"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "empty": "Aucune notification pour l'instant.",
+    "friendRequest": "{name} veut être ton ami",
+    "friendRequestAccepted": "{name} a accepté ta demande d'ami",
+    "newMessage": "{name} t'a envoyé un message"
+  },
+  "ProfileFields": {
+    "photoChoose": "Choisir une photo",
+    "photoUploading": "Envoi en cours...",
+    "photoError": "Échec de l'envoi de la photo. Réessaie.",
+    "fullNamePlaceholder": "Prénom",
+    "cityPlaceholder": "Ville",
+    "agePlaceholder": "Âge",
+    "interests": "Centres d'intérêt",
+    "bioPlaceholder": "Quelques mots sur toi (optionnel)"
+  },
+  "Gender": {
+    "homme": "Homme",
+    "femme": "Femme",
+    "non-binaire": "Non-binaire",
+    "autre": "Autre"
+  },
+  "Onboarding": {
+    "stepOf": "Étape {step} sur {total}",
+    "steps": {
+      "photo": "Photo de profil",
+      "basics": "Tes informations",
+      "interests": "Centres d'intérêt",
+      "bio": "Un mot sur toi"
+    },
+    "next": "Suivant",
+    "back": "Précédent",
+    "skip": "Passer",
+    "finish": "Terminer",
+    "errors": {
+      "fullNameRequired": "Le prénom est requis.",
+      "photoRequired": "Ajoute une photo de profil pour continuer.",
+      "cityRequired": "La ville est requise.",
+      "ageInvalid": "Indique un âge valide (18 ans ou plus).",
+      "genderRequired": "Choisis une option.",
+      "interestsRequired": "Choisis au moins un centre d'intérêt.",
+      "saveFailed": "Une erreur est survenue. Réessaie."
+    }
+  },
+  "Profile": {
+    "title": "Mon profil",
+    "blockedUsersLink": "Utilisateurs bloqués",
+    "settingsLink": "Paramètres",
+    "save": "Enregistrer",
+    "saveSuccess": "Profil mis à jour.",
+    "saveError": "Une erreur est survenue. Réessaie.",
+    "errors": {
+      "fullNameRequired": "Le prénom est requis.",
+      "ageInvalid": "Indique un âge valide (18 ans ou plus)."
+    }
+  },
+  "Search": {
+    "title": "Rechercher",
+    "filtersTitle": "Filtres de recherche",
+    "namePlaceholder": "Prénom",
+    "cityExample": "Ex : Montréal, QC",
+    "ageRange": "Tranche d'âge",
+    "genderLabel": "Genre",
+    "anyGender": "Tous",
+    "submit": "Rechercher",
+    "loading": "Recherche en cours...",
+    "noResults": "Aucun résultat. Essaie d'élargir tes filtres.",
+    "suggestedResults": "Résultats suggérés"
+  },
+  "Friends": {
+    "title": "Mes amis",
+    "loading": "Chargement...",
+    "myFriends": "Mes amis",
+    "receivedRequests": "Demandes reçues",
+    "filterByName": "Filtrer par prénom",
+    "noFriends": "Pas encore d'amis. Utilise la recherche pour en trouver !",
+    "noRequests": "Aucune demande en attente.",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "message": "Message",
+    "remove": "Retirer",
+    "addFriend": "Ajouter",
+    "requestSent": "Demande envoyée",
+    "theySentYouRequest": "T'a envoyé une demande",
+    "friendsBadge": "Ami"
+  },
+  "Messages": {
+    "title": "Messagerie",
+    "loading": "Chargement...",
+    "conversationsTitle": "Conversations",
+    "searchPlaceholder": "Rechercher...",
+    "noSearchResults": "Aucune conversation ne correspond à ta recherche.",
+    "unreadSection": "Non lus · {count}",
+    "readSection": "Lus",
+    "onlineStatus": "En ligne",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "noConversations": "Aucune conversation. Démarre-en une depuis la page Amis.",
+    "noMessagesYet": "Pas encore de message. Dis bonjour !",
+    "selectConversation": "Sélectionne une conversation pour l'ouvrir.",
+    "back": "Retour",
+    "read": "Lu",
+    "messagePlaceholder": "Écris un message...",
+    "send": "Envoyer"
+  },
+  "Report": {
+    "action": "Signaler ce profil",
+    "success": "Merci, ton signalement a été envoyé.",
+    "error": "Une erreur est survenue. Réessaie.",
+    "reported": "Signalé",
+    "blockAction": "Bloquer",
+    "modalTitleProfile": "Signaler ce profil",
+    "modalTitleMessage": "Signaler ce message",
+    "reasons": {
+      "harassment": "Harcèlement ou intimidation",
+      "inappropriate_content": "Contenu inapproprié",
+      "fake_profile": "Faux profil",
+      "spam": "Spam ou publicité",
+      "other": "Autre raison"
+    },
+    "detailsPlaceholder": "Précise si tu veux (optionnel)",
+    "submit": "Envoyer le signalement",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirmBlockTitle": "Bloquer cette personne ?",
+    "confirmBlockBody": "Bloquer {name} ? Vous ne pourrez plus vous voir ni vous envoyer de messages. Tu pourras la débloquer plus tard depuis ton profil."
+  },
+  "Blocked": {
+    "title": "Utilisateurs bloqués",
+    "loading": "Chargement...",
+    "empty": "Tu n'as bloqué personne pour l'instant.",
+    "unblock": "Débloquer",
+    "unblockError": "Une erreur est survenue. Réessaie.",
+    "loadError": "Impossible de charger la liste. Réessaie plus tard."
+  },
+  "Admin": {
+    "title": "Espace de modération",
+    "noReports": "Aucun signalement en attente.",
+    "loading": "Chargement...",
+    "reporterLabel": "Signalé par",
+    "targetTypeProfile": "Profil",
+    "targetTypeMessage": "Message",
+    "targetTypeUnsupported": "Type de signalement non pris en charge",
+    "reasonLabel": "Motif",
+    "dateLabel": "Date",
+    "messageRemovedPlaceholder": "Message retiré",
+    "reviewingBadge": "En cours de traitement",
+    "cancel": "Annuler",
+    "actions": {
+      "suspend": "Suspendre",
+      "ban": "Bannir",
+      "reactivate": "Réactiver",
+      "removeMessage": "Retirer le message",
+      "resolve": "Marquer comme traité",
+      "dismiss": "Ignorer"
+    },
+    "confirm": {
+      "suspendTitle": "Suspendre ce compte ?",
+      "suspendBody": "Suspendre {name} ? La personne ne pourra plus utiliser Friendszy tant que le compte n'est pas réactivé.",
+      "banTitle": "Bannir ce compte ?",
+      "banBody": "Bannir {name} ? Cette action est plus grave qu'une suspension et doit être réservée aux cas confirmés.",
+      "reactivateTitle": "Réactiver ce compte ?",
+      "reactivateBody": "Réactiver {name} ? La personne retrouvera un accès complet à Friendszy.",
+      "removeMessageTitle": "Retirer ce message ?",
+      "removeMessageBody": "Le message sera masqué et affiché comme « Message retiré » pour les utilisateurs. Cette action ne peut pas être annulée."
+    },
+    "statusBadge": {
+      "active": "Actif",
+      "suspended": "Suspendu",
+      "banned": "Banni"
+    },
+    "actionSuccess": "Action effectuée.",
+    "actionError": "Une erreur est survenue. Réessaie."
+  },
+  "Suspended": {
+    "suspendedTitle": "Ton compte a été suspendu",
+    "suspendedBody": "Ton compte a été temporairement suspendu suite à un signalement ou une violation de nos règles. Contacte-nous si tu penses qu'il s'agit d'une erreur.",
+    "bannedTitle": "Ton compte a été banni",
+    "bannedBody": "Ton compte a été banni de façon permanente suite à une violation de nos règles. Contacte-nous si tu penses qu'il s'agit d'une erreur.",
+    "contact": "Nous contacter"
+  },
+  "Common": {
+    "deletedUser": "Utilisateur supprimé"
+  },
+  "Settings": {
+    "title": "Paramètres",
+    "exportTitle": "Télécharger mes données",
+    "exportBody": "Reçois une copie de tes données Friendszy (profil, intérêts, amis, messages envoyés) au format JSON.",
+    "exportButton": "Télécharger mes données",
+    "exportError": "Une erreur est survenue. Réessaie.",
+    "deleteTitle": "Supprimer mon compte",
+    "deleteBody": "Cette action est irréversible : ton profil sera anonymisé et tu ne pourras plus te reconnecter.",
+    "deleteButton": "Supprimer mon compte",
+    "deleteWarning": "Cette action est irréversible. Ton profil sera anonymisé, tes amitiés et blocages seront supprimés, et tu ne pourras plus te reconnecter à Friendszy avec ce compte.",
+    "deleteConfirmWord": "SUPPRIMER",
+    "deleteConfirmPrompt": "Tape {word} pour confirmer.",
+    "deleteConfirmButton": "Supprimer définitivement",
+    "deleteError": "Une erreur est survenue. Réessaie.",
+    "cancel": "Annuler"
+  }
+}

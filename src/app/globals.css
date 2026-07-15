@@ -1,26 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --teal1: #1ecfb0;
+  --teal2: #1ab8c0;
+  --blue: #1a90c8;
+  --dark: #0d5f8a;
+  --white: #fff;
+  --bg: #e8f8f5;
+  --text: #1a2e2b;
+  --muted: #6b9e96;
+  --border: #d0f0ee;
+  --card: #fff;
+  --grad: linear-gradient(135deg, #1ecfb0, #1ab8c0, #1a90c8);
+
+  --font-nunito: "Nunito", sans-serif;
+  --font-pacifico: "Pacifico", cursive;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-teal1: var(--teal1);
+  --color-teal2: var(--teal2);
+  --color-blue: var(--blue);
+  --color-dark: var(--dark);
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --font-sans: var(--font-nunito);
+  --font-pacifico: var(--font-pacifico);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-nunito);
 }

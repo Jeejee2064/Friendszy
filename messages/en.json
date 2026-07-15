@@ -1,0 +1,286 @@
+{
+  "Metadata": {
+    "title": "Friendszy",
+    "description": "Make new friends around your interests."
+  },
+  "Auth": {
+    "signUp": {
+      "title": "Create an account",
+      "tabLabel": "Sign up",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create an account",
+      "success": "Account created. Check your email to confirm your address.",
+      "error": "Something went wrong during sign up.",
+      "welcomeTitle": "Welcome! 👋",
+      "welcomeSubtitle": "Join Friendszy and make new friends"
+    },
+    "signIn": {
+      "title": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "error": "Incorrect email or password.",
+      "welcomeTitle": "Welcome back! 👋",
+      "welcomeSubtitle": "Good to see you again on Friendszy"
+    },
+    "signOut": {
+      "submit": "Sign out"
+    },
+    "switchToSignUp": "Don't have an account?",
+    "switchToSignUpLink": "Create one",
+    "switchToSignIn": "Already have an account?",
+    "switchToSignInLink": "Sign in",
+    "forgotPasswordLink": "Forgot password?",
+    "backToSignIn": "Back to sign in",
+    "errorDetail": "Detail",
+    "genericError": "Something went wrong.",
+    "emailExample": "your@email.com",
+    "close": "Close",
+    "loadingSession": "Loading...",
+    "resetPassword": {
+      "requestTitle": "Forgot password",
+      "email": "Email",
+      "requestSubmit": "Send reset link",
+      "requestSuccess": "If an account exists for this email, a reset link has been sent.",
+      "updateTitle": "New password",
+      "newPassword": "New password",
+      "updateSubmit": "Update password",
+      "updateSuccess": "Password updated."
+    }
+  },
+  "Shell": {
+    "security": "Security"
+  },
+  "Nav": {
+    "home": "Home",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "friends": "My friends",
+    "search": "Search",
+    "profile": "My profile",
+    "admin": "Admin"
+  },
+  "Dashboard": {
+    "welcomeBack": "Welcome back, {name}!",
+    "stats": {
+      "friends": "Friends",
+      "unread": "New messages",
+      "interests": "My interests"
+    },
+    "quickAccess": "Quick access",
+    "cards": {
+      "searchTitle": "Find friends",
+      "searchSubtitle": "Search by interests",
+      "messagesTitle": "My messages",
+      "messagesSubtitle": "{count} unread",
+      "friendsTitle": "Friend circle",
+      "friendsSubtitle": "{count} friends",
+      "profileTitle": "My profile",
+      "profileSubtitle": "Edit my profile"
+    },
+    "recentActivity": "Recent activity"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet.",
+    "friendRequest": "{name} wants to be your friend",
+    "friendRequestAccepted": "{name} accepted your friend request",
+    "newMessage": "{name} sent you a message"
+  },
+  "ProfileFields": {
+    "photoChoose": "Choose a photo",
+    "photoUploading": "Uploading...",
+    "photoError": "Failed to upload the photo. Try again.",
+    "fullNamePlaceholder": "First name",
+    "cityPlaceholder": "City",
+    "agePlaceholder": "Age",
+    "interests": "Interests",
+    "bioPlaceholder": "A few words about you (optional)"
+  },
+  "Gender": {
+    "homme": "Man",
+    "femme": "Woman",
+    "non-binaire": "Non-binary",
+    "autre": "Other"
+  },
+  "Onboarding": {
+    "stepOf": "Step {step} of {total}",
+    "steps": {
+      "photo": "Profile photo",
+      "basics": "Your info",
+      "interests": "Interests",
+      "bio": "A word about you"
+    },
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip",
+    "finish": "Finish",
+    "errors": {
+      "fullNameRequired": "First name is required.",
+      "photoRequired": "Add a profile photo to continue.",
+      "cityRequired": "City is required.",
+      "ageInvalid": "Enter a valid age (18 or older).",
+      "genderRequired": "Choose an option.",
+      "interestsRequired": "Choose at least one interest.",
+      "saveFailed": "Something went wrong. Try again."
+    }
+  },
+  "Profile": {
+    "title": "My profile",
+    "blockedUsersLink": "Blocked users",
+    "settingsLink": "Settings",
+    "save": "Save",
+    "saveSuccess": "Profile updated.",
+    "saveError": "Something went wrong. Try again.",
+    "errors": {
+      "fullNameRequired": "First name is required.",
+      "ageInvalid": "Enter a valid age (18 or older)."
+    }
+  },
+  "Search": {
+    "title": "Search",
+    "filtersTitle": "Search filters",
+    "namePlaceholder": "First name",
+    "cityExample": "E.g.: Montreal, QC",
+    "ageRange": "Age range",
+    "genderLabel": "Gender",
+    "anyGender": "Any",
+    "submit": "Search",
+    "loading": "Searching...",
+    "noResults": "No results. Try widening your filters.",
+    "suggestedResults": "Suggested results"
+  },
+  "Friends": {
+    "title": "My friends",
+    "loading": "Loading...",
+    "myFriends": "My friends",
+    "receivedRequests": "Received requests",
+    "filterByName": "Filter by name",
+    "noFriends": "No friends yet. Use search to find some!",
+    "noRequests": "No pending requests.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "message": "Message",
+    "remove": "Remove",
+    "addFriend": "Add",
+    "requestSent": "Request sent",
+    "theySentYouRequest": "Sent you a request",
+    "friendsBadge": "Friend"
+  },
+  "Messages": {
+    "title": "Messages",
+    "loading": "Loading...",
+    "conversationsTitle": "Conversations",
+    "searchPlaceholder": "Search...",
+    "noSearchResults": "No conversation matches your search.",
+    "unreadSection": "Unread · {count}",
+    "readSection": "Read",
+    "onlineStatus": "Online",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "noConversations": "No conversations yet. Start one from the Friends page.",
+    "noMessagesYet": "No messages yet. Say hi!",
+    "selectConversation": "Select a conversation to open it.",
+    "back": "Back",
+    "read": "Read",
+    "messagePlaceholder": "Type a message...",
+    "send": "Send"
+  },
+  "Report": {
+    "action": "Report this profile",
+    "success": "Thanks, your report has been sent.",
+    "error": "Something went wrong. Try again.",
+    "reported": "Reported",
+    "blockAction": "Block",
+    "modalTitleProfile": "Report this profile",
+    "modalTitleMessage": "Report this message",
+    "reasons": {
+      "harassment": "Harassment or bullying",
+      "inappropriate_content": "Inappropriate content",
+      "fake_profile": "Fake profile",
+      "spam": "Spam or advertising",
+      "other": "Other reason"
+    },
+    "detailsPlaceholder": "Add details if you'd like (optional)",
+    "submit": "Send report",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirmBlockTitle": "Block this person?",
+    "confirmBlockBody": "Block {name}? You won't be able to see each other or message each other anymore. You can unblock them later from your profile."
+  },
+  "Blocked": {
+    "title": "Blocked users",
+    "loading": "Loading...",
+    "empty": "You haven't blocked anyone yet.",
+    "unblock": "Unblock",
+    "unblockError": "Something went wrong. Try again.",
+    "loadError": "Couldn't load the list. Try again later."
+  },
+  "Admin": {
+    "title": "Moderation",
+    "noReports": "No open reports.",
+    "loading": "Loading...",
+    "reporterLabel": "Reported by",
+    "targetTypeProfile": "Profile",
+    "targetTypeMessage": "Message",
+    "targetTypeUnsupported": "Unsupported report type",
+    "reasonLabel": "Reason",
+    "dateLabel": "Date",
+    "messageRemovedPlaceholder": "Message removed",
+    "reviewingBadge": "Under review",
+    "cancel": "Cancel",
+    "actions": {
+      "suspend": "Suspend",
+      "ban": "Ban",
+      "reactivate": "Reactivate",
+      "removeMessage": "Remove message",
+      "resolve": "Mark as resolved",
+      "dismiss": "Dismiss"
+    },
+    "confirm": {
+      "suspendTitle": "Suspend this account?",
+      "suspendBody": "Suspend {name}? They won't be able to use Friendszy until the account is reactivated.",
+      "banTitle": "Ban this account?",
+      "banBody": "Ban {name}? This is more serious than a suspension and should be reserved for confirmed cases.",
+      "reactivateTitle": "Reactivate this account?",
+      "reactivateBody": "Reactivate {name}? They will regain full access to Friendszy.",
+      "removeMessageTitle": "Remove this message?",
+      "removeMessageBody": "The message will be hidden and shown as \"Message removed\" to users. This action cannot be undone."
+    },
+    "statusBadge": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "banned": "Banned"
+    },
+    "actionSuccess": "Action completed.",
+    "actionError": "Something went wrong. Try again."
+  },
+  "Suspended": {
+    "suspendedTitle": "Your account has been suspended",
+    "suspendedBody": "Your account was temporarily suspended following a report or a rule violation. Contact us if you think this is a mistake.",
+    "bannedTitle": "Your account has been banned",
+    "bannedBody": "Your account was permanently banned following a rule violation. Contact us if you think this is a mistake.",
+    "contact": "Contact us"
+  },
+  "Common": {
+    "deletedUser": "Deleted user"
+  },
+  "Settings": {
+    "title": "Settings",
+    "exportTitle": "Download my data",
+    "exportBody": "Get a copy of your Friendszy data (profile, interests, friends, sent messages) as JSON.",
+    "exportButton": "Download my data",
+    "exportError": "Something went wrong. Try again.",
+    "deleteTitle": "Delete my account",
+    "deleteBody": "This action is irreversible: your profile will be anonymized and you won't be able to sign in again.",
+    "deleteButton": "Delete my account",
+    "deleteWarning": "This action is irreversible. Your profile will be anonymized, your friendships and blocks will be removed, and you won't be able to sign back in to Friendszy with this account.",
+    "deleteConfirmWord": "DELETE",
+    "deleteConfirmPrompt": "Type {word} to confirm.",
+    "deleteConfirmButton": "Permanently delete",
+    "deleteError": "Something went wrong. Try again.",
+    "cancel": "Cancel"
+  }
+}
