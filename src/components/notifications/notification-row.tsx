@@ -1,11 +1,10 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   markNotificationRead,
-  notificationHref,
   type EnrichedNotification,
 } from "@/lib/notifications/queries";
 
@@ -19,17 +18,12 @@ export function NotificationRow({
   const t = useTranslations("Notifications");
   const tCommon = useTranslations("Common");
   const format = useFormatter();
+  const now = useNow({ updateInterval: 60000 });
   const router = useRouter();
 
   const name = notification.otherProfile?.full_name ?? tCommon("deletedUser");
   const label =
-    notification.type === "friend_request"
-      ? t("friendRequest", { name })
-      : notification.type === "friend_request_accepted"
-        ? t("friendRequestAccepted", { name })
-        : notification.type === "new_message"
-          ? t("newMessage", { name })
-          : "";
+    notification.type === "friend_request_accepted" ? t("friendRequestAccepted", { name }) : "";
   const isUnread = !notification.read_at;
   const profile = notification.otherProfile;
 
@@ -43,7 +37,7 @@ export function NotificationRow({
         // best-effort: le badge se resynchronisera au prochain événement realtime
       }
     }
-    router.push(notificationHref(notification));
+    router.push("/friends");
   }
 
   return (
@@ -73,7 +67,7 @@ export function NotificationRow({
         {label}
       </p>
       <span className="shrink-0 text-xs text-muted">
-        {format.relativeTime(new Date(notification.created_at))}
+        {format.relativeTime(new Date(notification.created_at), now)}
       </span>
       <span className="shrink-0 text-muted">→</span>
     </button>

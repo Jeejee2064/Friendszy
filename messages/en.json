@@ -97,7 +97,23 @@
     "cityPlaceholder": "City",
     "agePlaceholder": "Age",
     "interests": "Interests",
-    "bioPlaceholder": "A few words about you (optional)"
+    "bioPlaceholder": "A few words about you (optional)",
+    "showMore": "Show more (+{count})",
+    "showLess": "Show less",
+    "interestsSearchPlaceholder": "Search an interest...",
+    "interestsNoResults": "No interest matches."
+  },
+  "InterestCategories": {
+    "sports": "Sports",
+    "plein_air": "Outdoors",
+    "arts_creatifs": "Creative arts",
+    "jeux": "Games",
+    "lecture": "Reading",
+    "cinema_culture_pop": "Movies & pop culture",
+    "genres_musicaux": "Music genres",
+    "instruments_musique": "Musical instruments",
+    "cuisine": "Cooking",
+    "bien_etre": "Wellness"
   },
   "Gender": {
     "homme": "Man",
@@ -150,13 +166,20 @@
     "submit": "Search",
     "loading": "Searching...",
     "noResults": "No results. Try widening your filters.",
-    "suggestedResults": "Suggested results"
+    "suggestedResults": "Suggested results",
+    "filtersButton": "Filters",
+    "viewResults": "View results",
+    "interestsPlaceholder": "Search for an interest...",
+    "yourInterests": "Your interests:",
+    "maxInterestsReached": "Maximum 3 interests",
+    "removeInterest": "Remove"
   },
   "Friends": {
     "title": "My friends",
     "loading": "Loading...",
     "myFriends": "My friends",
     "receivedRequests": "Received requests",
+    "blockedTab": "Blocked",
     "filterByName": "Filter by name",
     "noFriends": "No friends yet. Use search to find some!",
     "noRequests": "No pending requests.",
@@ -167,12 +190,14 @@
     "addFriend": "Add",
     "requestSent": "Request sent",
     "theySentYouRequest": "Sent you a request",
-    "friendsBadge": "Friend"
+    "friendsBadge": "Friend",
+    "theyDeclinedYourRequest": "They declined your request"
   },
   "Messages": {
     "title": "Messages",
     "loading": "Loading...",
     "conversationsTitle": "Conversations",
+    "newConversation": "New conversation",
     "searchPlaceholder": "Search...",
     "noSearchResults": "No conversation matches your search.",
     "unreadSection": "Unread · {count}",
@@ -186,7 +211,9 @@
     "back": "Back",
     "read": "Read",
     "messagePlaceholder": "Type a message...",
-    "send": "Send"
+    "send": "Send",
+    "blockedByYou": "You blocked {name}. This conversation is now closed.",
+    "blockedByThem": "This conversation is no longer available."
   },
   "Report": {
     "action": "Report this profile",

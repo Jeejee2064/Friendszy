@@ -22,6 +22,31 @@ export async function blockUser(
   if (error) throw error;
 }
 
+export async function isBlockedBetween(
+  supabase: Client,
+  a: string,
+  b: string
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("is_blocked_between", { a, b });
+  if (error) throw error;
+  return !!data;
+}
+
+export async function haveIBlocked(
+  supabase: Client,
+  blockerId: string,
+  blockedId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("blocks")
+    .select("blocker_id")
+    .eq("blocker_id", blockerId)
+    .eq("blocked_id", blockedId)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
 export async function unblockUser(
   supabase: Client,
   blockerId: string,

@@ -247,6 +247,10 @@ export type Database = {
           city: string | null;
         }[];
       };
+      match_city_ids: {
+        Args: { p_city: string };
+        Returns: { id: string }[];
+      };
     };
     Enums: Record<string, never>;
   };

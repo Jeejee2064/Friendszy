@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -17,17 +18,10 @@ import {
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getMyInterestIds } from "@/lib/profile/queries";
 import { GENDERS, type Gender, type Interest } from "@/lib/profile/types";
-import { InterestsGrid } from "@/components/profile/interests-grid";
+import { InterestAutocomplete } from "@/components/search/interest-autocomplete";
+import { AgeRangeSlider, AGE_MIN, AGE_MAX } from "@/components/search/age-range-slider";
+import { Modal } from "@/components/ui/modal";
 import { PersonCard } from "@/components/social/person-card";
-import { ReportButton } from "@/components/social/report-button";
-import { BlockButton } from "@/components/social/block-button";
-
-const AGE_BUCKETS = [
-  { label: "18-28", min: 18, max: 28 },
-  { label: "29-44", min: 29, max: 44 },
-  { label: "45-60", min: 45, max: 60 },
-  { label: "61+", min: 61, max: 120 },
-] as const;
 
 export function SearchPageClient({
   userId,
@@ -46,11 +40,11 @@ export function SearchPageClient({
 
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
-  const [ageBucket, setAgeBucket] = useState<(typeof AGE_BUCKETS)[number] | null>(
-    null
-  );
+  const [minAge, setMinAge] = useState(AGE_MIN);
+  const [maxAge, setMaxAge] = useState(AGE_MAX);
   const [gender, setGender] = useState<Gender | null>(null);
   const [interestIds, setInterestIds] = useState<number[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [sharedByProfile, setSharedByProfile] = useState<Map<string, number[]>>(
@@ -80,8 +74,8 @@ export function SearchPageClient({
           {
             name: name || undefined,
             city: city || undefined,
-            minAge: ageBucket?.min,
-            maxAge: ageBucket?.max,
+            minAge: minAge > AGE_MIN ? minAge : undefined,
+            maxAge: maxAge < AGE_MAX ? maxAge : undefined,
             gender: gender ?? undefined,
             interestIds: interestIds.length > 0 ? interestIds : undefined,
           },
@@ -115,6 +109,29 @@ export function SearchPageClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const skipInstantEffect = useRef(true);
+  useEffect(() => {
+    if (skipInstantEffect.current) {
+      skipInstantEffect.current = false;
+      return;
+    }
+    runSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interestIds, gender]);
+
+  const skipDebouncedEffect = useRef(true);
+  useEffect(() => {
+    if (skipDebouncedEffect.current) {
+      skipDebouncedEffect.current = false;
+      return;
+    }
+    const timeout = setTimeout(() => {
+      runSearch();
+    }, 400);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, city, minAge, maxAge]);
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     runSearch();
@@ -139,9 +156,10 @@ export function SearchPageClient({
     }
   }
 
-  function handleBlocked(targetId: string) {
-    setResults((prev) => prev.filter((r) => r.id !== targetId));
-  }
+  const visibleResults = results.filter((r) => {
+    const status = friendshipMap.get(r.id)?.status;
+    return status !== "accepted" && status !== "declined_by_them";
+  });
 
   async function handleMessage(targetId: string) {
     setMessagingId(targetId);
@@ -154,23 +172,126 @@ export function SearchPageClient({
     }
   }
 
+  const activeFilterCount =
+    (city ? 1 : 0) +
+    (gender ? 1 : 0) +
+    (minAge > AGE_MIN || maxAge < AGE_MAX ? 1 : 0) +
+    (interestIds.length > 0 ? 1 : 0);
+
   return (
     <div className="p-6 md:p-10">
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <form
-          onSubmit={handleSubmit}
-          className="flex shrink-0 flex-col gap-3 rounded-2xl border border-border bg-card p-6 lg:w-72"
+      <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-3 sm:flex-row">
+        <input
+          type="text"
+          placeholder={t("namePlaceholder")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="flex-1 rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-teal2"
+        />
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-bold text-text"
         >
-          <p className="text-sm font-bold text-text">🔍 {t("filtersTitle")}</p>
-          <input
-            type="text"
-            placeholder={t("namePlaceholder")}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
-          />
+          🔍 {t("filtersButton")}
+          {activeFilterCount > 0 && (
+            <span
+              className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+      </form>
+
+      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
+        {t("suggestedResults")}
+      </p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <AnimatePresence mode="popLayout">
+          {loading ? (
+            <motion.p
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="col-span-full text-center text-sm text-muted"
+            >
+              {t("loading")}
+            </motion.p>
+          ) : visibleResults.length === 0 ? (
+            <motion.p
+              key="empty"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="col-span-full text-center text-sm text-muted"
+            >
+              {t("noResults")}
+            </motion.p>
+          ) : (
+            visibleResults.map((result) => {
+              const shared = (sharedByProfile.get(result.id) ?? []).filter((id) =>
+                myInterestIds.includes(id)
+              );
+              const info = friendshipMap.get(result.id);
+              const pendingSent =
+                sentIds.has(result.id) || info?.status === "pending_sent";
+
+              return (
+                <motion.div
+                  key={result.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
+                  <PersonCard
+                    profile={result}
+                    sharedInterests={shared.map(interestLabel)}
+                    deletedUserLabel={tCommon("deletedUser")}
+                    footer={
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleMessage(result.id)}
+                          disabled={messagingId === result.id}
+                          className="w-full rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                          style={{ backgroundImage: "var(--grad)" }}
+                        >
+                          💬 {tFriends("message")}
+                        </button>
+                        {info?.status === "pending_received" ? (
+                          <span className="text-center text-xs text-muted">
+                            {tFriends("theySentYouRequest")}
+                          </span>
+                        ) : pendingSent ? (
+                          <span className="text-center text-xs text-muted">
+                            {tFriends("requestSent")}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleAddFriend(result.id)}
+                            className="w-full rounded-full border border-teal2 px-4 py-2 text-sm font-bold text-teal2"
+                          >
+                            + {tFriends("addFriend")}
+                          </button>
+                        )}
+                      </div>
+                    }
+                  />
+                </motion.div>
+              );
+            })
+          )}
+        </AnimatePresence>
+      </div>
+
+      <Modal open={filtersOpen} onClose={() => setFiltersOpen(false)} title={t("filtersTitle")}>
+        <div className="flex max-h-[65vh] flex-col gap-5 overflow-y-auto pr-1">
           <label>
             <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
               {tFields("cityPlaceholder")}
@@ -188,29 +309,14 @@ export function SearchPageClient({
             <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
               {t("ageRange")}
             </span>
-            <div className="flex flex-wrap gap-2">
-              {AGE_BUCKETS.map((bucket) => (
-                <button
-                  key={bucket.label}
-                  type="button"
-                  onClick={() =>
-                    setAgeBucket((prev) => (prev?.label === bucket.label ? null : bucket))
-                  }
-                  className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
-                    ageBucket?.label === bucket.label
-                      ? "text-white"
-                      : "border-border text-text"
-                  }`}
-                  style={
-                    ageBucket?.label === bucket.label
-                      ? { backgroundImage: "var(--grad)", borderColor: "transparent" }
-                      : undefined
-                  }
-                >
-                  {bucket.label}
-                </button>
-              ))}
-            </div>
+            <AgeRangeSlider
+              min={minAge}
+              max={maxAge}
+              onChange={(nextMin, nextMax) => {
+                setMinAge(nextMin);
+                setMaxAge(nextMax);
+              }}
+            />
           </div>
 
           <div>
@@ -218,9 +324,13 @@ export function SearchPageClient({
               {t("genderLabel")}
             </span>
             <div className="flex flex-wrap gap-2">
-              <button
+              <motion.button
                 type="button"
+                layout
                 onClick={() => setGender(null)}
+                whileTap={{ scale: 0.92 }}
+                animate={{ scale: gender === null ? 1.05 : 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
                 className={`rounded-lg border px-3 py-2 text-sm font-semibold ${gender === null ? "text-white" : "border-border text-text"}`}
                 style={
                   gender === null
@@ -229,12 +339,16 @@ export function SearchPageClient({
                 }
               >
                 {t("anyGender")}
-              </button>
+              </motion.button>
               {GENDERS.map((g) => (
-                <button
+                <motion.button
                   key={g}
                   type="button"
+                  layout
                   onClick={() => setGender(g)}
+                  whileTap={{ scale: 0.92 }}
+                  animate={{ scale: gender === g ? 1.05 : 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25 }}
                   className={`rounded-lg border px-3 py-2 text-sm font-semibold ${gender === g ? "text-white" : "border-border text-text"}`}
                   style={
                     gender === g
@@ -243,106 +357,33 @@ export function SearchPageClient({
                   }
                 >
                   {tGender(g)}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
 
-          <InterestsGrid
-            interests={interests}
-            selectedIds={interestIds}
-            onChange={setInterestIds}
-          />
-
-          <button
-            type="submit"
-            className="mt-1 rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundImage: "var(--grad)" }}
-          >
-            {t("submit")}
-          </button>
-        </form>
-
-        <div className="flex-1">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
-            {t("suggestedResults")}
-          </p>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {loading ? (
-              <p className="col-span-full text-center text-sm text-muted">
-                {t("loading")}
-              </p>
-            ) : results.length === 0 ? (
-              <p className="col-span-full text-center text-sm text-muted">
-                {t("noResults")}
-              </p>
-            ) : (
-              results.map((result) => {
-                const shared = (sharedByProfile.get(result.id) ?? []).filter((id) =>
-                  myInterestIds.includes(id)
-                );
-                const info = friendshipMap.get(result.id);
-                const pendingSent =
-                  sentIds.has(result.id) || info?.status === "pending_sent";
-
-                return (
-                  <PersonCard
-                    key={result.id}
-                    profile={result}
-                    sharedInterests={shared.map(interestLabel)}
-                    deletedUserLabel={tCommon("deletedUser")}
-                    footer={
-                      <>
-                        <div className="flex items-center justify-between gap-2">
-                          <button
-                            onClick={() => handleMessage(result.id)}
-                            disabled={messagingId === result.id}
-                            className="flex-1 rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-                            style={{ backgroundImage: "var(--grad)" }}
-                          >
-                            💬 {tFriends("message")}
-                          </button>
-                          <ReportButton
-                            reporterId={userId}
-                            targetType="profile"
-                            targetId={result.id}
-                          />
-                          <BlockButton
-                            blockerId={userId}
-                            blockedId={result.id}
-                            blockedName={result.full_name}
-                            onBlocked={() => handleBlocked(result.id)}
-                          />
-                        </div>
-                        {info?.status === "accepted" ? (
-                          <span className="text-xs font-semibold text-teal2">
-                            {tFriends("friendsBadge")}
-                          </span>
-                        ) : info?.status === "pending_received" ? (
-                          <span className="text-xs text-muted">
-                            {tFriends("theySentYouRequest")}
-                          </span>
-                        ) : pendingSent ? (
-                          <span className="text-xs text-muted">
-                            {tFriends("requestSent")}
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleAddFriend(result.id)}
-                            className="self-start text-xs font-semibold text-teal2 hover:underline"
-                          >
-                            + {tFriends("addFriend")}
-                          </button>
-                        )}
-                      </>
-                    }
-                  />
-                );
-              })
-            )}
+          <div>
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
+              {tFields("interests")}
+            </span>
+            <InterestAutocomplete
+              interests={interests}
+              selectedIds={interestIds}
+              onChange={setInterestIds}
+              myInterestIds={myInterestIds}
+            />
           </div>
         </div>
-      </div>
+
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(false)}
+          className="mt-5 w-full rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundImage: "var(--grad)" }}
+        >
+          {t("viewResults")}
+        </button>
+      </Modal>
     </div>
   );
 }

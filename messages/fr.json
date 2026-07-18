@@ -97,7 +97,23 @@
     "cityPlaceholder": "Ville",
     "agePlaceholder": "Âge",
     "interests": "Centres d'intérêt",
-    "bioPlaceholder": "Quelques mots sur toi (optionnel)"
+    "bioPlaceholder": "Quelques mots sur toi (optionnel)",
+    "showMore": "Voir plus (+{count})",
+    "showLess": "Voir moins",
+    "interestsSearchPlaceholder": "Rechercher un intérêt...",
+    "interestsNoResults": "Aucun intérêt ne correspond."
+  },
+  "InterestCategories": {
+    "sports": "Sports",
+    "plein_air": "Plein air",
+    "arts_creatifs": "Arts créatifs",
+    "jeux": "Jeux",
+    "lecture": "Lecture",
+    "cinema_culture_pop": "Cinéma & culture pop",
+    "genres_musicaux": "Genres musicaux",
+    "instruments_musique": "Instruments de musique",
+    "cuisine": "Cuisine",
+    "bien_etre": "Bien-être"
   },
   "Gender": {
     "homme": "Homme",
@@ -150,13 +166,20 @@
     "submit": "Rechercher",
     "loading": "Recherche en cours...",
     "noResults": "Aucun résultat. Essaie d'élargir tes filtres.",
-    "suggestedResults": "Résultats suggérés"
+    "suggestedResults": "Résultats suggérés",
+    "filtersButton": "Filtres",
+    "viewResults": "Voir les résultats",
+    "interestsPlaceholder": "Rechercher un intérêt...",
+    "yourInterests": "Tes intérêts :",
+    "maxInterestsReached": "Maximum 3 intérêts",
+    "removeInterest": "Retirer"
   },
   "Friends": {
     "title": "Mes amis",
     "loading": "Chargement...",
     "myFriends": "Mes amis",
     "receivedRequests": "Demandes reçues",
+    "blockedTab": "Bloqués",
     "filterByName": "Filtrer par prénom",
     "noFriends": "Pas encore d'amis. Utilise la recherche pour en trouver !",
     "noRequests": "Aucune demande en attente.",
@@ -167,12 +190,14 @@
     "addFriend": "Ajouter",
     "requestSent": "Demande envoyée",
     "theySentYouRequest": "T'a envoyé une demande",
-    "friendsBadge": "Ami"
+    "friendsBadge": "Ami",
+    "theyDeclinedYourRequest": "A décliné ta demande"
   },
   "Messages": {
     "title": "Messagerie",
     "loading": "Chargement...",
     "conversationsTitle": "Conversations",
+    "newConversation": "Nouvelle conversation",
     "searchPlaceholder": "Rechercher...",
     "noSearchResults": "Aucune conversation ne correspond à ta recherche.",
     "unreadSection": "Non lus · {count}",
@@ -186,7 +211,9 @@
     "back": "Retour",
     "read": "Lu",
     "messagePlaceholder": "Écris un message...",
-    "send": "Envoyer"
+    "send": "Envoyer",
+    "blockedByYou": "Tu as bloqué {name}. Cette conversation est maintenant fermée.",
+    "blockedByThem": "Cette conversation n'est plus disponible."
   },
   "Report": {
     "action": "Signaler ce profil",

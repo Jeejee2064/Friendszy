@@ -1,17 +1,26 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { sendMessage, markConversationRead, type MessageRow } from "@/lib/messages/queries";
+import {
+  sendMessage,
+  markConversationRead,
+  getOrCreateConversation,
+  type MessageRow,
+} from "@/lib/messages/queries";
+import { listFriends } from "@/lib/friends/queries";
+import { isBlockedBetween, haveIBlocked } from "@/lib/blocks/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { MessageBubble } from "@/components/messages/message-bubble";
 import { OnlineDot } from "@/components/social/online-dot";
 import { BlockButton } from "@/components/social/block-button";
 import { ReportButton } from "@/components/social/report-button";
 import { PageHeader } from "@/components/layout/page-header";
+import { Modal } from "@/components/ui/modal";
 import { usePresence } from "@/lib/presence/presence-context";
+import { useToast } from "@/components/ui/toast-context";
 
 type ConversationSummary = {
   id: string;
@@ -64,8 +73,10 @@ export function MessagesPageClient({
   const t = useTranslations("Messages");
   const tCommon = useTranslations("Common");
   const format = useFormatter();
+  const now = useNow({ updateInterval: 60000 });
   const hasSelection = !!selectedConversationId && !!selectedOtherProfile;
   const [search, setSearch] = useState("");
+  const [newConversationOpen, setNewConversationOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -104,7 +115,7 @@ export function MessagesPageClient({
             </p>
             {c.lastMessageAt && (
               <span className="shrink-0 text-xs text-muted">
-                {format.relativeTime(new Date(c.lastMessageAt))}
+                {format.relativeTime(new Date(c.lastMessageAt), now)}
               </span>
             )}
           </div>
@@ -128,14 +139,26 @@ export function MessagesPageClient({
     <div className="flex h-screen flex-col">
       <PageHeader title={t("title")} />
 
-      <div className="flex flex-1 gap-4 overflow-hidden p-4 md:p-6">
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:p-6">
         <div
-          className={`w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card md:flex md:w-80 ${
-            hasSelection ? "hidden md:flex" : "flex"
+          className={`min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card lg:flex lg:w-80 ${
+            hasSelection ? "hidden lg:flex" : "flex"
           }`}
         >
           <div className="border-b border-border p-4">
-            <h2 className="mb-3 font-bold text-text">{t("conversationsTitle")}</h2>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="font-bold text-text">{t("conversationsTitle")}</h2>
+              <button
+                type="button"
+                onClick={() => setNewConversationOpen(true)}
+                title={t("newConversation")}
+                aria-label={t("newConversation")}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl text-white leading-none"
+                style={{ backgroundImage: "var(--grad)" }}
+              >
+                +
+              </button>
+            </div>
             <input
               type="text"
               value={search}
@@ -144,7 +167,7 @@ export function MessagesPageClient({
               className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm outline-none focus:border-teal2"
             />
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
               <p className="p-6 text-center text-sm text-muted">{t("noConversations")}</p>
             ) : filtered.length === 0 ? (
@@ -173,8 +196,8 @@ export function MessagesPageClient({
         </div>
 
         <div
-          className={`flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card ${
-            hasSelection ? "flex" : "hidden md:flex"
+          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card ${
+            hasSelection ? "flex" : "hidden lg:flex"
           }`}
         >
           {hasSelection ? (
@@ -192,7 +215,103 @@ export function MessagesPageClient({
           )}
         </div>
       </div>
+
+      <NewConversationModal
+        open={newConversationOpen}
+        onClose={() => setNewConversationOpen(false)}
+        userId={userId}
+      />
     </div>
+  );
+}
+
+function NewConversationModal({
+  open,
+  onClose,
+  userId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  userId: string;
+}) {
+  const t = useTranslations("Messages");
+  const tFriends = useTranslations("Friends");
+  const tCommon = useTranslations("Common");
+  const router = useRouter();
+
+  const [loaded, setLoaded] = useState(false);
+  const [friends, setFriends] = useState<ProfileSummary[]>([]);
+  const [search, setSearch] = useState("");
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || loaded) return;
+    const supabase = createClient();
+    listFriends(supabase, userId)
+      .then(setFriends)
+      .then(() => setLoaded(true))
+      .catch(() => {});
+  }, [open, loaded, userId]);
+
+  function handleClose() {
+    setSearch("");
+    onClose();
+  }
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return friends;
+    return friends.filter((f) =>
+      (f.full_name ?? tCommon("deletedUser")).toLowerCase().includes(query)
+    );
+  }, [friends, search, tCommon]);
+
+  async function handlePick(friendId: string) {
+    setOpeningId(friendId);
+    try {
+      const supabase = createClient();
+      const conversationId = await getOrCreateConversation(supabase, userId, friendId);
+      handleClose();
+      router.push(`/messages?c=${conversationId}`);
+    } catch {
+      setOpeningId(null);
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} title={t("newConversation")}>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder={`🔍 ${t("searchPlaceholder")}`}
+        className="mb-3 w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm outline-none focus:border-teal2"
+      />
+      <div className="flex max-h-80 flex-col gap-1 overflow-y-auto">
+        {!loaded ? (
+          <p className="p-4 text-center text-sm text-muted">{t("loading")}</p>
+        ) : friends.length === 0 ? (
+          <p className="p-4 text-center text-sm text-muted">{tFriends("noFriends")}</p>
+        ) : filtered.length === 0 ? (
+          <p className="p-4 text-center text-sm text-muted">{t("noSearchResults")}</p>
+        ) : (
+          filtered.map((friend) => (
+            <button
+              key={friend.id}
+              type="button"
+              onClick={() => handlePick(friend.id)}
+              disabled={openingId !== null}
+              className="flex items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-bg disabled:opacity-60"
+            >
+              <Avatar profile={friend} size="sm" deletedUserLabel={tCommon("deletedUser")} />
+              <p className="min-w-0 flex-1 truncate font-semibold text-text">
+                {friend.full_name ?? tCommon("deletedUser")}
+              </p>
+            </button>
+          ))
+        )}
+      </div>
+    </Modal>
   );
 }
 
@@ -226,14 +345,59 @@ function ConversationPane({
   const tCommon = useTranslations("Common");
   const format = useFormatter();
   const router = useRouter();
+  const showToast = useToast();
   const onlineIds = usePresence();
   const isOnline = onlineIds.has(otherProfile.id);
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
+  const closingRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const displayName = otherProfile.full_name ?? tCommon("deletedUser");
+
+  async function closeDueToBlock(byMe: boolean) {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    showToast({
+      message: byMe
+        ? t("blockedByYou", { name: displayName })
+        : t("blockedByThem"),
+      href: "/messages",
+    });
+    router.push("/messages");
+    router.refresh();
+  }
+
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+
+    async function checkBlocked() {
+      if (cancelled || closingRef.current) return;
+      try {
+        const blocked = await isBlockedBetween(supabase, userId, otherProfile.id);
+        if (!blocked || cancelled) return;
+        const byMe = await haveIBlocked(supabase, userId, otherProfile.id);
+        closeDueToBlock(byMe);
+      } catch {
+        // ignore transient errors, next check will retry
+      }
+    }
+
+    checkBlocked();
+    const interval = setInterval(checkBlocked, 8000);
+    document.addEventListener("visibilitychange", checkBlocked);
+    window.addEventListener("focus", checkBlocked);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", checkBlocked);
+      window.removeEventListener("focus", checkBlocked);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, userId, otherProfile.id]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -295,6 +459,17 @@ function ConversationPane({
       const supabase = createClient();
       const sent = await sendMessage(supabase, conversationId, userId, text);
       setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
+    } catch {
+      const supabase = createClient();
+      const blocked = await isBlockedBetween(supabase, userId, otherProfile.id).catch(
+        () => false
+      );
+      if (blocked) {
+        const byMe = await haveIBlocked(supabase, userId, otherProfile.id).catch(() => false);
+        closeDueToBlock(byMe);
+      } else {
+        setContent(text);
+      }
     } finally {
       setSending(false);
     }
@@ -303,31 +478,36 @@ function ConversationPane({
   const lastMineIndex = messages.map((m) => m.sender_id).lastIndexOf(userId);
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-3 border-b border-border p-4">
         <Link
           href="/messages"
-          className="text-lg font-semibold text-teal2 md:hidden"
+          className="text-lg font-semibold text-teal2 lg:hidden"
           aria-label={t("back")}
         >
           ←
         </Link>
-        <div className="relative shrink-0">
-          <Avatar profile={otherProfile} size="sm" deletedUserLabel={tCommon("deletedUser")} />
-          <OnlineDot
-            userId={otherProfile.id}
-            className="absolute bottom-0 right-0 h-2.5 w-2.5"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-bold text-text">{displayName}</p>
-          {isOnline && (
-            <p className="flex items-center gap-1 text-xs font-semibold text-teal2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
-              {t("onlineStatus")}
-            </p>
-          )}
-        </div>
+        <Link
+          href={`/profile/${otherProfile.id}`}
+          className="flex min-w-0 flex-1 items-center gap-3"
+        >
+          <div className="relative shrink-0">
+            <Avatar profile={otherProfile} size="sm" deletedUserLabel={tCommon("deletedUser")} />
+            <OnlineDot
+              userId={otherProfile.id}
+              className="absolute bottom-0 right-0 h-2.5 w-2.5"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-bold text-text">{displayName}</p>
+            {isOnline && (
+              <p className="flex items-center gap-1 text-xs font-semibold text-teal2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
+                {t("onlineStatus")}
+              </p>
+            )}
+          </div>
+        </Link>
         <div className="flex shrink-0 items-center gap-2">
           <ReportButton
             reporterId={userId}
@@ -340,15 +520,12 @@ function ConversationPane({
             blockedId={otherProfile.id}
             blockedName={displayName}
             compact
-            onBlocked={() => {
-              router.push("/messages");
-              router.refresh();
-            }}
+            onBlocked={() => closeDueToBlock(true)}
           />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {messages.length === 0 ? (
           <p className="text-center text-sm text-muted">{t("noMessagesYet")}</p>
         ) : (
@@ -388,7 +565,7 @@ function ConversationPane({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={t("messagePlaceholder")}
-          className="flex-1 rounded-full border border-border px-4 py-2.5 text-sm outline-none focus:border-teal2"
+          className="min-w-0 flex-1 rounded-full border border-border px-4 py-2.5 text-sm outline-none focus:border-teal2"
         />
         <button
           type="submit"

@@ -13,25 +13,11 @@ export function notificationOtherUserId(notification: NotificationRow): string |
   if (!payload) return null;
 
   switch (notification.type) {
-    case "friend_request":
-      return typeof payload.requester_id === "string" ? payload.requester_id : null;
     case "friend_request_accepted":
       return typeof payload.addressee_id === "string" ? payload.addressee_id : null;
-    case "new_message":
-      return typeof payload.sender_id === "string" ? payload.sender_id : null;
     default:
       return null;
   }
-}
-
-export function notificationHref(notification: NotificationRow): string {
-  if (notification.type === "new_message") {
-    const payload = notification.payload as Record<string, unknown> | null;
-    const conversationId =
-      payload && typeof payload.conversation_id === "string" ? payload.conversation_id : null;
-    return conversationId ? `/messages?c=${conversationId}` : "/messages";
-  }
-  return "/friends";
 }
 
 export async function getUnreadNotificationCount(
@@ -42,6 +28,8 @@ export async function getUnreadNotificationCount(
     .from("notifications")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
+    .neq("type", "new_message")
+    .neq("type", "friend_request")
     .is("read_at", null);
   if (error) throw error;
   return count ?? 0;
@@ -56,6 +44,8 @@ export async function getNotificationsWithProfiles(
     .from("notifications")
     .select("*")
     .eq("user_id", userId)
+    .neq("type", "new_message")
+    .neq("type", "friend_request")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;

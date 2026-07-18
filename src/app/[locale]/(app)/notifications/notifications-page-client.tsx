@@ -29,7 +29,7 @@ export function NotificationsPageClient({
     const supabase = createClient();
 
     const channel = supabase
-      .channel(`notifications:${userId}`)
+      .channel(`notifications:page:${userId}`)
       .on(
         "postgres_changes",
         {
@@ -40,6 +40,7 @@ export function NotificationsPageClient({
         },
         async (payload) => {
           const newRow = payload.new as NotificationRowData;
+          if (newRow.type === "new_message" || newRow.type === "friend_request") return;
           const otherId = notificationOtherUserId(newRow);
           const profiles = otherId ? await getProfilesByIds(supabase, [otherId]) : [];
           setNotifications((prev) =>

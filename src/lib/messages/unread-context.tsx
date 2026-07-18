@@ -5,15 +5,15 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import { useToast } from "@/components/ui/toast-context";
-import { getUnreadNotificationCount, type NotificationRow } from "./queries";
+import { getUnreadConversationsCount, type MessageRow } from "./queries";
 
-const NotificationsContext = createContext<number>(0);
+const UnreadMessagesContext = createContext<number>(0);
 
-export function useUnreadNotificationsCount() {
-  return useContext(NotificationsContext);
+export function useUnreadConversationsCount() {
+  return useContext(UnreadMessagesContext);
 }
 
-export function NotificationsProvider({ children }: { children: ReactNode }) {
+export function UnreadMessagesProvider({ children }: { children: ReactNode }) {
   const [count, setCount] = useState(0);
   const t = useTranslations("Notifications");
   const showToast = useToast();
@@ -26,7 +26,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     async function refresh(userId: string) {
       try {
-        const value = await getUnreadNotificationCount(supabase, userId);
+        const value = await getUnreadConversationsCount(supabase, userId);
         if (!cancelled) setCount(value);
       } catch {
         // ignore transient errors, next event will retry
@@ -40,39 +40,25 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       await refresh(userId);
 
       channel = supabase
-        .channel(`notifications:${userId}`)
+        .channel(`messages:unread:${userId}`)
         .on(
           "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${userId}`,
-          },
+          { event: "INSERT", schema: "public", table: "messages" },
           async (payload) => {
             refresh(userId);
-            const newRow = payload.new as NotificationRow;
-            if (newRow.type !== "friend_request_accepted") return;
-            const payloadData = newRow.payload as Record<string, unknown> | null;
-            const addresseeId =
-              payloadData && typeof payloadData.addressee_id === "string"
-                ? payloadData.addressee_id
-                : null;
-            const [profile] = addresseeId
-              ? await getProfilesByIds(supabase, [addresseeId])
-              : [];
+            const newMessage = payload.new as MessageRow;
+            if (newMessage.sender_id === userId) return;
+            const [profile] = await getProfilesByIds(supabase, [newMessage.sender_id]);
             const name = profile?.full_name ?? "";
-            showToast({ message: t("friendRequestAccepted", { name }), href: "/friends" });
+            showToast({
+              message: t("newMessage", { name }),
+              href: `/messages?c=${newMessage.conversation_id}`,
+            });
           }
         )
         .on(
           "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${userId}`,
-          },
+          { event: "UPDATE", schema: "public", table: "messages" },
           () => refresh(userId)
         )
         .subscribe();
@@ -104,6 +90,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [t, showToast]);
 
   return (
-    <NotificationsContext.Provider value={count}>{children}</NotificationsContext.Provider>
+    <UnreadMessagesContext.Provider value={count}>{children}</UnreadMessagesContext.Provider>
   );
 }

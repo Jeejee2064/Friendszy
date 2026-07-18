@@ -81,7 +81,7 @@ export function ProfileForm({
 
       <div className="mb-6 flex flex-col gap-2">
         <Link
-          href="/profile/blocked"
+          href="/friends?tab=blocked"
           className="inline-block text-sm font-semibold text-teal2 hover:underline"
         >
           🚫 {t("blockedUsersLink")}

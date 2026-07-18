@@ -37,6 +37,21 @@ export async function searchProfiles(
     if (matchCounts.size === 0) return [];
   }
 
+  let cityIds: string[] | null = null;
+  if (filters.city) {
+    // profiles.city is free text, so a plain ilike misses accent variants
+    // ("Montreal" vs "Montréal"). match_city_ids compares both sides through
+    // unaccent() in Postgres, which the supabase-js filter builder can't
+    // express directly on a column.
+    const { data: cityMatches, error: cityError } = await supabase.rpc(
+      "match_city_ids",
+      { p_city: filters.city }
+    );
+    if (cityError) throw cityError;
+    cityIds = (cityMatches ?? []).map((row) => row.id);
+    if (cityIds.length === 0) return [];
+  }
+
   let query = supabase
     .from("profiles")
     .select("id, full_name, avatar_url, city, age, gender")
@@ -48,7 +63,7 @@ export async function searchProfiles(
       `full_name.ilike.%${filters.name}%,username.ilike.%${filters.name}%`
     );
   }
-  if (filters.city) query = query.ilike("city", `%${filters.city}%`);
+  if (cityIds) query = query.in("id", cityIds);
   if (filters.minAge != null) query = query.gte("age", filters.minAge);
   if (filters.maxAge != null) query = query.lte("age", filters.maxAge);
   if (filters.gender) query = query.eq("gender", filters.gender);

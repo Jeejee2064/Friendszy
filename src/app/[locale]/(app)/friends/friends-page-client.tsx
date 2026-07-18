@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,15 +14,22 @@ import {
   type PendingRequest,
   type FriendshipInfo,
 } from "@/lib/friends/queries";
+import { useRefreshPendingRequests } from "@/lib/friends/pending-context";
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getInterestsForProfiles } from "@/lib/search/queries";
+import { getProfilesByIds } from "@/lib/profile/queries";
+import {
+  listBlockedProfiles,
+  unblockUser,
+  type BlockedProfile,
+} from "@/lib/blocks/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import type { Interest } from "@/lib/profile/types";
 import { PersonCard } from "@/components/social/person-card";
 import { ReportButton } from "@/components/social/report-button";
 import { BlockButton } from "@/components/social/block-button";
 
-type Tab = "friends" | "requests";
+type Tab = "friends" | "requests" | "blocked";
 
 export function FriendsPageClient({
   userId,
@@ -31,13 +39,20 @@ export function FriendsPageClient({
   interests: Interest[];
 }) {
   const t = useTranslations("Friends");
+  const tBlocked = useTranslations("Blocked");
   const tCommon = useTranslations("Common");
   const router = useRouter();
   const locale = useLocale();
+  const searchParams = useSearchParams();
 
-  const [tab, setTab] = useState<Tab>("friends");
+  const tabParam = searchParams.get("tab");
+  const tab: Tab = tabParam === "requests" ? "requests" : tabParam === "blocked" ? "blocked" : "friends";
+  function setTab(nextTab: Tab) {
+    router.replace(nextTab === "friends" ? "/friends" : `/friends?tab=${nextTab}`);
+  }
   const [friends, setFriends] = useState<ProfileSummary[]>([]);
   const [requests, setRequests] = useState<PendingRequest[]>([]);
+  const [blockedProfiles, setBlockedProfiles] = useState<BlockedProfile[]>([]);
   const [friendshipMap, setFriendshipMap] = useState<Map<string, FriendshipInfo>>(
     new Map()
   );
@@ -48,6 +63,8 @@ export function FriendsPageClient({
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [messagingId, setMessagingId] = useState<string | null>(null);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
+  const refreshPendingRequests = useRefreshPendingRequests();
 
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
@@ -59,14 +76,16 @@ export function FriendsPageClient({
     setLoading(true);
     const supabase = createClient();
     try {
-      const [friendList, requestList, fMap] = await Promise.all([
+      const [friendList, requestList, fMap, blockedList] = await Promise.all([
         listFriends(supabase, userId),
         listPendingRequests(supabase, userId),
         getFriendshipMap(supabase, userId),
+        listBlockedProfiles(supabase),
       ]);
       setFriends(friendList);
       setRequests(requestList);
       setFriendshipMap(fMap);
+      setBlockedProfiles(blockedList);
 
       const allIds = [...friendList.map((f) => f.id), ...requestList.map((r) => r.profile.id)];
       setInterestsByProfile(await getInterestsForProfiles(supabase, allIds));
@@ -79,7 +98,28 @@ export function FriendsPageClient({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tab]);
+
+  async function handleUnblock(blockedId: string) {
+    setUnblockingId(blockedId);
+    try {
+      const supabase = createClient();
+      await unblockUser(supabase, userId, blockedId);
+      setBlockedProfiles((prev) => prev.filter((p) => p.id !== blockedId));
+
+      // The underlying friendship row is never touched by block/unblock, so
+      // if they were an accepted friend before, they still are — bring them
+      // back into the friends list right away instead of waiting on a reload.
+      if (friendshipMap.get(blockedId)?.status === "accepted") {
+        const [profile] = await getProfilesByIds(supabase, [blockedId]);
+        if (profile) {
+          setFriends((prev) => (prev.some((f) => f.id === profile.id) ? prev : [...prev, profile]));
+        }
+      }
+    } finally {
+      setUnblockingId(null);
+    }
+  }
 
   async function handleRespond(friendshipId: string, accept: boolean) {
     setBusyId(friendshipId);
@@ -87,6 +127,7 @@ export function FriendsPageClient({
       const supabase = createClient();
       await respondToFriendRequest(supabase, friendshipId, accept);
       await load();
+      refreshPendingRequests();
     } finally {
       setBusyId(null);
     }
@@ -103,8 +144,22 @@ export function FriendsPageClient({
     }
   }
 
-  function handleBlocked(targetId: string) {
-    setFriends((prev) => prev.filter((f) => f.id !== targetId));
+  function handleBlocked(profile: ProfileSummary) {
+    setFriends((prev) => prev.filter((f) => f.id !== profile.id));
+    setBlockedProfiles((prev) =>
+      prev.some((p) => p.id === profile.id)
+        ? prev
+        : [
+            ...prev,
+            {
+              id: profile.id,
+              username: null,
+              full_name: profile.full_name,
+              avatar_url: profile.avatar_url,
+              city: profile.city,
+            },
+          ]
+    );
   }
 
   async function handleMessage(otherId: string) {
@@ -132,6 +187,9 @@ export function FriendsPageClient({
         </TabButton>
         <TabButton active={tab === "requests"} onClick={() => setTab("requests")}>
           {t("receivedRequests")} ({requests.length})
+        </TabButton>
+        <TabButton active={tab === "blocked"} onClick={() => setTab("blocked")}>
+          {t("blockedTab")} ({blockedProfiles.length})
         </TabButton>
       </div>
 
@@ -161,36 +219,45 @@ export function FriendsPageClient({
                     key={friend.id}
                     profile={friend}
                     sharedInterests={theirInterests}
+                    href={`/profile/${friend.id}`}
                     deletedUserLabel={tCommon("deletedUser")}
                     footer={
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-2">
                         <button
                           onClick={() => handleMessage(friend.id)}
                           disabled={messagingId === friend.id}
-                          className="flex-1 rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                          className="w-full rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
                           style={{ backgroundImage: "var(--grad)" }}
                         >
                           💬 {t("message")}
                         </button>
-                        <ReportButton
-                          reporterId={userId}
-                          targetType="profile"
-                          targetId={friend.id}
-                        />
-                        <BlockButton
-                          blockerId={userId}
-                          blockedId={friend.id}
-                          blockedName={friend.full_name}
-                          onBlocked={() => handleBlocked(friend.id)}
-                        />
-                        <button
-                          disabled={busyId === friendshipId}
-                          onClick={() => handleRemove(friendshipId)}
-                          title={t("remove")}
-                          className="rounded-full border border-border px-3 py-2 text-sm text-muted disabled:opacity-60"
-                        >
-                          🗑️
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border">
+                            <ReportButton
+                              reporterId={userId}
+                              targetType="profile"
+                              targetId={friend.id}
+                              compact
+                            />
+                          </div>
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border">
+                            <BlockButton
+                              blockerId={userId}
+                              blockedId={friend.id}
+                              blockedName={friend.full_name}
+                              onBlocked={() => handleBlocked(friend)}
+                              compact
+                            />
+                          </div>
+                          <button
+                            disabled={busyId === friendshipId}
+                            onClick={() => handleRemove(friendshipId)}
+                            title={t("remove")}
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm text-muted disabled:opacity-60"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                     }
                   />
@@ -199,7 +266,7 @@ export function FriendsPageClient({
             </div>
           )}
         </div>
-      ) : (
+      ) : tab === "requests" ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {requests.length === 0 ? (
             <p className="col-span-full text-center text-sm text-muted">
@@ -213,6 +280,7 @@ export function FriendsPageClient({
                 sharedInterests={(interestsByProfile.get(req.profile.id) ?? []).map(
                   interestLabel
                 )}
+                href={`/profile/${req.profile.id}`}
                 deletedUserLabel={tCommon("deletedUser")}
                 footer={
                   <div className="flex items-center gap-2">
@@ -234,6 +302,55 @@ export function FriendsPageClient({
                   </div>
                 }
               />
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {blockedProfiles.length === 0 ? (
+            <p className="col-span-full text-center text-sm text-muted">
+              {tBlocked("empty")}
+            </p>
+          ) : (
+            blockedProfiles.map((profile) => (
+              <div
+                key={profile.id}
+                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
+              >
+                <div
+                  className="h-12 w-12 shrink-0 overflow-hidden rounded-full"
+                  style={
+                    !profile.avatar_url ? { backgroundImage: "var(--grad)" } : undefined
+                  }
+                >
+                  {profile.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+                      {(profile.full_name ?? "?").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold text-text">{profile.full_name}</p>
+                  {profile.city && (
+                    <p className="truncate text-sm text-muted">{profile.city}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={unblockingId === profile.id}
+                  onClick={() => handleUnblock(profile.id)}
+                  className="shrink-0 rounded-full border border-teal2 px-3 py-2 text-sm font-semibold text-teal2 disabled:opacity-60"
+                >
+                  {tBlocked("unblock")}
+                </button>
+              </div>
             ))
           )}
         </div>

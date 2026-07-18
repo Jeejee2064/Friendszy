@@ -7,6 +7,9 @@ import { routing } from "@/i18n/routing";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { PresenceProvider } from "@/lib/presence/presence-context";
 import { NotificationsProvider } from "@/lib/notifications/notifications-context";
+import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
+import { PendingRequestsProvider } from "@/lib/friends/pending-context";
+import { ToastProvider } from "@/components/ui/toast-context";
 import "../globals.css";
 
 const nunito = Nunito({
@@ -72,12 +75,18 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${nunito.variable} ${pacifico.variable}`}>
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider>
-          <PresenceProvider>
-            <NotificationsProvider>
-              {children}
-              <ServiceWorkerRegister />
-            </NotificationsProvider>
-          </PresenceProvider>
+          <ToastProvider>
+            <PresenceProvider>
+              <NotificationsProvider>
+                <UnreadMessagesProvider>
+                  <PendingRequestsProvider>
+                    {children}
+                    <ServiceWorkerRegister />
+                  </PendingRequestsProvider>
+                </UnreadMessagesProvider>
+              </NotificationsProvider>
+            </PresenceProvider>
+          </ToastProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -69,6 +69,20 @@ export async function getUnreadCountsByConversation(
   return counts;
 }
 
+export async function getUnreadConversationsCount(
+  supabase: Client,
+  myId: string
+): Promise<number> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("conversation_id")
+    .neq("sender_id", myId)
+    .is("read_at", null);
+  if (error) throw error;
+
+  return new Set((data ?? []).map((row) => row.conversation_id)).size;
+}
+
 export async function getLatestMessagesByConversation(
   supabase: Client,
   conversationIds: string[]
