@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { AuthError, User } from "@supabase/supabase-js";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { LocaleToggle } from "@/components/layout/locale-toggle";
 import {
   signUpWithEmail,
   signInWithEmail,
@@ -124,6 +125,9 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-bg px-6 py-16">
       <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
+        <div className="absolute left-5 top-5">
+          <LocaleToggle />
+        </div>
         <Link
           href="/"
           aria-label={t("close")}

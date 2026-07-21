@@ -291,6 +291,11 @@
     "bannedBody": "Your account was permanently banned following a rule violation. Contact us if you think this is a mistake.",
     "contact": "Contact us"
   },
+  "NotFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist anymore.",
+    "backHome": "Back home"
+  },
   "Common": {
     "deletedUser": "Deleted user"
   },

@@ -291,6 +291,11 @@
     "bannedBody": "Ton compte a été banni de façon permanente suite à une violation de nos règles. Contacte-nous si tu penses qu'il s'agit d'une erreur.",
     "contact": "Nous contacter"
   },
+  "NotFound": {
+    "title": "Page introuvable",
+    "body": "La page que tu cherches n'existe pas ou plus.",
+    "backHome": "Retour à l'accueil"
+  },
   "Common": {
     "deletedUser": "Utilisateur supprimé"
   },
