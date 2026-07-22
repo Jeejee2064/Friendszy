@@ -20,19 +20,46 @@ export function notificationOtherUserId(notification: NotificationRow): string |
   }
 }
 
+// A notification tied to another user (payload.addressee_id, etc.) becomes
+// noise once that user's account is deleted — deleteMyAccount anonymizes
+// the profiles row in place (full_name → null) rather than removing it, and
+// that's the only reliable "this account is gone" signal available (no
+// deleted_at column). Filter those out everywhere a notification list is
+// built, instead of showing a dead "Deleted user" entry.
+function isLiveOtherProfile(profile: ProfileSummary | null | undefined): boolean {
+  return !!profile && profile.full_name !== null;
+}
+
+function keepNotification(
+  row: NotificationRow,
+  profileById: Map<string, ProfileSummary>
+): boolean {
+  const otherId = notificationOtherUserId(row);
+  if (!otherId) return true;
+  return isLiveOtherProfile(profileById.get(otherId));
+}
+
 export async function getUnreadNotificationCount(
   supabase: Client,
   userId: string
 ): Promise<number> {
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("notifications")
-    .select("id", { count: "exact", head: true })
+    .select("id, type, payload")
     .eq("user_id", userId)
     .neq("type", "new_message")
     .neq("type", "friend_request")
     .is("read_at", null);
   if (error) throw error;
-  return count ?? 0;
+
+  const rows = (data ?? []) as NotificationRow[];
+  const otherIds = [
+    ...new Set(rows.map(notificationOtherUserId).filter((id): id is string => !!id)),
+  ];
+  const profiles = await getProfilesByIds(supabase, otherIds);
+  const profileById = new Map(profiles.map((p) => [p.id, p]));
+
+  return rows.filter((row) => keepNotification(row, profileById)).length;
 }
 
 export async function getNotificationsWithProfiles(
@@ -57,10 +84,12 @@ export async function getNotificationsWithProfiles(
   const profiles = await getProfilesByIds(supabase, otherIds);
   const profileById = new Map(profiles.map((p) => [p.id, p]));
 
-  return rows.map((row) => ({
-    ...row,
-    otherProfile: profileById.get(notificationOtherUserId(row) ?? "") ?? null,
-  }));
+  return rows
+    .filter((row) => keepNotification(row, profileById))
+    .map((row) => ({
+      ...row,
+      otherProfile: profileById.get(notificationOtherUserId(row) ?? "") ?? null,
+    }));
 }
 
 export async function markNotificationRead(supabase: Client, notificationId: string) {

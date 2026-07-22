@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { ProfileSummary } from "@/lib/profile/types";
+import { listBlockedProfiles } from "@/lib/blocks/queries";
 
 type Client = SupabaseClient<Database>;
 
@@ -52,12 +53,16 @@ export async function searchProfiles(
     if (cityIds.length === 0) return [];
   }
 
+  const blockedProfiles = await listBlockedProfiles(supabase);
+  const blockedIds = blockedProfiles.map((row) => row.id);
+
   let query = supabase
     .from("profiles")
     .select("id, full_name, avatar_url, city, age, gender")
     .neq("id", excludeUserId)
     .limit(30);
 
+  if (blockedIds.length > 0) query = query.not("id", "in", `(${blockedIds.join(",")})`);
   if (filters.name) {
     query = query.or(
       `full_name.ilike.%${filters.name}%,username.ilike.%${filters.name}%`

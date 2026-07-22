@@ -5,7 +5,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateConversation } from "@/lib/messages/queries";
-import { sendFriendRequest, type FriendshipInfo } from "@/lib/friends/queries";
+import {
+  sendFriendRequest,
+  respondToFriendRequest,
+  type FriendshipInfo,
+} from "@/lib/friends/queries";
+import { useRefreshPendingRequests } from "@/lib/friends/pending-context";
 import type { Interest } from "@/lib/profile/types";
 import type { Database } from "@/types/supabase";
 import { PageHeader } from "@/components/layout/page-header";
@@ -36,10 +41,12 @@ export function PublicProfileClient({
   const tFields = useTranslations("ProfileFields");
   const locale = useLocale();
   const router = useRouter();
+  const refreshPendingRequests = useRefreshPendingRequests();
 
   const [status, setStatus] = useState(friendshipInfo?.status ?? null);
   const [messaging, setMessaging] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
+  const [responding, setResponding] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   const displayName = profile.full_name ?? tCommon("deletedUser");
@@ -78,6 +85,19 @@ export function PublicProfileClient({
       setStatus("pending_sent");
     } catch {
       setSendingRequest(false);
+    }
+  }
+
+  async function handleRespond(accept: boolean) {
+    if (!friendshipInfo) return;
+    setResponding(true);
+    try {
+      const supabase = createClient();
+      await respondToFriendRequest(supabase, friendshipInfo.friendshipId, accept);
+      setStatus(accept ? "accepted" : null);
+      refreshPendingRequests();
+    } finally {
+      setResponding(false);
     }
   }
 
@@ -168,9 +188,28 @@ export function PublicProfileClient({
                     {t("friendsBadge")}
                   </span>
                 ) : status === "pending_received" ? (
-                  <span className="text-center text-xs text-muted">
-                    {t("theySentYouRequest")}
-                  </span>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-center text-xs text-muted">
+                      {t("theySentYouRequest")}
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleRespond(true)}
+                        disabled={responding}
+                        className="flex-1 rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                        style={{ backgroundImage: "var(--grad)" }}
+                      >
+                        {t("accept")}
+                      </button>
+                      <button
+                        onClick={() => handleRespond(false)}
+                        disabled={responding}
+                        className="flex-1 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted disabled:opacity-60"
+                      >
+                        {t("decline")}
+                      </button>
+                    </div>
+                  </div>
                 ) : status === "pending_sent" ? (
                   <span className="text-center text-xs text-muted">{t("requestSent")}</span>
                 ) : status === "declined_by_them" ? (

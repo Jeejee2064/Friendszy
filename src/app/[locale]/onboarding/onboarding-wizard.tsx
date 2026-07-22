@@ -9,6 +9,7 @@ import type { Gender, Interest } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
+import { CityAutocomplete } from "@/components/search/city-autocomplete";
 
 type FormState = {
   fullName: string;
@@ -152,12 +153,10 @@ export function OnboardingWizard({
 
         {step === 1 && (
           <div className="flex flex-col gap-3">
-            <input
-              type="text"
-              placeholder={tFields("cityPlaceholder")}
+            <CityAutocomplete
               value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
+              onChange={(value) => update("city", value)}
+              placeholder={tFields("cityPlaceholder")}
             />
             <input
               type="number"

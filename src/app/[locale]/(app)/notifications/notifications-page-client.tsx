@@ -43,10 +43,14 @@ export function NotificationsPageClient({
           if (newRow.type === "new_message" || newRow.type === "friend_request") return;
           const otherId = notificationOtherUserId(newRow);
           const profiles = otherId ? await getProfilesByIds(supabase, [otherId]) : [];
+          const otherProfile = profiles[0] ?? null;
+          // Same "account deleted" filter as getNotificationsWithProfiles:
+          // don't surface a notification about a now-anonymized profile.
+          if (otherId && (!otherProfile || otherProfile.full_name === null)) return;
           setNotifications((prev) =>
             prev.some((n) => n.id === newRow.id)
               ? prev
-              : [{ ...newRow, otherProfile: profiles[0] ?? null }, ...prev]
+              : [{ ...newRow, otherProfile }, ...prev]
           );
         }
       )

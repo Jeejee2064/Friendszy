@@ -45,7 +45,10 @@ export default async function MessagesPage({
     .map((c) => {
       const otherId = c.user_a === user.id ? c.user_b : c.user_a;
       const otherProfile = profileById.get(otherId);
-      if (!otherProfile) return null;
+      // deleteMyAccount anonymizes profiles in place (full_name → null)
+      // instead of removing the row — treat that as "hide this
+      // conversation entirely", not just "show a Deleted user label".
+      if (!otherProfile || otherProfile.full_name === null) return null;
       const lastMessage = latest.get(c.id);
       return {
         id: c.id,
@@ -72,7 +75,7 @@ export default async function MessagesPage({
     const otherId =
       conversation.user_a === user.id ? conversation.user_b : conversation.user_a;
     const [profile] = await getProfilesByIds(supabase, [otherId]);
-    if (!profile) notFound();
+    if (!profile || profile.full_name === null) notFound();
     selectedOtherProfile = profile;
     initialMessages = await listMessages(supabase, selectedId);
   }

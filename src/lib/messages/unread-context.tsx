@@ -5,7 +5,12 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import { useToast } from "@/components/ui/toast-context";
-import { getUnreadConversationsCount, type MessageRow } from "./queries";
+import {
+  getUnreadConversationsCount,
+  markAllReceivedMessagesDelivered,
+  markMessageDelivered,
+  type MessageRow,
+} from "./queries";
 
 const UnreadMessagesContext = createContext<number>(0);
 
@@ -38,6 +43,9 @@ export function UnreadMessagesProvider({ children }: { children: ReactNode }) {
       started = true;
 
       await refresh(userId);
+      markAllReceivedMessagesDelivered(supabase, userId).catch(() => {
+        // Best-effort catch-up; a future event or app load will retry.
+      });
 
       channel = supabase
         .channel(`messages:unread:${userId}`)
@@ -48,6 +56,7 @@ export function UnreadMessagesProvider({ children }: { children: ReactNode }) {
             refresh(userId);
             const newMessage = payload.new as MessageRow;
             if (newMessage.sender_id === userId) return;
+            markMessageDelivered(supabase, newMessage.id).catch(() => {});
             const [profile] = await getProfilesByIds(supabase, [newMessage.sender_id]);
             const name = profile?.full_name ?? "";
             showToast({

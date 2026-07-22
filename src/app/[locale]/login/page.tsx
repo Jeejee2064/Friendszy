@@ -47,6 +47,9 @@ export default function LoginPage() {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setLoadingUser(false);
+      if (data.user) {
+        router.replace("/");
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -54,9 +57,15 @@ export default function LoginPage() {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovery(true);
       }
+      // No redirect here on a fresh sign-in: handleSignIn already pushes to
+      // "/" itself. Also redirecting from this listener raced with that
+      // explicit push (two competing navigations landing back-to-back) and
+      // left the router stuck until an unrelated navigation (e.g. the
+      // locale toggle) came along and reset it.
     });
 
     return () => listener.subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function switchMode(next: Mode) {
@@ -78,8 +87,11 @@ export default function LoginPage() {
       reportError(t("signIn.error"), error);
       return;
     }
+    // push() alone already fetches fresh server data for "/" — a trailing
+    // refresh() here was firing a second, overlapping server round-trip and
+    // could leave the transition looking stuck until an unrelated
+    // navigation came along.
     router.push("/");
-    router.refresh();
   }
 
   async function handleSignUp(e: FormEvent) {
@@ -124,10 +136,10 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-bg px-6 py-16">
+      <div className="rounded-full bg-card p-1 shadow-sm">
+        <LocaleToggle />
+      </div>
       <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
-        <div className="absolute left-5 top-5">
-          <LocaleToggle />
-        </div>
         <Link
           href="/"
           aria-label={t("close")}

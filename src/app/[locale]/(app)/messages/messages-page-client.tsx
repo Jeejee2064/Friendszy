@@ -8,6 +8,7 @@ import {
   sendMessage,
   markConversationRead,
   getOrCreateConversation,
+  listMessages,
   type MessageRow,
 } from "@/lib/messages/queries";
 import { listFriends } from "@/lib/friends/queries";
@@ -237,6 +238,7 @@ function NewConversationModal({
   const t = useTranslations("Messages");
   const tFriends = useTranslations("Friends");
   const tCommon = useTranslations("Common");
+  const tNav = useTranslations("Nav");
   const router = useRouter();
 
   const [loaded, setLoaded] = useState(false);
@@ -291,7 +293,17 @@ function NewConversationModal({
         {!loaded ? (
           <p className="p-4 text-center text-sm text-muted">{t("loading")}</p>
         ) : friends.length === 0 ? (
-          <p className="p-4 text-center text-sm text-muted">{tFriends("noFriends")}</p>
+          <div className="flex flex-col items-center gap-3 p-4 text-center">
+            <p className="text-sm text-muted">{tFriends("noFriends")}</p>
+            <Link
+              href="/search"
+              onClick={handleClose}
+              className="rounded-full px-5 py-2 text-sm font-bold text-white"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              🔍 {tNav("search")}
+            </Link>
+          </div>
         ) : filtered.length === 0 ? (
           <p className="p-4 text-center text-sm text-muted">{t("noSearchResults")}</p>
         ) : (
@@ -401,46 +413,106 @@ function ConversationPane({
 
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Re-pulls the full message list and read state from the DB — used to
+    // catch up after (re)connecting, since events missed while the channel
+    // was down (dropped socket, backgrounded tab, ...) are otherwise lost
+    // for good and ticks/messages silently go stale until a hard refresh.
+    async function catchUp() {
+      try {
+        const fresh = await listMessages(supabase, conversationId);
+        if (!cancelled) setMessages(fresh);
+      } catch {
+        // ignore transient errors, next reconnect/visibility change retries
+      }
+      markConversationRead(supabase, conversationId, userId).catch(() => {});
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`conversation:${conversationId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const newMessage = payload.new as MessageRow;
+            setMessages((prev) =>
+              prev.some((m) => m.id === newMessage.id) ? prev : [...prev, newMessage]
+            );
+            if (newMessage.sender_id !== userId) {
+              markConversationRead(supabase, conversationId, userId).catch(() => {});
+            }
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "messages",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const updated = payload.new as MessageRow;
+            setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+          }
+        )
+        .subscribe((status) => {
+          if (cancelled) return;
+
+          if (status === "SUBSCRIBED") {
+            catchUp();
+            return;
+          }
+
+          // The socket dropped (network blip, background-tab throttling,
+          // etc.) — without this, INSERT/UPDATE events (new messages, read
+          // ticks) silently stop arriving until the page is refreshed.
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channel) {
+              supabase.removeChannel(channel);
+              channel = null;
+            }
+            retryTimeout = setTimeout(() => {
+              retryTimeout = null;
+              if (!cancelled) subscribe();
+            }, 2000);
+          }
+        });
+    }
 
     markConversationRead(supabase, conversationId, userId).catch(() => {});
+    subscribe();
 
-    const channel = supabase
-      .channel(`conversation:${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const newMessage = payload.new as MessageRow;
-          setMessages((prev) =>
-            prev.some((m) => m.id === newMessage.id) ? prev : [...prev, newMessage]
-          );
-          if (newMessage.sender_id !== userId) {
-            markConversationRead(supabase, conversationId, userId).catch(() => {});
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const updated = payload.new as MessageRow;
-          setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
-        }
-      )
-      .subscribe();
+    // Background tabs get their sockets throttled by the browser; make sure
+    // we're still actually connected (and caught up) once it's foregrounded.
+    function handleVisibilityChange() {
+      if (document.visibilityState !== "visible" || cancelled) return;
+      if (channel?.state === "joined") {
+        catchUp();
+        return;
+      }
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
+      subscribe();
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [conversationId, userId]);
 
@@ -474,8 +546,6 @@ function ConversationPane({
       setSending(false);
     }
   }
-
-  const lastMineIndex = messages.map((m) => m.sender_id).lastIndexOf(userId);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -545,10 +615,23 @@ function ConversationPane({
                 <MessageBubble
                   message={message}
                   isMine={message.sender_id === userId}
-                  reporterId={userId}
-                  readLabel={
-                    message.sender_id === userId && i === lastMineIndex && message.read_at
-                      ? t("read")
+                  time={format.dateTime(date, { hour: "2-digit", minute: "2-digit" })}
+                  status={
+                    message.sender_id === userId
+                      ? message.read_at
+                        ? "read"
+                        : message.delivered_at
+                          ? "delivered"
+                          : "sent"
+                      : undefined
+                  }
+                  statusLabel={
+                    message.sender_id === userId
+                      ? message.read_at
+                        ? t("read")
+                        : message.delivered_at
+                          ? t("statusDelivered")
+                          : t("statusSent")
                       : undefined
                   }
                 />

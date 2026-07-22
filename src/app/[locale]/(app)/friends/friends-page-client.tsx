@@ -181,15 +181,27 @@ export function FriendsPageClient({
     <div className="p-6 md:p-10">
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
-      <div className="mb-6 flex rounded-full bg-bg p-1 md:w-fit">
-        <TabButton active={tab === "friends"} onClick={() => setTab("friends")}>
-          {t("myFriends")} ({friends.length})
+      <div className="mb-6 flex gap-1 border-b border-border">
+        <TabButton
+          active={tab === "friends"}
+          onClick={() => setTab("friends")}
+          count={friends.length}
+        >
+          {t("myFriends")}
         </TabButton>
-        <TabButton active={tab === "requests"} onClick={() => setTab("requests")}>
-          {t("receivedRequests")} ({requests.length})
+        <TabButton
+          active={tab === "requests"}
+          onClick={() => setTab("requests")}
+          count={requests.length}
+        >
+          {t("receivedRequests")}
         </TabButton>
-        <TabButton active={tab === "blocked"} onClick={() => setTab("blocked")}>
-          {t("blockedTab")} ({blockedProfiles.length})
+        <TabButton
+          active={tab === "blocked"}
+          onClick={() => setTab("blocked")}
+          count={blockedProfiles.length}
+        >
+          {t("blockedTab")}
         </TabButton>
       </div>
 
@@ -362,20 +374,31 @@ export function FriendsPageClient({
 function TabButton({
   active,
   onClick,
+  count,
   children,
 }: {
   active: boolean;
   onClick: () => void;
+  count: number;
   children: ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition-colors md:flex-initial ${active ? "text-white" : "text-muted"}`}
-      style={active ? { backgroundImage: "var(--grad)" } : undefined}
+      className={`flex items-center gap-2 rounded-t-lg border-b-2 px-3 pb-3 pt-2 text-sm font-bold transition-colors ${
+        active
+          ? "border-teal2 bg-bg text-teal2"
+          : "border-transparent text-muted hover:bg-bg hover:text-text"
+      }`}
     >
       {children}
+      <span
+        className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white"
+        style={{ backgroundImage: "var(--grad)" }}
+      >
+        {count}
+      </span>
     </button>
   );
 }

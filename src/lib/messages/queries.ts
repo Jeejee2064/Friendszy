@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { getProfilesByIds } from "@/lib/profile/queries";
 
 type Client = SupabaseClient<Database>;
 export type ConversationRow = Database["public"]["Tables"]["conversations"]["Row"];
@@ -80,7 +81,31 @@ export async function getUnreadConversationsCount(
     .is("read_at", null);
   if (error) throw error;
 
-  return new Set((data ?? []).map((row) => row.conversation_id)).size;
+  const conversationIds = [...new Set((data ?? []).map((row) => row.conversation_id))];
+  if (conversationIds.length === 0) return 0;
+
+  // A conversation whose other participant deleted their account (profiles
+  // row anonymized, full_name → null) is hidden from the list entirely
+  // (see messages/page.tsx) — the unread badge shouldn't count it either.
+  const { data: conversations, error: conversationsError } = await supabase
+    .from("conversations")
+    .select("id, user_a, user_b")
+    .in("id", conversationIds);
+  if (conversationsError) throw conversationsError;
+
+  const otherIdByConversation = new Map(
+    (conversations ?? []).map((c) => [c.id, c.user_a === myId ? c.user_b : c.user_a])
+  );
+  const otherIds = [...new Set(otherIdByConversation.values())];
+  const profiles = await getProfilesByIds(supabase, otherIds);
+  const liveOtherIds = new Set(
+    profiles.filter((p) => p.full_name !== null).map((p) => p.id)
+  );
+
+  return conversationIds.filter((id) => {
+    const otherId = otherIdByConversation.get(id);
+    return !!otherId && liveOtherIds.has(otherId);
+  }).length;
 }
 
 export async function getLatestMessagesByConversation(
@@ -155,5 +180,33 @@ export async function markConversationRead(
     .eq("conversation_id", conversationId)
     .neq("sender_id", myId)
     .is("read_at", null);
+  if (error) throw error;
+}
+
+export async function markMessageDelivered(supabase: Client, messageId: string) {
+  const { error } = await supabase
+    .from("messages")
+    .update({ delivered_at: new Date().toISOString() })
+    .eq("id", messageId)
+    .is("delivered_at", null);
+  if (error) throw error;
+}
+
+export async function markAllReceivedMessagesDelivered(supabase: Client, myId: string) {
+  const { data: conversations, error: conversationsError } = await supabase
+    .from("conversations")
+    .select("id")
+    .or(`user_a.eq.${myId},user_b.eq.${myId}`);
+  if (conversationsError) throw conversationsError;
+
+  const conversationIds = (conversations ?? []).map((c) => c.id);
+  if (conversationIds.length === 0) return;
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ delivered_at: new Date().toISOString() })
+    .in("conversation_id", conversationIds)
+    .neq("sender_id", myId)
+    .is("delivered_at", null);
   if (error) throw error;
 }

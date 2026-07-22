@@ -9,6 +9,15 @@ import type { Gender, Interest } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
+import { SignOutButton } from "@/components/auth/sign-out-button";
+
+const chipButtonClass =
+  "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal2";
+const signOutChipClass =
+  "inline-flex items-center gap-1.5 rounded-full border border-[#a8543a]/30 px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-[#a8543a] disabled:opacity-60";
+const fieldLabelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted";
+const fieldInputClass =
+  "w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2";
 
 type FormState = {
   fullName: string;
@@ -77,21 +86,16 @@ export function ProfileForm({
 
   return (
     <div className="p-6 md:p-10">
-      <h1 className="mb-2 text-2xl font-extrabold text-text">{t("title")}</h1>
+      <h1 className="mb-4 text-2xl font-extrabold text-text">{t("title")}</h1>
 
-      <div className="mb-6 flex flex-col gap-2">
-        <Link
-          href="/friends?tab=blocked"
-          className="inline-block text-sm font-semibold text-teal2 hover:underline"
-        >
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Link href="/friends?tab=blocked" className={chipButtonClass}>
           🚫 {t("blockedUsersLink")}
         </Link>
-        <Link
-          href="/settings"
-          className="inline-block text-sm font-semibold text-teal2 hover:underline"
-        >
+        <Link href="/settings" className={chipButtonClass}>
           ⚙️ {t("settingsLink")}
         </Link>
+        <SignOutButton iconOnly={false} className={signOutChipClass} />
       </div>
 
       <form
@@ -104,45 +108,64 @@ export function ProfileForm({
             value={form.avatarUrl}
             onChange={(url) => update("avatarUrl", url)}
           />
-          <input
-            type="text"
-            required
-            placeholder={tFields("fullNamePlaceholder")}
-            value={form.fullName}
-            onChange={(e) => update("fullName", e.target.value)}
-            className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
-          />
+          <div className="w-full">
+            <label htmlFor="profile-full-name" className={fieldLabelClass}>
+              {tFields("fullNameLabel")}
+            </label>
+            <input
+              id="profile-full-name"
+              type="text"
+              required
+              placeholder={tFields("fullNamePlaceholder")}
+              value={form.fullName}
+              onChange={(e) => update("fullName", e.target.value)}
+              className={fieldInputClass}
+            />
+          </div>
         </div>
 
         <div className="mt-4 flex flex-col gap-3">
-          <input
-            type="text"
-            placeholder={tFields("cityPlaceholder")}
-            value={form.city}
-            onChange={(e) => update("city", e.target.value)}
-            className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
-          />
-          <input
-            type="number"
-            min={18}
-            max={120}
-            placeholder={tFields("agePlaceholder")}
-            value={form.age ?? ""}
-            onChange={(e) =>
-              update("age", e.target.value ? Number(e.target.value) : null)
-            }
-            className="rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
-          />
-          <GenderSelect
-            value={form.gender}
-            onChange={(g) => update("gender", g)}
-          />
+          <div>
+            <label htmlFor="profile-city" className={fieldLabelClass}>
+              {tFields("cityLabel")}
+            </label>
+            <input
+              id="profile-city"
+              type="text"
+              placeholder={tFields("cityPlaceholder")}
+              value={form.city}
+              onChange={(e) => update("city", e.target.value)}
+              className={fieldInputClass}
+            />
+          </div>
+          <div>
+            <label htmlFor="profile-age" className={fieldLabelClass}>
+              {tFields("ageLabel")}
+            </label>
+            <input
+              id="profile-age"
+              type="number"
+              min={18}
+              max={120}
+              placeholder={tFields("agePlaceholder")}
+              value={form.age ?? ""}
+              onChange={(e) =>
+                update("age", e.target.value ? Number(e.target.value) : null)
+              }
+              className={fieldInputClass}
+            />
+          </div>
+          <div>
+            <p className={fieldLabelClass}>{tFields("genderLabel")}</p>
+            <GenderSelect
+              value={form.gender}
+              onChange={(g) => update("gender", g)}
+            />
+          </div>
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">
-            {tFields("interests")}
-          </p>
+          <p className={fieldLabelClass}>{tFields("interests")}</p>
           <InterestsGrid
             interests={interests}
             selectedIds={form.interestIds}

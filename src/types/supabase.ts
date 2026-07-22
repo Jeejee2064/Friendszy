@@ -153,6 +153,7 @@ export type Database = {
           sender_id: string;
           content: string | null;
           read_at: string | null;
+          delivered_at: string | null;
           removed_at: string | null;
           removed_by: string | null;
           created_at: string;
@@ -163,6 +164,7 @@ export type Database = {
           sender_id: string;
           content?: string | null;
           read_at?: string | null;
+          delivered_at?: string | null;
           removed_at?: string | null;
           removed_by?: string | null;
           created_at?: string;

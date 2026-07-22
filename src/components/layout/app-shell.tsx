@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { SidebarNav } from "./sidebar-nav";
 import { LocaleToggle } from "./locale-toggle";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { InstallPromptBanner } from "@/components/pwa/install-prompt-banner";
 import type { ProfileSummary } from "@/lib/profile/types";
 
 export async function AppShell({
@@ -73,9 +74,7 @@ export async function AppShell({
         <SidebarNav isAdmin={isAdmin} />
 
         <div className="mt-auto flex flex-col gap-3 px-2 md:px-4">
-          <div className="hidden md:block">
-            <LocaleToggle />
-          </div>
+          <LocaleToggle />
           <SignOutButton />
           <p className="hidden text-xs text-muted md:block">
             🛡️ {t("security")}: securite@friendszy.ca
@@ -83,7 +82,10 @@ export async function AppShell({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="min-w-0 flex-1">
+        <InstallPromptBanner />
+        {children}
+      </main>
     </div>
   );
 }
