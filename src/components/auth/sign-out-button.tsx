@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { getPathname } from "@/i18n/navigation";
 import { signOutUser } from "@/lib/auth";
 import { useGoOffline } from "@/lib/presence/presence-context";
 
@@ -14,7 +14,7 @@ export function SignOutButton({
   iconOnly?: boolean;
 }) {
   const t = useTranslations("Auth");
-  const router = useRouter();
+  const locale = useLocale();
   const goOffline = useGoOffline();
   const [loading, setLoading] = useState(false);
 
@@ -26,8 +26,11 @@ export function SignOutButton({
       // to drop after the auth token is torn down.
       await goOffline();
       await signOutUser();
-      router.push("/login");
-      router.refresh();
+      // Hard navigation, not router.push(): the App Router's client-side
+      // router cache can otherwise reuse a previous account's cached layout
+      // data (e.g. sidebar name/avatar) after a different user signs in on
+      // the same browser — a full reload guarantees nothing carries over.
+      window.location.href = getPathname({ href: "/login", locale });
     } finally {
       setLoading(false);
     }

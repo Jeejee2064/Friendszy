@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { AuthError, User } from "@supabase/supabase-js";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link, getPathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import {
@@ -27,6 +27,7 @@ function initialsFromEmail(email: string | null | undefined) {
 export default function LoginPage() {
   const t = useTranslations("Auth");
   const router = useRouter();
+  const locale = useLocale();
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -87,11 +88,12 @@ export default function LoginPage() {
       reportError(t("signIn.error"), error);
       return;
     }
-    // push() alone already fetches fresh server data for "/" — a trailing
-    // refresh() here was firing a second, overlapping server round-trip and
-    // could leave the transition looking stuck until an unrelated
-    // navigation came along.
-    router.push("/");
+    // Hard navigation, not router.push(): the App Router's client-side
+    // router cache can otherwise reuse whatever account was previously
+    // signed in on this browser for shared layout data (e.g. the sidebar's
+    // name/avatar), while page-level data loads fresh — a mismatched,
+    // mixed-account view. A full reload guarantees nothing carries over.
+    window.location.href = getPathname({ href: "/", locale });
   }
 
   async function handleSignUp(e: FormEvent) {
