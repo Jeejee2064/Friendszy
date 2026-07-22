@@ -143,6 +143,7 @@ export default function LoginPage() {
         <Link
           href="/"
           aria-label={t("close")}
+          prefetch={false}
           className="absolute right-5 top-5 text-lg text-muted hover:text-text"
         >
           ✕

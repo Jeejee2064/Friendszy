@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Modal } from "@/components/ui/modal";
 
-const DISMISS_STORAGE_KEY = "friendszy:pwa-install-dismissed-until";
-const DISMISS_DAYS = 14;
+// Shown at most once ever per browser — set the moment we decide to show
+// it, not on dismiss, so it can never come back on a later page load just
+// because the user ignored it instead of explicitly closing it.
+const SHOWN_STORAGE_KEY = "friendszy:pwa-install-shown";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -26,51 +29,40 @@ function isIos() {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-function isDismissed() {
-  const until = localStorage.getItem(DISMISS_STORAGE_KEY);
-  return !!until && Date.now() < Number(until);
-}
-
 export function InstallPromptBanner() {
   const t = useTranslations("Pwa");
-  const [visible, setVisible] = useState(false);
+  const [open, setOpen] = useState(false);
   const [ios, setIos] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    if (!isMobileDevice() || isStandalone() || isDismissed()) return;
+    if (!isMobileDevice() || isStandalone() || localStorage.getItem(SHOWN_STORAGE_KEY)) {
+      return;
+    }
+
+    function markShownAndOpen(isIosDevice: boolean) {
+      localStorage.setItem(SHOWN_STORAGE_KEY, "1");
+      setIos(isIosDevice);
+      setOpen(true);
+    }
 
     if (isIos()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIos(true);
-      setVisible(true);
+      markShownAndOpen(true);
       return;
     }
 
     function handleBeforeInstallPrompt(e: Event) {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setVisible(true);
-    }
-
-    function handleAppInstalled() {
-      setVisible(false);
+      markShownAndOpen(false);
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
-  function dismiss() {
-    localStorage.setItem(
-      DISMISS_STORAGE_KEY,
-      String(Date.now() + DISMISS_DAYS * 24 * 60 * 60 * 1000)
-    );
-    setVisible(false);
+  function close() {
+    setOpen(false);
   }
 
   async function handleInstall() {
@@ -78,42 +70,44 @@ export function InstallPromptBanner() {
     await deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     setDeferredPrompt(null);
-    setVisible(false);
+    setOpen(false);
   }
 
-  if (!visible) return null;
-
   return (
-    <div className="m-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
-      <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
-        style={{ backgroundImage: "var(--grad)" }}
-      >
-        📲
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="font-bold text-text">{t("installTitle")}</p>
-        <p className="text-sm text-muted">{ios ? t("iosInstructions") : t("installBody")}</p>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {!ios && (
+    <Modal open={open} onClose={close}>
+      <div className="flex flex-col items-center text-center">
+        <span
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl"
+          style={{ backgroundImage: "var(--grad)" }}
+        >
+          📲
+        </span>
+        <p className="mt-4 text-lg font-extrabold text-text">{t("installTitle")}</p>
+        <p className="mt-1 text-sm text-muted">
+          {ios ? t("iosInstructions") : t("installBody")}
+        </p>
+        <div className="mt-6 flex w-full items-center gap-2">
+          {!ios && (
+            <button
+              type="button"
+              onClick={handleInstall}
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              {t("installButton")}
+            </button>
+          )}
           <button
             type="button"
-            onClick={handleInstall}
-            className="rounded-full px-4 py-2 text-sm font-bold text-white"
-            style={{ backgroundImage: "var(--grad)" }}
+            onClick={close}
+            className={`rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-muted ${
+              ios ? "flex-1" : ""
+            }`}
           >
-            {t("installButton")}
+            {t("dismissButton")}
           </button>
-        )}
-        <button
-          type="button"
-          onClick={dismiss}
-          className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted"
-        >
-          {t("dismissButton")}
-        </button>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
