@@ -139,7 +139,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-bg px-6 py-16">
       <div className="rounded-full bg-card p-1 shadow-sm">
-        <LocaleToggle />
+        <LocaleToggle alwaysExpanded />
       </div>
       <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
         <Link

@@ -50,7 +50,8 @@
     }
   },
   "Shell": {
-    "security": "Sécurité"
+    "security": "Sécurité",
+    "language": "Langue"
   },
   "Nav": {
     "home": "Accueil",
