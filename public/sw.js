@@ -1,10 +1,5 @@
-const CACHE_NAME = "friendszy-shell-v2";
-const APP_SHELL = [
-  "/",
-  "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-];
+const CACHE_NAME = "friendszy-shell-v3";
+const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -31,6 +26,17 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
+  // Never intercept page navigations. This app doesn't need full offline
+  // page support, and a full-page request can involve server redirects
+  // (locale routing, auth guards) with fetch/redirect-mode edge cases that
+  // are easy to get wrong in a service worker — getting it wrong here once
+  // already broke the site for every returning visitor, in a way that
+  // can't self-heal (a worker that fails every navigation also prevents
+  // the page from ever loading far enough to check for a fixed update).
+  // Falling through with no respondWith() hands navigations straight to
+  // the network, completely unaffected by this file, permanently.
+  if (request.mode === "navigate") return;
+
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
     return;
   }
@@ -39,20 +45,10 @@ self.addEventListener("fetch", (event) => {
     caches.match(request).then((cached) => {
       if (cached) return cached;
 
-      // A navigation FetchEvent's request has redirect mode "manual" by
-      // default. "/" gets 307-redirected to a locale path (next-intl
-      // middleware), and passing that followed redirect back through
-      // respondWith() without forcing "follow" here throws — every
-      // returning visitor got a hard "site can't be reached" on reload.
-      return fetch(request, { redirect: "follow" })
+      return fetch(request)
         .then((response) => {
-          // Don't cache a followed redirect (e.g. "/" -> "/fr") under the
-          // original request's key — that would serve the wrong locale's
-          // content at "/" on the next offline/cached load.
-          if (!response.redirected) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
         })
         .catch(() => cached);
