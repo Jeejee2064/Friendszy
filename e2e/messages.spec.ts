@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { localePath } from "./utils/urls";
-import { personCard } from "./utils/selectors";
 import { ensureFriendship } from "./fixtures/db";
 import { SAMUEL, CAMILLE } from "./fixtures/test-users";
 

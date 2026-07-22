@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone Node/CommonJS ops scripts, run directly via `node`, never
+    // bundled into the app — not worth converting to ESM just for lint.
+    "scripts/**",
   ]),
 ]);
 

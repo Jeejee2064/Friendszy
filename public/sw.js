@@ -1,4 +1,4 @@
-const CACHE_NAME = "friendszy-shell-v1";
+const CACHE_NAME = "friendszy-shell-v2";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -39,10 +39,20 @@ self.addEventListener("fetch", (event) => {
     caches.match(request).then((cached) => {
       if (cached) return cached;
 
-      return fetch(request)
+      // A navigation FetchEvent's request has redirect mode "manual" by
+      // default. "/" gets 307-redirected to a locale path (next-intl
+      // middleware), and passing that followed redirect back through
+      // respondWith() without forcing "follow" here throws — every
+      // returning visitor got a hard "site can't be reached" on reload.
+      return fetch(request, { redirect: "follow" })
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          // Don't cache a followed redirect (e.g. "/" -> "/fr") under the
+          // original request's key — that would serve the wrong locale's
+          // content at "/" on the next offline/cached load.
+          if (!response.redirected) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(() => cached);
