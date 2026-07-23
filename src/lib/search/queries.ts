@@ -10,7 +10,7 @@ export type SearchFilters = {
   city?: string;
   minAge?: number;
   maxAge?: number;
-  gender?: string;
+  gender?: string[];
   interestIds?: number[];
 };
 
@@ -71,7 +71,9 @@ export async function searchProfiles(
   if (cityIds) query = query.in("id", cityIds);
   if (filters.minAge != null) query = query.gte("age", filters.minAge);
   if (filters.maxAge != null) query = query.lte("age", filters.maxAge);
-  if (filters.gender) query = query.eq("gender", filters.gender);
+  if (filters.gender && filters.gender.length > 0) {
+    query = query.in("gender", filters.gender);
+  }
   if (matchCounts) query = query.in("id", [...matchCounts.keys()]);
 
   const { data, error } = await query;

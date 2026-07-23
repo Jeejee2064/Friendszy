@@ -25,7 +25,7 @@ import { Modal } from "@/components/ui/modal";
 import { PersonCard } from "@/components/social/person-card";
 
 type Tab = "name" | "discover";
-type DiscoverStep = "city" | "interests" | "results";
+type DiscoverStep = "city" | "interests" | "ageGender" | "results";
 
 export function SearchPageClient({
   userId,
@@ -48,9 +48,9 @@ export function SearchPageClient({
   const [city, setCity] = useState("");
   const [minAge, setMinAge] = useState(AGE_MIN);
   const [maxAge, setMaxAge] = useState(AGE_MAX);
-  const [gender, setGender] = useState<Gender | null>(null);
+  const [genders, setGenders] = useState<Gender[]>([]);
   const [interestIds, setInterestIds] = useState<number[]>([]);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [changeSearchOpen, setChangeSearchOpen] = useState(false);
 
   const [results, setResults] = useState<SearchResult[]>([]);
   const [sharedByProfile, setSharedByProfile] = useState<Map<string, number[]>>(
@@ -113,7 +113,7 @@ export function SearchPageClient({
           interestIds: interestIds.length > 0 ? interestIds : undefined,
           minAge: minAge > AGE_MIN ? minAge : undefined,
           maxAge: maxAge < AGE_MAX ? maxAge : undefined,
-          gender: gender ?? undefined,
+          gender: genders.length > 0 ? genders : undefined,
         },
         userId
       );
@@ -135,21 +135,6 @@ export function SearchPageClient({
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, name]);
-
-  // "Trouver des amis": refining age/gender on the results step re-runs the search.
-  useEffect(() => {
-    if (tab !== "discover" || step !== "results") return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    runDiscoverSearch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gender]);
-
-  useEffect(() => {
-    if (tab !== "discover" || step !== "results") return;
-    const timeout = setTimeout(() => runDiscoverSearch(), 400);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minAge, maxAge]);
 
   function handleTabChange(next: Tab) {
     setTab(next);
@@ -204,7 +189,7 @@ export function SearchPageClient({
   }
 
   const activeFilterCount =
-    (gender ? 1 : 0) + (minAge > AGE_MIN || maxAge < AGE_MAX ? 1 : 0);
+    (genders.length > 0 ? 1 : 0) + (minAge > AGE_MIN || maxAge < AGE_MAX ? 1 : 0);
 
   function renderResultsGrid() {
     return (
@@ -325,11 +310,11 @@ export function SearchPageClient({
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
       <div className="mb-6 flex gap-2 rounded-full bg-card p-1">
-        <TabButton active={tab === "name"} onClick={() => handleTabChange("name")}>
-          {t("nameTab")}
-        </TabButton>
         <TabButton active={tab === "discover"} onClick={() => handleTabChange("discover")}>
           {t("discoverTab")}
+        </TabButton>
+        <TabButton active={tab === "name"} onClick={() => handleTabChange("name")}>
+          {t("nameTab")}
         </TabButton>
       </div>
 
@@ -394,8 +379,50 @@ export function SearchPageClient({
             <button
               type="button"
               disabled={interestIds.length === 0}
-              onClick={launchDiscoverSearch}
+              onClick={() => setStep("ageGender")}
               className="flex-1 rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              {t("next")}
+            </button>
+          </div>
+        </div>
+      ) : step === "ageGender" ? (
+        <div className="max-w-md">
+          <h2 className="mb-3 text-lg font-bold text-text">{t("ageGenderStepTitle")}</h2>
+          <AgeGenderFilters
+            minAge={minAge}
+            maxAge={maxAge}
+            onAgeChange={(nextMin, nextMax) => {
+              setMinAge(nextMin);
+              setMaxAge(nextMax);
+            }}
+            genders={genders}
+            onGendersChange={setGenders}
+            tGender={tGender}
+            anyLabel={t("anyGender")}
+            ageRangeLabel={t("ageRange")}
+            genderLabel={t("genderLabel")}
+          />
+          <button
+            type="button"
+            onClick={launchDiscoverSearch}
+            className="mb-3 mt-5 block w-full text-center text-sm font-bold text-teal2 hover:underline"
+          >
+            {t("skip")}
+          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setStep("interests")}
+              className="flex-1 rounded-full border border-border py-2.5 font-bold text-text"
+            >
+              {t("back")}
+            </button>
+            <button
+              type="button"
+              onClick={launchDiscoverSearch}
+              className="flex-1 rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90"
               style={{ backgroundImage: "var(--grad)" }}
             >
               {t("launchSearch")}
@@ -404,20 +431,13 @@ export function SearchPageClient({
         </div>
       ) : (
         <>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-6 flex justify-end">
             <button
               type="button"
-              onClick={() => setStep("city")}
-              className="text-sm font-bold text-teal2 hover:underline"
-            >
-              ← {t("editSearch")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFiltersOpen(true)}
+              onClick={() => setChangeSearchOpen(true)}
               className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-bold text-text"
             >
-              🔍 {t("filtersButton")}
+              ✏️ {t("editSearch")}
               {activeFilterCount > 0 && (
                 <span
                   className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
@@ -431,70 +451,58 @@ export function SearchPageClient({
 
           {renderResultsGrid()}
 
-          <Modal open={filtersOpen} onClose={() => setFiltersOpen(false)} title={t("filtersTitle")}>
+          <Modal
+            open={changeSearchOpen}
+            onClose={() => setChangeSearchOpen(false)}
+            title={t("editSearch")}
+          >
             <div className="flex max-h-[65vh] flex-col gap-5 overflow-y-auto pr-1">
               <div>
                 <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
-                  {t("ageRange")}
+                  {t("cityStepTitle")}
                 </span>
-                <AgeRangeSlider
-                  min={minAge}
-                  max={maxAge}
-                  onChange={(nextMin, nextMax) => {
-                    setMinAge(nextMin);
-                    setMaxAge(nextMax);
-                  }}
-                />
+                <CityAutocomplete value={city} onChange={setCity} placeholder={t("cityExample")} />
               </div>
 
               <div>
                 <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
-                  {t("genderLabel")}
+                  {t("interestsStepTitle", { max: MAX_SEARCH_INTERESTS })}
                 </span>
-                <div className="flex flex-wrap gap-2">
-                  <motion.button
-                    type="button"
-                    layout
-                    onClick={() => setGender(null)}
-                    whileTap={{ scale: 0.92 }}
-                    animate={{ scale: gender === null ? 1.05 : 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold ${gender === null ? "text-white" : "border-border text-text"}`}
-                    style={
-                      gender === null
-                        ? { backgroundImage: "var(--grad)", borderColor: "transparent" }
-                        : undefined
-                    }
-                  >
-                    {t("anyGender")}
-                  </motion.button>
-                  {GENDERS.map((g) => (
-                    <motion.button
-                      key={g}
-                      type="button"
-                      layout
-                      onClick={() => setGender(g)}
-                      whileTap={{ scale: 0.92 }}
-                      animate={{ scale: gender === g ? 1.05 : 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                      className={`rounded-lg border px-3 py-2 text-sm font-semibold ${gender === g ? "text-white" : "border-border text-text"}`}
-                      style={
-                        gender === g
-                          ? { backgroundImage: "var(--grad)", borderColor: "transparent" }
-                          : undefined
-                      }
-                    >
-                      {tGender(g)}
-                    </motion.button>
-                  ))}
-                </div>
+                <InterestPicker
+                  interests={interests}
+                  selectedIds={interestIds}
+                  onChange={setInterestIds}
+                  myInterestIds={myInterestIds}
+                />
+                {interestIds.length === 0 && (
+                  <p className="mt-2 text-xs text-muted">{t("interestsRequiredHint")}</p>
+                )}
               </div>
+
+              <AgeGenderFilters
+                minAge={minAge}
+                maxAge={maxAge}
+                onAgeChange={(nextMin, nextMax) => {
+                  setMinAge(nextMin);
+                  setMaxAge(nextMax);
+                }}
+                genders={genders}
+                onGendersChange={setGenders}
+                tGender={tGender}
+                anyLabel={t("anyGender")}
+                ageRangeLabel={t("ageRange")}
+                genderLabel={t("genderLabel")}
+              />
             </div>
 
             <button
               type="button"
-              onClick={() => setFiltersOpen(false)}
-              className="mt-5 w-full rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90"
+              disabled={!city.trim() || interestIds.length === 0}
+              onClick={() => {
+                setChangeSearchOpen(false);
+                runDiscoverSearch();
+              }}
+              className="mt-5 w-full rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               style={{ backgroundImage: "var(--grad)" }}
             >
               {t("viewResults")}
@@ -502,6 +510,91 @@ export function SearchPageClient({
           </Modal>
         </>
       )}
+    </div>
+  );
+}
+
+function AgeGenderFilters({
+  minAge,
+  maxAge,
+  onAgeChange,
+  genders,
+  onGendersChange,
+  tGender,
+  anyLabel,
+  ageRangeLabel,
+  genderLabel,
+}: {
+  minAge: number;
+  maxAge: number;
+  onAgeChange: (min: number, max: number) => void;
+  genders: Gender[];
+  onGendersChange: (genders: Gender[]) => void;
+  tGender: (key: Gender) => string;
+  anyLabel: string;
+  ageRangeLabel: string;
+  genderLabel: string;
+}) {
+  function toggleGender(g: Gender) {
+    onGendersChange(
+      genders.includes(g) ? genders.filter((x) => x !== g) : [...genders, g]
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
+          {ageRangeLabel}
+        </span>
+        <AgeRangeSlider min={minAge} max={maxAge} onChange={onAgeChange} />
+      </div>
+
+      <div>
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
+          {genderLabel}
+        </span>
+        <div className="flex flex-wrap gap-2">
+          <motion.button
+            type="button"
+            layout
+            onClick={() => onGendersChange([])}
+            whileTap={{ scale: 0.92 }}
+            animate={{ scale: genders.length === 0 ? 1.05 : 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+            className={`rounded-lg border px-3 py-2 text-sm font-semibold ${genders.length === 0 ? "text-white" : "border-border text-text"}`}
+            style={
+              genders.length === 0
+                ? { backgroundImage: "var(--grad)", borderColor: "transparent" }
+                : undefined
+            }
+          >
+            {anyLabel}
+          </motion.button>
+          {GENDERS.map((g) => {
+            const selected = genders.includes(g);
+            return (
+              <motion.button
+                key={g}
+                type="button"
+                layout
+                onClick={() => toggleGender(g)}
+                whileTap={{ scale: 0.92 }}
+                animate={{ scale: selected ? 1.05 : 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className={`rounded-lg border px-3 py-2 text-sm font-semibold ${selected ? "text-white" : "border-border text-text"}`}
+                style={
+                  selected
+                    ? { backgroundImage: "var(--grad)", borderColor: "transparent" }
+                    : undefined
+                }
+              >
+                {tGender(g)}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
