@@ -8,6 +8,7 @@ import {
   sendMessage,
   markConversationRead,
   getOrCreateConversation,
+  getUnreadCountsByConversation,
   listMessages,
   type MessageRow,
 } from "@/lib/messages/queries";
@@ -60,7 +61,7 @@ function Avatar({
 
 export function MessagesPageClient({
   userId,
-  conversations,
+  conversations: initialConversations,
   selectedConversationId,
   selectedOtherProfile,
   initialMessages,
@@ -78,6 +79,76 @@ export function MessagesPageClient({
   const hasSelection = !!selectedConversationId && !!selectedOtherProfile;
   const [search, setSearch] = useState("");
   const [newConversationOpen, setNewConversationOpen] = useState(false);
+  const [conversations, setConversations] = useState(initialConversations);
+  // Re-sync from the server on every navigation (e.g. opening a different
+  // conversation re-fetches this list with fresh unread counts) — the
+  // realtime subscription below only carries updates from here forward.
+  // Adjusting state during render (not in an effect) per React's guidance
+  // for "reset state when a prop changes".
+  const [syncedFrom, setSyncedFrom] = useState(initialConversations);
+  if (initialConversations !== syncedFrom) {
+    setSyncedFrom(initialConversations);
+    setConversations(initialConversations);
+  }
+
+  // Keeps the conversation list (preview, timestamp, unread count, order)
+  // live — without this, only the sidebar's unread badge (a separate
+  // subscription) updated in real time, while this list stayed frozen
+  // until a refresh or opening the conversation.
+  useEffect(() => {
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel(`messages:list:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const m = payload.new as MessageRow;
+          setConversations((prev) => {
+            const idx = prev.findIndex((c) => c.id === m.conversation_id);
+            if (idx === -1) return prev;
+            const updated = [...prev];
+            const conv = updated[idx];
+            updated[idx] = {
+              ...conv,
+              preview: m.content,
+              lastMessageAt: m.created_at,
+              unreadCount:
+                m.sender_id === userId ? conv.unreadCount : conv.unreadCount + 1,
+            };
+            updated.sort((a, b) =>
+              (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? "")
+            );
+            return updated;
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
+        async (payload) => {
+          const conversationId = (payload.new as MessageRow).conversation_id;
+          const counts = await getUnreadCountsByConversation(
+            supabase,
+            [conversationId],
+            userId
+          );
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === conversationId
+                ? { ...c, unreadCount: counts.get(conversationId) ?? 0 }
+                : c
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
