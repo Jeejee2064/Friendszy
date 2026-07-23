@@ -13,7 +13,11 @@ export function notificationOtherUserId(notification: NotificationRow): string |
   if (!payload) return null;
 
   switch (notification.type) {
+    case "friend_added":
+      return typeof payload.requester_id === "string" ? payload.requester_id : null;
     case "friend_request_accepted":
+      // Legacy type from the old mutual-consent flow — no longer created,
+      // but may still exist historically.
       return typeof payload.addressee_id === "string" ? payload.addressee_id : null;
     default:
       return null;

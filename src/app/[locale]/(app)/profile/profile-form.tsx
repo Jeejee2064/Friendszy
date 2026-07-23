@@ -21,6 +21,7 @@ const fieldInputClass =
 
 type FormState = {
   fullName: string;
+  lastName: string;
   avatarUrl: string | null;
   city: string;
   age: number | null;
@@ -59,6 +60,10 @@ export function ProfileForm({
       setNotice({ kind: "error", message: t("errors.fullNameRequired") });
       return;
     }
+    if (!form.lastName.trim()) {
+      setNotice({ kind: "error", message: t("errors.lastNameRequired") });
+      return;
+    }
     if (form.age !== null && (form.age < 18 || form.age > 120)) {
       setNotice({ kind: "error", message: t("errors.ageInvalid") });
       return;
@@ -69,6 +74,7 @@ export function ProfileForm({
       const supabase = createClient();
       await upsertMyProfile(supabase, userId, {
         full_name: form.fullName.trim(),
+        last_name: form.lastName.trim(),
         avatar_url: form.avatarUrl,
         city: form.city.trim() || null,
         age: form.age,
@@ -119,6 +125,20 @@ export function ProfileForm({
               placeholder={tFields("fullNamePlaceholder")}
               value={form.fullName}
               onChange={(e) => update("fullName", e.target.value)}
+              className={fieldInputClass}
+            />
+          </div>
+          <div className="w-full">
+            <label htmlFor="profile-last-name" className={fieldLabelClass}>
+              {tFields("lastNameLabel")}
+            </label>
+            <input
+              id="profile-last-name"
+              type="text"
+              required
+              placeholder={tFields("lastNamePlaceholder")}
+              value={form.lastName}
+              onChange={(e) => update("lastName", e.target.value)}
               className={fieldInputClass}
             />
           </div>

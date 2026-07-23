@@ -11,7 +11,7 @@ export async function getProfilesByIds(
   if (ids.length === 0) return [];
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, avatar_url, city, age, gender")
+    .select("id, full_name, last_name, avatar_url, city, age, gender")
     .in("id", ids);
   if (error) throw error;
   return data ?? [];
@@ -70,6 +70,7 @@ export async function upsertMyProfile(
   userId: string,
   fields: {
     full_name?: string;
+    last_name?: string;
     avatar_url?: string | null;
     city?: string | null;
     age?: number | null;

@@ -12,7 +12,7 @@ import {
 } from "@/lib/search/queries";
 import {
   getFriendshipMap,
-  sendFriendRequest,
+  addFriend,
   type FriendshipInfo,
 } from "@/lib/friends/queries";
 import { getOrCreateConversation } from "@/lib/messages/queries";
@@ -155,10 +155,10 @@ export function SearchPageClient({
     setSentIds((prev) => new Set(prev).add(targetId));
     try {
       const supabase = createClient();
-      await sendFriendRequest(supabase, userId, targetId);
+      await addFriend(supabase, userId, targetId);
       setFriendshipMap((prev) => {
         const next = new Map(prev);
-        next.set(targetId, { friendshipId: "", status: "pending_sent" });
+        next.set(targetId, { friendshipId: "" });
         return next;
       });
     } catch {
@@ -170,10 +170,11 @@ export function SearchPageClient({
     }
   }
 
-  const visibleResults = results.filter((r) => {
-    const status = friendshipMap.get(r.id)?.status;
-    return status !== "accepted" && status !== "declined_by_them";
-  });
+  // Adding a friend is instant now, so unlike before, this doesn't hide
+  // someone the moment you add them — that would yank the card out from
+  // under the user right after they click. It stays visible with a static
+  // "Friend" badge instead (same as it briefly did for "request sent" before).
+  const visibleResults = results;
 
   async function handleMessage(targetId: string) {
     setMessagingId(targetId);
@@ -216,9 +217,7 @@ export function SearchPageClient({
           ) : (
             visibleResults.map((result) => {
               const resultInterestIds = sharedByProfile.get(result.id) ?? [];
-              const info = friendshipMap.get(result.id);
-              const pendingSent =
-                sentIds.has(result.id) || info?.status === "pending_sent";
+              const alreadyAdded = friendshipMap.has(result.id) || sentIds.has(result.id);
 
               // In "Trouver des amis", the badges below compare each result
               // against the interests chosen for the search (interestIds),
@@ -275,13 +274,9 @@ export function SearchPageClient({
                         >
                           💬 {tFriends("message")}
                         </button>
-                        {info?.status === "pending_received" ? (
-                          <span className="text-center text-xs text-muted">
-                            {tFriends("theySentYouRequest")}
-                          </span>
-                        ) : pendingSent ? (
-                          <span className="text-center text-xs text-muted">
-                            {tFriends("requestSent")}
+                        {alreadyAdded ? (
+                          <span className="text-center text-xs font-semibold text-teal2">
+                            {tFriends("friendsBadge")}
                           </span>
                         ) : (
                           <button

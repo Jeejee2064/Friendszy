@@ -18,7 +18,9 @@ export function PersonCard({
   href?: string;
   deletedUserLabel?: string;
 }) {
-  const displayName = profile.full_name ?? deletedUserLabel;
+  const displayName = profile.full_name
+    ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+    : deletedUserLabel;
 
   const infoBlock = (
     <>

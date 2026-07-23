@@ -57,14 +57,14 @@ export async function searchProfiles(
 
   let query = supabase
     .from("profiles")
-    .select("id, full_name, avatar_url, city, age, gender")
+    .select("id, full_name, last_name, avatar_url, city, age, gender")
     .neq("id", excludeUserId)
     .limit(30);
 
   if (blockedIds.length > 0) query = query.not("id", "in", `(${blockedIds.join(",")})`);
   if (filters.name) {
     query = query.or(
-      `full_name.ilike.%${filters.name}%,username.ilike.%${filters.name}%`
+      `full_name.ilike.%${filters.name}%,last_name.ilike.%${filters.name}%,username.ilike.%${filters.name}%`
     );
   }
   if (cityIds) query = query.in("id", cityIds);

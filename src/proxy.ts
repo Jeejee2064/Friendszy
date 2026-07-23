@@ -41,7 +41,9 @@ export async function proxy(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name, avatar_url, city, age, gender, moderation_status, is_admin")
+      .select(
+        "full_name, last_name, avatar_url, city, age, gender, moderation_status, is_admin"
+      )
       .eq("id", user.id)
       .maybeSingle();
 

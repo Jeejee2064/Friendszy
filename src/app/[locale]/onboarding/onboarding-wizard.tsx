@@ -13,6 +13,7 @@ import { CityAutocomplete } from "@/components/search/city-autocomplete";
 
 type FormState = {
   fullName: string;
+  lastName: string;
   avatarUrl: string | null;
   city: string;
   age: number | null;
@@ -48,6 +49,7 @@ export function OnboardingWizard({
   function validateStep(): string | null {
     if (step === 0) {
       if (!form.fullName.trim()) return t("errors.fullNameRequired");
+      if (!form.lastName.trim()) return t("errors.lastNameRequired");
       if (!form.avatarUrl) return t("errors.photoRequired");
     }
     if (step === 1) {
@@ -84,6 +86,7 @@ export function OnboardingWizard({
       const supabase = createClient();
       await upsertMyProfile(supabase, userId, {
         full_name: form.fullName.trim(),
+        last_name: form.lastName.trim(),
         avatar_url: form.avatarUrl,
         city: form.city.trim(),
         age: form.age,
@@ -146,6 +149,14 @@ export function OnboardingWizard({
               placeholder={tFields("fullNamePlaceholder")}
               value={form.fullName}
               onChange={(e) => update("fullName", e.target.value)}
+              className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
+            />
+            <input
+              type="text"
+              required
+              placeholder={tFields("lastNamePlaceholder")}
+              value={form.lastName}
+              onChange={(e) => update("lastName", e.target.value)}
               className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
             />
           </div>

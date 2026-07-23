@@ -23,7 +23,11 @@ export function NotificationRow({
 
   const name = notification.otherProfile?.full_name ?? tCommon("deletedUser");
   const label =
-    notification.type === "friend_request_accepted" ? t("friendRequestAccepted", { name }) : "";
+    notification.type === "friend_added"
+      ? t("friendAdded", { name })
+      : notification.type === "friend_request_accepted"
+        ? t("friendRequestAccepted", { name })
+        : "";
   const isUnread = !notification.read_at;
   const profile = notification.otherProfile;
 
@@ -37,7 +41,7 @@ export function NotificationRow({
         // best-effort: le badge se resynchronisera au prochain événement realtime
       }
     }
-    router.push("/friends");
+    router.push(profile ? `/profile/${profile.id}` : "/friends");
   }
 
   return (

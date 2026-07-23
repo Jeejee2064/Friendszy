@@ -32,6 +32,7 @@ export default async function OnboardingPage({
       interests={interests}
       initial={{
         fullName: profile?.full_name ?? "",
+        lastName: profile?.last_name ?? "",
         avatarUrl: profile?.avatar_url ?? null,
         city: profile?.city ?? "",
         age: profile?.age ?? null,

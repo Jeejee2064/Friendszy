@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
 import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
-import { usePendingRequestsCount } from "@/lib/friends/pending-context";
 
 const NAV_ITEMS = [
   { href: "/", icon: "🏠", key: "home" },
@@ -22,7 +21,6 @@ export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const t = useTranslations("Nav");
   const unreadNotifications = useUnreadNotificationsCount();
   const unreadConversations = useUnreadConversationsCount();
-  const pendingRequests = usePendingRequestsCount();
   const items = isAdmin ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS;
 
   return (
@@ -34,9 +32,7 @@ export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
             ? unreadNotifications
             : item.key === "messages"
               ? unreadConversations
-              : item.key === "friends"
-                ? pendingRequests
-                : 0;
+              : 0;
         return (
           <Link
             key={item.href}

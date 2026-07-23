@@ -8,7 +8,7 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { PresenceProvider } from "@/lib/presence/presence-context";
 import { NotificationsProvider } from "@/lib/notifications/notifications-context";
 import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
-import { PendingRequestsProvider } from "@/lib/friends/pending-context";
+import { FriendAddedNotifier } from "@/lib/friends/friend-added-notifier";
 import { ToastProvider } from "@/components/ui/toast-context";
 import "../globals.css";
 
@@ -79,10 +79,10 @@ export default async function LocaleLayout({
             <PresenceProvider>
               <NotificationsProvider>
                 <UnreadMessagesProvider>
-                  <PendingRequestsProvider>
+                  <FriendAddedNotifier>
                     {children}
                     <ServiceWorkerRegister />
-                  </PendingRequestsProvider>
+                  </FriendAddedNotifier>
                 </UnreadMessagesProvider>
               </NotificationsProvider>
             </PresenceProvider>

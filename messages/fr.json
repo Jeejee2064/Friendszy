@@ -86,7 +86,7 @@
     "title": "Notifications",
     "markAllRead": "Tout marquer comme lu",
     "empty": "Aucune notification pour l'instant.",
-    "friendRequest": "{name} veut être ton ami",
+    "friendAdded": "{name} t'a ajouté comme ami",
     "friendRequestAccepted": "{name} a accepté ta demande d'ami",
     "newMessage": "{name} t'a envoyé un message"
   },
@@ -96,6 +96,8 @@
     "photoError": "Échec de l'envoi de la photo. Réessaie.",
     "fullNameLabel": "Prénom",
     "fullNamePlaceholder": "Prénom",
+    "lastNameLabel": "Nom de famille",
+    "lastNamePlaceholder": "Nom de famille",
     "cityLabel": "Ville",
     "cityPlaceholder": "Ville",
     "ageLabel": "Âge",
@@ -140,6 +142,7 @@
     "finish": "Terminer",
     "errors": {
       "fullNameRequired": "Le prénom est requis.",
+      "lastNameRequired": "Le nom de famille est requis.",
       "photoRequired": "Ajoute une photo de profil pour continuer.",
       "cityRequired": "La ville est requise.",
       "ageInvalid": "Indique un âge valide (18 ans ou plus).",
@@ -157,6 +160,7 @@
     "saveError": "Une erreur est survenue. Réessaie.",
     "errors": {
       "fullNameRequired": "Le prénom est requis.",
+      "lastNameRequired": "Le nom de famille est requis.",
       "ageInvalid": "Indique un âge valide (18 ans ou plus)."
     }
   },
@@ -194,20 +198,13 @@
     "title": "Mes amis",
     "loading": "Chargement...",
     "myFriends": "Amis",
-    "receivedRequests": "Demandes",
     "blockedTab": "Bloqués",
     "filterByName": "Filtrer par prénom",
     "noFriends": "Pas encore d'amis. Utilise la recherche pour en trouver !",
-    "noRequests": "Aucune demande en attente.",
-    "accept": "Accepter",
-    "decline": "Refuser",
     "message": "Message",
     "remove": "Retirer",
     "addFriend": "Ajouter",
-    "requestSent": "Demande envoyée",
-    "theySentYouRequest": "T'a envoyé une demande",
-    "friendsBadge": "Ami",
-    "theyDeclinedYourRequest": "A décliné ta demande"
+    "friendsBadge": "Ami"
   },
   "Messages": {
     "title": "Messagerie",

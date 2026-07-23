@@ -30,6 +30,7 @@ export default async function AppLayout({
         profile ?? {
           id: user.id,
           full_name: null,
+          last_name: null,
           avatar_url: null,
           city: null,
           age: null,

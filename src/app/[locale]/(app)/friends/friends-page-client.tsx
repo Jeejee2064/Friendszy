@@ -7,14 +7,10 @@ import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   listFriends,
-  listPendingRequests,
   getFriendshipMap,
-  respondToFriendRequest,
   removeFriend,
-  type PendingRequest,
   type FriendshipInfo,
 } from "@/lib/friends/queries";
-import { useRefreshPendingRequests } from "@/lib/friends/pending-context";
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getInterestsForProfiles } from "@/lib/search/queries";
 import { getProfilesByIds } from "@/lib/profile/queries";
@@ -29,7 +25,7 @@ import { PersonCard } from "@/components/social/person-card";
 import { ReportButton } from "@/components/social/report-button";
 import { BlockButton } from "@/components/social/block-button";
 
-type Tab = "friends" | "requests" | "blocked";
+type Tab = "friends" | "blocked";
 
 export function FriendsPageClient({
   userId,
@@ -46,12 +42,11 @@ export function FriendsPageClient({
   const searchParams = useSearchParams();
 
   const tabParam = searchParams.get("tab");
-  const tab: Tab = tabParam === "requests" ? "requests" : tabParam === "blocked" ? "blocked" : "friends";
+  const tab: Tab = tabParam === "blocked" ? "blocked" : "friends";
   function setTab(nextTab: Tab) {
     router.replace(nextTab === "friends" ? "/friends" : `/friends?tab=${nextTab}`);
   }
   const [friends, setFriends] = useState<ProfileSummary[]>([]);
-  const [requests, setRequests] = useState<PendingRequest[]>([]);
   const [blockedProfiles, setBlockedProfiles] = useState<BlockedProfile[]>([]);
   const [friendshipMap, setFriendshipMap] = useState<Map<string, FriendshipInfo>>(
     new Map()
@@ -64,7 +59,6 @@ export function FriendsPageClient({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [messagingId, setMessagingId] = useState<string | null>(null);
   const [unblockingId, setUnblockingId] = useState<string | null>(null);
-  const refreshPendingRequests = useRefreshPendingRequests();
 
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
@@ -76,19 +70,17 @@ export function FriendsPageClient({
     setLoading(true);
     const supabase = createClient();
     try {
-      const [friendList, requestList, fMap, blockedList] = await Promise.all([
+      const [friendList, fMap, blockedList] = await Promise.all([
         listFriends(supabase, userId),
-        listPendingRequests(supabase, userId),
         getFriendshipMap(supabase, userId),
         listBlockedProfiles(supabase),
       ]);
       setFriends(friendList);
-      setRequests(requestList);
       setFriendshipMap(fMap);
       setBlockedProfiles(blockedList);
-
-      const allIds = [...friendList.map((f) => f.id), ...requestList.map((r) => r.profile.id)];
-      setInterestsByProfile(await getInterestsForProfiles(supabase, allIds));
+      setInterestsByProfile(
+        await getInterestsForProfiles(supabase, friendList.map((f) => f.id))
+      );
     } finally {
       setLoading(false);
     }
@@ -108,9 +100,9 @@ export function FriendsPageClient({
       setBlockedProfiles((prev) => prev.filter((p) => p.id !== blockedId));
 
       // The underlying friendship row is never touched by block/unblock, so
-      // if they were an accepted friend before, they still are — bring them
+      // if I'd already added them before, they're still there — bring them
       // back into the friends list right away instead of waiting on a reload.
-      if (friendshipMap.get(blockedId)?.status === "accepted") {
+      if (friendshipMap.has(blockedId)) {
         const [profile] = await getProfilesByIds(supabase, [blockedId]);
         if (profile) {
           setFriends((prev) => (prev.some((f) => f.id === profile.id) ? prev : [...prev, profile]));
@@ -118,18 +110,6 @@ export function FriendsPageClient({
       }
     } finally {
       setUnblockingId(null);
-    }
-  }
-
-  async function handleRespond(friendshipId: string, accept: boolean) {
-    setBusyId(friendshipId);
-    try {
-      const supabase = createClient();
-      await respondToFriendRequest(supabase, friendshipId, accept);
-      await load();
-      refreshPendingRequests();
-    } finally {
-      setBusyId(null);
     }
   }
 
@@ -188,13 +168,6 @@ export function FriendsPageClient({
           count={friends.length}
         >
           {t("myFriends")}
-        </TabButton>
-        <TabButton
-          active={tab === "requests"}
-          onClick={() => setTab("requests")}
-          count={requests.length}
-        >
-          {t("receivedRequests")}
         </TabButton>
         <TabButton
           active={tab === "blocked"}
@@ -278,45 +251,6 @@ export function FriendsPageClient({
             </div>
           )}
         </div>
-      ) : tab === "requests" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {requests.length === 0 ? (
-            <p className="col-span-full text-center text-sm text-muted">
-              {t("noRequests")}
-            </p>
-          ) : (
-            requests.map((req) => (
-              <PersonCard
-                key={req.friendshipId}
-                profile={req.profile}
-                sharedInterests={(interestsByProfile.get(req.profile.id) ?? []).map(
-                  interestLabel
-                )}
-                href={`/profile/${req.profile.id}`}
-                deletedUserLabel={tCommon("deletedUser")}
-                footer={
-                  <div className="flex items-center gap-2">
-                    <button
-                      disabled={busyId === req.friendshipId}
-                      onClick={() => handleRespond(req.friendshipId, true)}
-                      className="flex-1 rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-                      style={{ backgroundImage: "var(--grad)" }}
-                    >
-                      {t("accept")}
-                    </button>
-                    <button
-                      disabled={busyId === req.friendshipId}
-                      onClick={() => handleRespond(req.friendshipId, false)}
-                      className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted disabled:opacity-60"
-                    >
-                      {t("decline")}
-                    </button>
-                  </div>
-                }
-              />
-            ))
-          )}
-        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {blockedProfiles.length === 0 ? (
@@ -386,19 +320,21 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-t-lg border-b-2 px-3 pb-3 pt-2 text-sm font-bold transition-colors ${
+      className={`relative rounded-t-lg border-b-2 px-3 pb-3 pt-2 text-sm font-bold transition-colors ${
         active
           ? "border-teal2 bg-bg text-teal2"
           : "border-transparent text-muted hover:bg-bg hover:text-text"
       }`}
     >
       {children}
-      <span
-        className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white"
-        style={{ backgroundImage: "var(--grad)" }}
-      >
-        {count}
-      </span>
+      {count > 0 && (
+        <span
+          className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+          style={{ backgroundImage: "var(--grad)" }}
+        >
+          {count}
+        </span>
+      )}
     </button>
   );
 }

@@ -8,6 +8,7 @@ export const GENDERS: Gender[] = ["homme", "femme", "non-binaire", "autre"];
 
 export type ProfileFormData = {
   full_name: string;
+  last_name: string;
   avatar_url: string | null;
   city: string;
   age: number | null;
@@ -18,6 +19,7 @@ export type ProfileFormData = {
 export type ProfileSummary = {
   id: string;
   full_name: string | null;
+  last_name: string | null;
   avatar_url: string | null;
   city: string | null;
   age: number | null;

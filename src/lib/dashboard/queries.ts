@@ -17,8 +17,7 @@ export async function getDashboardStats(
     supabase
       .from("friendships")
       .select("id", { count: "exact", head: true })
-      .eq("status", "accepted")
-      .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+      .eq("requester_id", userId),
     supabase
       .from("messages")
       .select("id", { count: "exact", head: true })

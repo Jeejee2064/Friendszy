@@ -1,5 +1,6 @@
 export type ProfileCompletenessFields = {
   full_name: string | null;
+  last_name: string | null;
   avatar_url: string | null;
   city: string | null;
   age: number | null;
@@ -11,6 +12,7 @@ export function isProfileComplete(profile: ProfileCompletenessFields | null) {
 
   return Boolean(
     profile.full_name &&
+      profile.last_name &&
       profile.avatar_url &&
       profile.city &&
       profile.age &&

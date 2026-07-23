@@ -86,7 +86,7 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "empty": "No notifications yet.",
-    "friendRequest": "{name} wants to be your friend",
+    "friendAdded": "{name} added you as a friend",
     "friendRequestAccepted": "{name} accepted your friend request",
     "newMessage": "{name} sent you a message"
   },
@@ -96,6 +96,8 @@
     "photoError": "Failed to upload the photo. Try again.",
     "fullNameLabel": "First name",
     "fullNamePlaceholder": "First name",
+    "lastNameLabel": "Last name",
+    "lastNamePlaceholder": "Last name",
     "cityLabel": "City",
     "cityPlaceholder": "City",
     "ageLabel": "Age",
@@ -140,6 +142,7 @@
     "finish": "Finish",
     "errors": {
       "fullNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
       "photoRequired": "Add a profile photo to continue.",
       "cityRequired": "City is required.",
       "ageInvalid": "Enter a valid age (18 or older).",
@@ -157,6 +160,7 @@
     "saveError": "Something went wrong. Try again.",
     "errors": {
       "fullNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
       "ageInvalid": "Enter a valid age (18 or older)."
     }
   },
@@ -194,20 +198,13 @@
     "title": "My friends",
     "loading": "Loading...",
     "myFriends": "Friends",
-    "receivedRequests": "Requests",
     "blockedTab": "Blocked",
     "filterByName": "Filter by name",
     "noFriends": "No friends yet. Use search to find some!",
-    "noRequests": "No pending requests.",
-    "accept": "Accept",
-    "decline": "Decline",
     "message": "Message",
     "remove": "Remove",
     "addFriend": "Add",
-    "requestSent": "Request sent",
-    "theySentYouRequest": "Sent you a request",
-    "friendsBadge": "Friend",
-    "theyDeclinedYourRequest": "They declined your request"
+    "friendsBadge": "Friend"
   },
   "Messages": {
     "title": "Messages",
