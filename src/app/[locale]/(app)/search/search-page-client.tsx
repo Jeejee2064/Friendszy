@@ -20,7 +20,7 @@ import { getMyInterestIds } from "@/lib/profile/queries";
 import { GENDERS, type Gender, type Interest } from "@/lib/profile/types";
 import { InterestPicker, MAX_SEARCH_INTERESTS } from "@/components/search/interest-picker";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
-import { AgeRangeSlider, AGE_MIN, AGE_MAX } from "@/components/search/age-range-slider";
+import { AgeBracketPicker, type AgeBracket } from "@/components/search/age-bracket-picker";
 import { Modal } from "@/components/ui/modal";
 import { PersonCard } from "@/components/social/person-card";
 
@@ -46,8 +46,7 @@ export function SearchPageClient({
 
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
-  const [minAge, setMinAge] = useState(AGE_MIN);
-  const [maxAge, setMaxAge] = useState(AGE_MAX);
+  const [ageBrackets, setAgeBrackets] = useState<AgeBracket[]>([]);
   const [genders, setGenders] = useState<Gender[]>([]);
   const [interestIds, setInterestIds] = useState<number[]>([]);
   const [changeSearchOpen, setChangeSearchOpen] = useState(false);
@@ -111,8 +110,7 @@ export function SearchPageClient({
         {
           city: city || undefined,
           interestIds: interestIds.length > 0 ? interestIds : undefined,
-          minAge: minAge > AGE_MIN ? minAge : undefined,
-          maxAge: maxAge < AGE_MAX ? maxAge : undefined,
+          ageRanges: ageBrackets.length > 0 ? ageBrackets : undefined,
           gender: genders.length > 0 ? genders : undefined,
         },
         userId
@@ -189,7 +187,7 @@ export function SearchPageClient({
   }
 
   const activeFilterCount =
-    (genders.length > 0 ? 1 : 0) + (minAge > AGE_MIN || maxAge < AGE_MAX ? 1 : 0);
+    (genders.length > 0 ? 1 : 0) + (ageBrackets.length > 0 ? 1 : 0);
 
   function renderResultsGrid() {
     return (
@@ -391,12 +389,8 @@ export function SearchPageClient({
         <div className="max-w-md">
           <h2 className="mb-3 text-lg font-bold text-text">{t("ageGenderStepTitle")}</h2>
           <AgeGenderFilters
-            minAge={minAge}
-            maxAge={maxAge}
-            onAgeChange={(nextMin, nextMax) => {
-              setMinAge(nextMin);
-              setMaxAge(nextMax);
-            }}
+            ageBrackets={ageBrackets}
+            onAgeBracketsChange={setAgeBrackets}
             genders={genders}
             onGendersChange={setGenders}
             tGender={tGender}
@@ -480,12 +474,8 @@ export function SearchPageClient({
               </div>
 
               <AgeGenderFilters
-                minAge={minAge}
-                maxAge={maxAge}
-                onAgeChange={(nextMin, nextMax) => {
-                  setMinAge(nextMin);
-                  setMaxAge(nextMax);
-                }}
+                ageBrackets={ageBrackets}
+                onAgeBracketsChange={setAgeBrackets}
                 genders={genders}
                 onGendersChange={setGenders}
                 tGender={tGender}
@@ -515,9 +505,8 @@ export function SearchPageClient({
 }
 
 function AgeGenderFilters({
-  minAge,
-  maxAge,
-  onAgeChange,
+  ageBrackets,
+  onAgeBracketsChange,
   genders,
   onGendersChange,
   tGender,
@@ -525,9 +514,8 @@ function AgeGenderFilters({
   ageRangeLabel,
   genderLabel,
 }: {
-  minAge: number;
-  maxAge: number;
-  onAgeChange: (min: number, max: number) => void;
+  ageBrackets: AgeBracket[];
+  onAgeBracketsChange: (brackets: AgeBracket[]) => void;
   genders: Gender[];
   onGendersChange: (genders: Gender[]) => void;
   tGender: (key: Gender) => string;
@@ -547,7 +535,7 @@ function AgeGenderFilters({
         <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
           {ageRangeLabel}
         </span>
-        <AgeRangeSlider min={minAge} max={maxAge} onChange={onAgeChange} />
+        <AgeBracketPicker selected={ageBrackets} onChange={onAgeBracketsChange} />
       </div>
 
       <div>

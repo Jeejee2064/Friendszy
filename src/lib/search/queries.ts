@@ -8,8 +8,7 @@ type Client = SupabaseClient<Database>;
 export type SearchFilters = {
   name?: string;
   city?: string;
-  minAge?: number;
-  maxAge?: number;
+  ageRanges?: { min: number; max: number }[];
   gender?: string[];
   interestIds?: number[];
 };
@@ -69,8 +68,13 @@ export async function searchProfiles(
     );
   }
   if (cityIds) query = query.in("id", cityIds);
-  if (filters.minAge != null) query = query.gte("age", filters.minAge);
-  if (filters.maxAge != null) query = query.lte("age", filters.maxAge);
+  if (filters.ageRanges && filters.ageRanges.length > 0) {
+    // Multiple selected age brackets are an OR of independent ranges, not a
+    // single contiguous span — e.g. "18-28" + "45-60" excludes 29-44.
+    query = query.or(
+      filters.ageRanges.map((r) => `and(age.gte.${r.min},age.lte.${r.max})`).join(",")
+    );
+  }
   if (filters.gender && filters.gender.length > 0) {
     query = query.in("gender", filters.gender);
   }
