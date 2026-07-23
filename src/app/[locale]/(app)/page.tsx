@@ -48,9 +48,13 @@ export default async function DashboardPage({
         </div>
 
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-          <StatTile value={stats.friendsCount} label={t("stats.friends")} />
-          <StatTile value={stats.unreadCount} label={t("stats.unread")} />
-          <StatTile value={stats.myInterestsCount} label={t("stats.interests")} />
+          <StatTile value={stats.friendsCount} label={t("stats.friends")} href="/friends" />
+          <StatTile value={stats.unreadCount} label={t("stats.unread")} href="/messages" />
+          <StatTile
+            value={stats.myInterestsCount}
+            label={t("stats.interests")}
+            href="/profile"
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -108,12 +112,23 @@ export default async function DashboardPage({
   );
 }
 
-function StatTile({ value, label }: { value: number; label: string }) {
+function StatTile({
+  value,
+  label,
+  href,
+}: {
+  value: number;
+  label: string;
+  href: "/friends" | "/messages" | "/profile";
+}) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <Link
+      href={href}
+      className="rounded-2xl border border-border bg-card p-4 transition-colors hover:border-teal2"
+    >
       <p className="text-2xl font-extrabold text-teal2">{value}</p>
       <p className="text-sm text-muted">{label}</p>
-    </div>
+    </Link>
   );
 }
 
