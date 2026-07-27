@@ -402,6 +402,10 @@
   },
   "Settings": {
     "title": "Settings",
+    "pwaTitle": "Install the app",
+    "pwaBody": "Add Friendszy to your home screen for faster access.",
+    "pwaButton": "Install",
+    "pwaInstalledLabel": "✓ App installed",
     "exportTitle": "Download my data",
     "exportBody": "Get a copy of your Friendszy data (profile, interests, friends, sent messages) as JSON.",
     "exportButton": "Download my data",

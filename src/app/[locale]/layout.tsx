@@ -9,6 +9,7 @@ import { PresenceProvider } from "@/lib/presence/presence-context";
 import { NotificationsProvider } from "@/lib/notifications/notifications-context";
 import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
 import { ToastProvider } from "@/components/ui/toast-context";
+import { PwaInstallProvider } from "@/lib/pwa/install-context";
 import "../globals.css";
 
 const nunito = Nunito({
@@ -74,16 +75,18 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${nunito.variable} ${pacifico.variable}`}>
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider>
-          <ToastProvider>
-            <PresenceProvider>
-              <NotificationsProvider>
-                <UnreadMessagesProvider>
-                  {children}
-                  <ServiceWorkerRegister />
-                </UnreadMessagesProvider>
-              </NotificationsProvider>
-            </PresenceProvider>
-          </ToastProvider>
+          <PwaInstallProvider>
+            <ToastProvider>
+              <PresenceProvider>
+                <NotificationsProvider>
+                  <UnreadMessagesProvider>
+                    {children}
+                    <ServiceWorkerRegister />
+                  </UnreadMessagesProvider>
+                </NotificationsProvider>
+              </PresenceProvider>
+            </ToastProvider>
+          </PwaInstallProvider>
         </NextIntlClientProvider>
       </body>
     </html>

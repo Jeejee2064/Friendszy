@@ -3,73 +3,54 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui/modal";
+import { usePwaInstall } from "@/lib/pwa/install-context";
 
 // Shown at most once ever per browser — set the moment we decide to show
 // it, not on dismiss, so it can never come back on a later page load just
 // because the user ignored it instead of explicitly closing it.
 const SHOWN_STORAGE_KEY = "friendszy:pwa-install-shown";
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
-function isMobileDevice() {
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-function isStandalone() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (navigator as { standalone?: boolean }).standalone === true
-  );
-}
-
-function isIos() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
+// Never pop up the instant a qualifying page loads — that immediacy is
+// what made this feel random/sudden. A flat delay is simpler than
+// visit-counting and gives the user a moment on the page first.
+const OPEN_DELAY_MS = 3000;
 
 export function InstallPromptBanner() {
   const t = useTranslations("Pwa");
+  const { deferredPrompt, alreadyInstalled, platform, promptInstall } = usePwaInstall();
   const [open, setOpen] = useState(false);
-  const [ios, setIos] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [delayElapsed, setDelayElapsed] = useState(false);
+
+  const isMobile = platform === "ios" || platform === "android";
+  const ios = platform === "ios";
 
   useEffect(() => {
-    if (!isMobileDevice() || isStandalone() || localStorage.getItem(SHOWN_STORAGE_KEY)) {
-      return;
-    }
+    if (!isMobile || alreadyInstalled || localStorage.getItem(SHOWN_STORAGE_KEY)) return;
 
-    function markShownAndOpen(isIosDevice: boolean) {
+    const timer = setTimeout(() => setDelayElapsed(true), OPEN_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isMobile, alreadyInstalled]);
+
+  useEffect(() => {
+    if (!isMobile || alreadyInstalled || open || localStorage.getItem(SHOWN_STORAGE_KEY)) return;
+    if (!delayElapsed) return;
+    // iOS has no deferred prompt to wait for — the delay alone gates it.
+    // Android needs the browser to have actually fired
+    // `beforeinstallprompt` (captured globally by PwaInstallProvider) —
+    // whichever of the delay or the event arrives later is what opens it.
+    function markShownAndOpen() {
       localStorage.setItem(SHOWN_STORAGE_KEY, "1");
-      setIos(isIosDevice);
       setOpen(true);
     }
-
-    if (isIos()) {
-      markShownAndOpen(true);
-      return;
-    }
-
-    function handleBeforeInstallPrompt(e: Event) {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      markShownAndOpen(false);
-    }
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-  }, []);
+    if (ios || deferredPrompt) markShownAndOpen();
+  }, [isMobile, alreadyInstalled, open, delayElapsed, ios, deferredPrompt]);
 
   function close() {
     setOpen(false);
   }
 
   async function handleInstall() {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
+    await promptInstall();
     setOpen(false);
   }
 

@@ -5,9 +5,14 @@ import { useTranslations } from "next-intl";
 import { deleteMyAccount } from "@/lib/account/actions";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
+import { usePwaInstall } from "@/lib/pwa/install-context";
 
 export function SettingsPageClient({ locale }: { locale: string }) {
   const t = useTranslations("Settings");
+  const tPwa = useTranslations("Pwa");
+  const { platform, alreadyInstalled, deferredPrompt, promptInstall } = usePwaInstall();
+  const isMobile = platform === "ios" || platform === "android";
+  const [iosInstructionsOpen, setIosInstructionsOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -55,11 +60,41 @@ export function SettingsPageClient({ locale }: { locale: string }) {
     });
   }
 
+  function handleInstallClick() {
+    if (platform === "ios") {
+      setIosInstructionsOpen(true);
+      return;
+    }
+    promptInstall();
+  }
+
   return (
     <div className="p-6 md:p-10">
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
       <div className="flex max-w-md flex-col gap-4">
+        {isMobile && (
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="mb-2 font-bold text-text">{t("pwaTitle")}</h2>
+            {alreadyInstalled ? (
+              <p className="text-sm font-semibold text-teal2">{t("pwaInstalledLabel")}</p>
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-muted">{t("pwaBody")}</p>
+                <button
+                  type="button"
+                  onClick={handleInstallClick}
+                  disabled={platform === "android" && !deferredPrompt}
+                  className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+                  style={{ backgroundImage: "var(--grad)" }}
+                >
+                  {t("pwaButton")}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="mb-2 font-bold text-text">{t("exportTitle")}</h2>
           <p className="mb-4 text-sm text-muted">{t("exportBody")}</p>
@@ -90,6 +125,10 @@ export function SettingsPageClient({ locale }: { locale: string }) {
           </button>
         </div>
       </div>
+
+      <Modal open={iosInstructionsOpen} onClose={() => setIosInstructionsOpen(false)} title={t("pwaTitle")}>
+        <p className="text-sm text-muted">{tPwa("iosInstructions")}</p>
+      </Modal>
 
       <Modal open={confirmOpen} onClose={closeConfirm} title={t("deleteTitle")}>
         <div className="flex flex-col gap-3">
