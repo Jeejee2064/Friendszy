@@ -2,16 +2,14 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
 import { processAvatarImage } from "@/lib/image/process-avatar";
-import { uploadAvatar } from "@/lib/profile/queries";
 
 export function AvatarPicker({
-  userId,
+  upload,
   value,
   onChange,
 }: {
-  userId: string;
+  upload: (blob: Blob) => Promise<string>;
   value: string | null;
   onChange: (url: string) => void;
 }) {
@@ -32,8 +30,7 @@ export function AvatarPicker({
 
     try {
       const blob = await processAvatarImage(file);
-      const supabase = createClient();
-      const url = await uploadAvatar(supabase, userId, blob);
+      const url = await upload(blob);
       onChange(url);
       setPreview(url);
     } catch {

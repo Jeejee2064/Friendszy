@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/notifications", icon: "🔔", key: "notifications" },
   { href: "/messages", icon: "💬", key: "messages" },
   { href: "/friends", icon: "👥", key: "friends" },
+  { href: "/groups", icon: "🧑‍🤝‍🧑", key: "groups" },
   { href: "/search", icon: "🔍", key: "search" },
   { href: "/profile", icon: "👤", key: "profile" },
 ] as const;
@@ -26,7 +27,12 @@ export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
   return (
     <nav className="flex flex-col gap-1 px-2">
       {items.map((item) => {
-        const active = pathname === item.href;
+        // Groups has nested routes (/groups/[id], /groups/new, ...) that
+        // still belong to the same nav entry, unlike every other item here.
+        const active =
+          item.href === "/"
+            ? pathname === "/"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
         const badgeCount =
           item.key === "notifications"
             ? unreadNotifications

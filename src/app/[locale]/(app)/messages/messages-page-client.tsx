@@ -32,6 +32,15 @@ type ConversationSummary = {
   unreadCount: number;
 };
 
+function displayName(
+  profile: { full_name: string | null; last_name: string | null },
+  deletedLabel: string
+): string {
+  return profile.full_name
+    ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+    : deletedLabel;
+}
+
 function Avatar({
   profile,
   size,
@@ -154,7 +163,7 @@ export function MessagesPageClient({
     const query = search.trim().toLowerCase();
     if (!query) return conversations;
     return conversations.filter((c) =>
-      (c.otherProfile.full_name ?? tCommon("deletedUser")).toLowerCase().includes(query)
+      displayName(c.otherProfile, tCommon("deletedUser")).toLowerCase().includes(query)
     );
   }, [conversations, search, tCommon]);
 
@@ -163,7 +172,7 @@ export function MessagesPageClient({
   const totalUnread = unreadConversations.length;
 
   function renderConversationRow(c: ConversationSummary) {
-    const name = c.otherProfile.full_name ?? tCommon("deletedUser");
+    const name = displayName(c.otherProfile, tCommon("deletedUser"));
     const isUnread = c.unreadCount > 0;
     return (
       <Link
@@ -335,7 +344,7 @@ function NewConversationModal({
     const query = search.trim().toLowerCase();
     if (!query) return friends;
     return friends.filter((f) =>
-      (f.full_name ?? tCommon("deletedUser")).toLowerCase().includes(query)
+      displayName(f, tCommon("deletedUser")).toLowerCase().includes(query)
     );
   }, [friends, search, tCommon]);
 
@@ -388,7 +397,7 @@ function NewConversationModal({
             >
               <Avatar profile={friend} size="sm" deletedUserLabel={tCommon("deletedUser")} />
               <p className="min-w-0 flex-1 truncate font-semibold text-text">
-                {friend.full_name ?? tCommon("deletedUser")}
+                {displayName(friend, tCommon("deletedUser"))}
               </p>
             </button>
           ))
@@ -437,14 +446,14 @@ function ConversationPane({
   const closingRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const displayName = otherProfile.full_name ?? tCommon("deletedUser");
+  const otherDisplayName = displayName(otherProfile, tCommon("deletedUser"));
 
   async function closeDueToBlock(byMe: boolean) {
     if (closingRef.current) return;
     closingRef.current = true;
     showToast({
       message: byMe
-        ? t("blockedByYou", { name: displayName })
+        ? t("blockedByYou", { name: otherDisplayName })
         : t("blockedByThem"),
       href: "/messages",
     });
@@ -640,7 +649,7 @@ function ConversationPane({
             />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-bold text-text">{displayName}</p>
+            <p className="truncate font-bold text-text">{otherDisplayName}</p>
             {isOnline && (
               <p className="flex items-center gap-1 text-xs font-semibold text-teal2">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
@@ -659,7 +668,7 @@ function ConversationPane({
           <BlockButton
             blockerId={userId}
             blockedId={otherProfile.id}
-            blockedName={displayName}
+            blockedName={otherDisplayName}
             compact
             onBlocked={() => closeDueToBlock(true)}
           />

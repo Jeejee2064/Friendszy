@@ -34,13 +34,16 @@ test.describe("search", () => {
     await page.getByRole("button", { name: /Badminton/ }).first().click();
 
     // Close the interest dropdown (outside click) so it doesn't overlap the
-    // buttons below before launching the search.
+    // buttons below before advancing.
     await page.getByText(/Jusqu'à \d+ centres d'intérêt/).first().click();
+    await page.getByRole("button", { name: "Suivant" }).click();
+
+    // Age/gender step: skip straight to launching (no filters needed here).
     await page.getByRole("button", { name: "Lancer la recherche" }).click();
     await expect(page.getByText(CAMILLE.fullName)).toBeVisible({ timeout: 10_000 });
 
     // Light coverage of the filters modal.
-    await page.getByRole("button", { name: /Filtres/ }).click();
+    await page.getByRole("button", { name: /Modifier la recherche/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByText("Tranche d'âge")).toBeVisible();
     await expect(page.getByText("Genre", { exact: true })).toBeVisible();

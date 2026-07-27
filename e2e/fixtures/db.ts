@@ -56,9 +56,11 @@ export async function resetRelationship(idA: string, idB: string) {
     await adminClient.from("conversations").delete().eq("id", conversation.id);
   }
 
-  // friend_request / friend_request_accepted notifications reference the
-  // other user via payload, not a plain column — clean those up too so
-  // repeated runs don't accumulate duplicate rows with the same text.
+  // friend_request / friend_request_accepted / friend_added notifications
+  // reference the other user via payload, not a plain column — clean those
+  // up too so repeated runs don't accumulate duplicate rows with the same
+  // text (friend_added is the one type actually created by the current
+  // one-directional/instant add flow; the other two are legacy).
   for (const [owner, other] of [
     [idA, idB],
     [idB, idA],
@@ -67,7 +69,7 @@ export async function resetRelationship(idA: string, idB: string) {
       .from("notifications")
       .select("id, payload")
       .eq("user_id", owner)
-      .in("type", ["friend_request", "friend_request_accepted"]);
+      .in("type", ["friend_request", "friend_request_accepted", "friend_added"]);
     const staleIds = (rows ?? [])
       .filter((row) => {
         const payload = row.payload as { requester_id?: string; addressee_id?: string } | null;
@@ -167,6 +169,124 @@ export async function seedNotification(
 ) {
   const { error } = await adminClient.from("notifications").insert({ user_id: userId, type, payload });
   if (error) throw error;
+}
+
+export async function getInterestId(labelFr: string): Promise<number> {
+  const { data, error } = await adminClient
+    .from("interests")
+    .select("id")
+    .eq("label_fr", labelFr)
+    .single();
+  if (error) throw error;
+  return data.id;
+}
+
+export type SeedGroupMember = {
+  profileId: string;
+  role: "admin" | "member";
+  status?: "active" | "left" | "excluded" | "banned";
+};
+
+/**
+ * Crée un groupe directement (sans passer par l'assistant de création) avec
+ * son créateur + des membres additionnels optionnels — pour les tests dont
+ * le sujet est en aval de la création elle-même. Retourne l'id du groupe ;
+ * toujours suivi d'un deleteGroups([id]) en teardown.
+ */
+export async function seedGroup(
+  fields: {
+    name: string;
+    interestLabelFr: string;
+    creatorId: string;
+    invitePermission?: "all_members" | "admins_only";
+  },
+  extraMembers: SeedGroupMember[] = []
+): Promise<string> {
+  const interestId = await getInterestId(fields.interestLabelFr);
+  const { data: group, error: groupError } = await adminClient
+    .from("groups")
+    .insert({
+      name: fields.name,
+      interest_id: interestId,
+      creator_id: fields.creatorId,
+      invite_permission: fields.invitePermission ?? "all_members",
+    })
+    .select("id")
+    .single();
+  if (groupError) throw groupError;
+
+  const rows = [
+    { group_id: group.id, profile_id: fields.creatorId, role: "creator", status: "active" },
+    ...extraMembers.map((m) => ({
+      group_id: group.id,
+      profile_id: m.profileId,
+      role: m.role,
+      status: m.status ?? "active",
+    })),
+  ];
+  const { error: membersError } = await adminClient.from("group_members").insert(rows);
+  if (membersError) throw membersError;
+
+  return group.id;
+}
+
+/**
+ * Supprime des groupes précis et toutes les lignes des 3 tables enfants qui
+ * les référencent — deletes explicites plutôt que de compter sur un cascade.
+ */
+export async function deleteGroups(groupIds: string[]) {
+  if (groupIds.length === 0) return;
+  await adminClient.from("group_messages").delete().in("group_id", groupIds);
+  await adminClient.from("group_members").delete().in("group_id", groupIds);
+  await adminClient.from("group_join_requests").delete().in("group_id", groupIds);
+  await adminClient.from("groups").delete().in("id", groupIds);
+}
+
+/**
+ * Filet de sécurité pour tout le fichier groups.spec.ts : supprime tout
+ * groupe jamais créé par l'un de ces profils, peu importe comment (assistant
+ * ou seedGroup) — au cas où un run précédent aurait été interrompu en cours
+ * de route et aurait laissé un groupe fantôme visible en découverte.
+ */
+export async function resetGroupsForCreators(creatorIds: string[]) {
+  const { data, error } = await adminClient
+    .from("groups")
+    .select("id")
+    .in("creator_id", creatorIds);
+  if (error) throw error;
+  await deleteGroups((data ?? []).map((g) => g.id));
+}
+
+/** Insère directement une demande d'adhésion, en remplaçant toute demande existante pour cette paire. */
+export async function seedJoinRequest(
+  groupId: string,
+  profileId: string,
+  status: "pending" | "approved" | "rejected" = "pending"
+) {
+  await adminClient
+    .from("group_join_requests")
+    .delete()
+    .eq("group_id", groupId)
+    .eq("profile_id", profileId);
+  const { error } = await adminClient
+    .from("group_join_requests")
+    .insert({ group_id: groupId, profile_id: profileId, status });
+  if (error) throw error;
+}
+
+/** Insère un message de groupe directement, sans passer par sendGroupMessage() — retourne son id. */
+export async function seedGroupMessage(
+  groupId: string,
+  senderId: string,
+  content: string
+): Promise<string> {
+  const { data, error } = await adminClient
+    .from("group_messages")
+    .insert({ group_id: groupId, sender_id: senderId, content })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id;
 }
 
 // Exposé pour les vérifications post-suppression de compte (e2e/account-deletion.spec.ts),

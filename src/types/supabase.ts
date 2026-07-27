@@ -222,6 +222,102 @@ export type Database = {
         >;
         Relationships: [];
       };
+      groups: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          avatar_url: string | null;
+          creator_id: string | null;
+          interest_id: number | null;
+          invite_permission: string;
+          max_members: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          avatar_url?: string | null;
+          creator_id?: string | null;
+          interest_id?: number | null;
+          invite_permission?: string;
+          max_members?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["groups"]["Insert"]>;
+        Relationships: [];
+      };
+      group_members: {
+        Row: {
+          group_id: string;
+          profile_id: string;
+          role: string;
+          status: string;
+          joined_at: string;
+        };
+        Insert: {
+          group_id: string;
+          profile_id: string;
+          role?: string;
+          status?: string;
+          joined_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["group_members"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      group_messages: {
+        Row: {
+          id: string;
+          group_id: string;
+          sender_id: string;
+          content: string | null;
+          removed_at: string | null;
+          removed_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          group_id: string;
+          sender_id: string;
+          content?: string | null;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["group_messages"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      group_join_requests: {
+        Row: {
+          id: string;
+          group_id: string;
+          profile_id: string;
+          status: string;
+          created_at: string;
+          resolved_at: string | null;
+          resolved_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          group_id: string;
+          profile_id: string;
+          status?: string;
+          created_at?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["group_join_requests"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -247,6 +343,7 @@ export type Database = {
           id: string;
           username: string | null;
           full_name: string | null;
+          last_name: string | null;
           avatar_url: string | null;
           city: string | null;
         }[];
@@ -254,6 +351,26 @@ export type Database = {
       match_city_ids: {
         Args: { p_city: string };
         Returns: { id: string }[];
+      };
+      is_group_member: {
+        Args: { p_group_id: string };
+        Returns: boolean;
+      };
+      is_group_admin: {
+        Args: { p_group_id: string };
+        Returns: boolean;
+      };
+      is_group_creator: {
+        Args: { p_group_id: string };
+        Returns: boolean;
+      };
+      can_invite_to_group: {
+        Args: { p_group_id: string };
+        Returns: boolean;
+      };
+      is_banned_from_group: {
+        Args: { p_group_id: string; p_profile_id: string };
+        Returns: boolean;
       };
     };
     Enums: Record<string, never>;

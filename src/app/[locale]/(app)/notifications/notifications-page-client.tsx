@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getProfilesByIds } from "@/lib/profile/queries";
+import { getGroupSummariesByIds } from "@/lib/groups/queries";
 import {
   markAllNotificationsRead,
   notificationOtherUserId,
+  notificationGroupId,
   type EnrichedNotification,
   type NotificationRow as NotificationRowData,
 } from "@/lib/notifications/queries";
@@ -42,15 +44,22 @@ export function NotificationsPageClient({
           const newRow = payload.new as NotificationRowData;
           if (newRow.type === "new_message" || newRow.type === "friend_request") return;
           const otherId = notificationOtherUserId(newRow);
-          const profiles = otherId ? await getProfilesByIds(supabase, [otherId]) : [];
+          const groupId = notificationGroupId(newRow);
+          const [profiles, groups] = await Promise.all([
+            otherId ? getProfilesByIds(supabase, [otherId]) : Promise.resolve([]),
+            groupId ? getGroupSummariesByIds(supabase, [groupId]) : Promise.resolve(new Map()),
+          ]);
           const otherProfile = profiles[0] ?? null;
-          // Same "account deleted" filter as getNotificationsWithProfiles:
-          // don't surface a notification about a now-anonymized profile.
+          const otherGroup = groupId ? (groups.get(groupId) ?? null) : null;
+          // Same "account/group deleted" filter as getNotificationsWithProfiles:
+          // don't surface a notification about a now-anonymized profile or a
+          // group that no longer exists.
           if (otherId && (!otherProfile || otherProfile.full_name === null)) return;
+          if (groupId && !otherGroup) return;
           setNotifications((prev) =>
             prev.some((n) => n.id === newRow.id)
               ? prev
-              : [{ ...newRow, otherProfile }, ...prev]
+              : [{ ...newRow, otherProfile, otherGroup }, ...prev]
           );
         }
       )

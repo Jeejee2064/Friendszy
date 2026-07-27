@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { upsertMyProfile, setMyInterests } from "@/lib/profile/queries";
+import { upsertMyProfile, setMyInterests, uploadAvatar } from "@/lib/profile/queries";
 import type { Gender, Interest } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
@@ -139,7 +139,7 @@ export function OnboardingWizard({
         {step === 0 && (
           <div className="flex flex-col items-center gap-4">
             <AvatarPicker
-              userId={userId}
+              upload={(blob) => uploadAvatar(createClient(), userId, blob)}
               value={form.avatarUrl}
               onChange={(url) => update("avatarUrl", url)}
             />

@@ -8,8 +8,10 @@ test.describe("dashboard", () => {
   test("shows a personalized welcome, stats, and quick access", async ({ page }) => {
     await page.goto(localePath("fr", "/"));
 
-    // Dashboard's "firstName" var actually holds the full profiles.full_name value.
-    await expect(page.getByText(`Bon retour, ${ALEX.fullName} !`)).toBeVisible();
+    // The welcome banner is deliberately first-name-only (profiles.full_name),
+    // last_name is a separate field it never touches.
+    const firstName = ALEX.fullName.split(" ")[0];
+    await expect(page.getByText(`Bon retour, ${firstName} !`)).toBeVisible();
 
     // Stat values are dynamic (depend on whatever other specs left behind),
     // so we only assert the labels render, not exact counts.

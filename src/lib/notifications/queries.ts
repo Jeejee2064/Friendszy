@@ -2,11 +2,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
+import { getGroupSummariesByIds } from "@/lib/groups/queries";
+import type { GroupSummary } from "@/lib/groups/types";
 
 type Client = SupabaseClient<Database>;
 
 export type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
-export type EnrichedNotification = NotificationRow & { otherProfile: ProfileSummary | null };
+export type EnrichedNotification = NotificationRow & {
+  otherProfile: ProfileSummary | null;
+  otherGroup: GroupSummary | null;
+};
 
 export function notificationOtherUserId(notification: NotificationRow): string | null {
   const payload = notification.payload as Record<string, unknown> | null;
@@ -19,6 +24,24 @@ export function notificationOtherUserId(notification: NotificationRow): string |
       // Legacy type from the old mutual-consent flow — no longer created,
       // but may still exist historically.
       return typeof payload.addressee_id === "string" ? payload.addressee_id : null;
+    case "group_join_request":
+      return typeof payload.requester_id === "string" ? payload.requester_id : null;
+    default:
+      return null;
+  }
+}
+
+// group_invitation and group_join_approved carry only a group_id — there's
+// no "other person" for those, unlike group_join_request which has both.
+export function notificationGroupId(notification: NotificationRow): string | null {
+  const payload = notification.payload as Record<string, unknown> | null;
+  if (!payload) return null;
+
+  switch (notification.type) {
+    case "group_invitation":
+    case "group_join_request":
+    case "group_join_approved":
+      return typeof payload.group_id === "string" ? payload.group_id : null;
     default:
       return null;
   }
@@ -36,11 +59,18 @@ function isLiveOtherProfile(profile: ProfileSummary | null | undefined): boolean
 
 function keepNotification(
   row: NotificationRow,
-  profileById: Map<string, ProfileSummary>
+  profileById: Map<string, ProfileSummary>,
+  groupById: Map<string, GroupSummary>
 ): boolean {
   const otherId = notificationOtherUserId(row);
-  if (!otherId) return true;
-  return isLiveOtherProfile(profileById.get(otherId));
+  if (otherId && !isLiveOtherProfile(profileById.get(otherId))) return false;
+
+  const groupId = notificationGroupId(row);
+  // The group itself was deleted (e.g. the creator-leaves-empties-group
+  // trigger) — same principle as hiding a notification about a gone profile.
+  if (groupId && !groupById.has(groupId)) return false;
+
+  return true;
 }
 
 export async function getUnreadNotificationCount(
@@ -60,10 +90,16 @@ export async function getUnreadNotificationCount(
   const otherIds = [
     ...new Set(rows.map(notificationOtherUserId).filter((id): id is string => !!id)),
   ];
-  const profiles = await getProfilesByIds(supabase, otherIds);
+  const groupIds = [
+    ...new Set(rows.map(notificationGroupId).filter((id): id is string => !!id)),
+  ];
+  const [profiles, groupById] = await Promise.all([
+    getProfilesByIds(supabase, otherIds),
+    getGroupSummariesByIds(supabase, groupIds),
+  ]);
   const profileById = new Map(profiles.map((p) => [p.id, p]));
 
-  return rows.filter((row) => keepNotification(row, profileById)).length;
+  return rows.filter((row) => keepNotification(row, profileById, groupById)).length;
 }
 
 export async function getNotificationsWithProfiles(
@@ -85,14 +121,21 @@ export async function getNotificationsWithProfiles(
   const otherIds = [
     ...new Set(rows.map(notificationOtherUserId).filter((id): id is string => !!id)),
   ];
-  const profiles = await getProfilesByIds(supabase, otherIds);
+  const groupIds = [
+    ...new Set(rows.map(notificationGroupId).filter((id): id is string => !!id)),
+  ];
+  const [profiles, groupById] = await Promise.all([
+    getProfilesByIds(supabase, otherIds),
+    getGroupSummariesByIds(supabase, groupIds),
+  ]);
   const profileById = new Map(profiles.map((p) => [p.id, p]));
 
   return rows
-    .filter((row) => keepNotification(row, profileById))
+    .filter((row) => keepNotification(row, profileById, groupById))
     .map((row) => ({
       ...row,
       otherProfile: profileById.get(notificationOtherUserId(row) ?? "") ?? null,
+      otherGroup: groupById.get(notificationGroupId(row) ?? "") ?? null,
     }));
 }
 

@@ -33,8 +33,9 @@ test.describe("messaging", () => {
     await expect(camillePage.getByText("Salut !")).toBeVisible();
 
     // Samuel's open thread should pick up the read receipt live (Realtime
-    // UPDATE on messages.read_at), no reload.
-    await expect(samuelPage.getByText("Lu", { exact: true })).toBeVisible({ timeout: 10_000 });
+    // UPDATE on messages.read_at), no reload. The tick is an <svg role="img"
+    // aria-label="Lu">, not a text node — getByLabel, not getByText.
+    await expect(samuelPage.getByLabel("Lu", { exact: true })).toBeVisible({ timeout: 10_000 });
 
     // With both threads open, a second message from Samuel should appear on
     // Camille's side live (Realtime INSERT), no reload.

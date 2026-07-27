@@ -7,7 +7,11 @@ test.use({ storageState: "e2e/.auth/alex.json" });
 test.describe("own profile", () => {
   test("edit bio and save", async ({ page }) => {
     await page.goto(localePath("fr", "/profile"));
-    await expect(page.getByPlaceholder("Prénom")).toHaveValue(ALEX.fullName);
+    // full_name and last_name are separate fields — Prénom only holds the
+    // first token, "Nom de famille" holds the rest.
+    const [firstName, lastName] = ALEX.fullName.split(" ");
+    await expect(page.getByPlaceholder("Prénom")).toHaveValue(firstName);
+    await expect(page.getByPlaceholder("Nom de famille")).toHaveValue(lastName);
 
     const bio = `Bio de test générée par Playwright — ${Date.now()}`;
     const bioField = page.getByPlaceholder("Quelques mots sur toi (optionnel)");
@@ -32,8 +36,11 @@ test.describe("own profile", () => {
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await expect(page.getByText("Le prénom est requis.")).toBeVisible();
 
-    // Restore the name so we don't leave Alex's profile incomplete for other specs.
-    await page.getByPlaceholder("Prénom").fill(ALEX.fullName);
+    // Restore the name (first token only — Prénom and Nom de famille are
+    // separate fields) so we don't leave Alex's profile incomplete or
+    // corrupted for other specs.
+    const [firstName] = ALEX.fullName.split(" ");
+    await page.getByPlaceholder("Prénom").fill(firstName);
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await expect(page.getByText("Profil mis à jour.")).toBeVisible();
   });

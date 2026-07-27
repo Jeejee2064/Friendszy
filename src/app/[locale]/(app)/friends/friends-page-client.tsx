@@ -135,6 +135,7 @@ export function FriendsPageClient({
               id: profile.id,
               username: null,
               full_name: profile.full_name,
+              last_name: profile.last_name,
               avatar_url: profile.avatar_url,
               city: profile.city,
             },
@@ -258,7 +259,11 @@ export function FriendsPageClient({
               {tBlocked("empty")}
             </p>
           ) : (
-            blockedProfiles.map((profile) => (
+            blockedProfiles.map((profile) => {
+              const displayName = profile.full_name
+                ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+                : "?";
+              return (
               <div
                 key={profile.id}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
@@ -278,12 +283,12 @@ export function FriendsPageClient({
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
-                      {(profile.full_name ?? "?").charAt(0).toUpperCase()}
+                      {displayName.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-text">{profile.full_name}</p>
+                  <p className="truncate font-bold text-text">{displayName}</p>
                   {profile.city && (
                     <p className="truncate text-sm text-muted">{profile.city}</p>
                   )}
@@ -297,7 +302,8 @@ export function FriendsPageClient({
                   {tBlocked("unblock")}
                 </button>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

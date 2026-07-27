@@ -18,11 +18,20 @@ function targetUserId(report: ReportWithTarget): string | null {
   return null;
 }
 
+function profileDisplayName(
+  profile: { full_name: string | null; last_name: string | null } | null | undefined,
+  deletedLabel: string
+): string {
+  return profile?.full_name
+    ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+    : deletedLabel;
+}
+
 function targetDisplayName(report: ReportWithTarget, deletedLabel: string): string {
   if (report.target_type === "profile")
-    return report.targetProfile?.full_name ?? deletedLabel;
+    return profileDisplayName(report.targetProfile, deletedLabel);
   if (report.target_type === "message")
-    return report.targetMessage?.senderProfile?.full_name ?? deletedLabel;
+    return profileDisplayName(report.targetMessage?.senderProfile, deletedLabel);
   return "";
 }
 
@@ -136,7 +145,7 @@ export function AdminReportsClient({
                   <span>
                     {t("reporterLabel")}:{" "}
                     <span className="font-semibold text-text">
-                      {report.reporterProfile?.full_name ?? "—"}
+                      {profileDisplayName(report.reporterProfile, "—")}
                     </span>
                   </span>
                   <div className="flex items-center gap-2">
@@ -178,14 +187,14 @@ export function AdminReportsClient({
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
-                          {(report.targetProfile?.full_name ?? "?").charAt(0).toUpperCase()}
+                          {profileDisplayName(report.targetProfile, "?").charAt(0).toUpperCase()}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-text">
                         {t("targetTypeProfile")}:{" "}
-                        {report.targetProfile?.full_name ?? tCommon("deletedUser")}
+                        {profileDisplayName(report.targetProfile, tCommon("deletedUser"))}
                       </p>
                       {report.targetModerationStatus && (
                         <p className="text-xs text-muted">
@@ -198,7 +207,7 @@ export function AdminReportsClient({
                   <div className="rounded-xl border border-border p-3">
                     <p className="text-sm font-bold text-text">
                       {t("targetTypeMessage")}:{" "}
-                      {report.targetMessage?.senderProfile?.full_name ?? tCommon("deletedUser")}
+                      {profileDisplayName(report.targetMessage?.senderProfile, tCommon("deletedUser"))}
                     </p>
                     <p
                       className={`mt-1 text-sm ${

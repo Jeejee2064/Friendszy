@@ -1,34 +1,34 @@
 export const TEST_PASSWORD = "TestPassword123!";
 
 export const ALEX = {
-  id: "625c732a-b3eb-46b7-b1eb-10a6eaf88e47",
+  id: "cfe64006-2964-4f0b-959e-d41102911f87",
   email: "test.alex.3@friendszy.test",
   fullName: "Alex Test3",
 };
 
 export const SAMUEL = {
-  id: "03392869-b267-42c2-939a-469a32f2aba5",
+  id: "9131081a-fd55-447c-ad94-f3351ea3fabe",
   email: "test.samuel.7@friendszy.test",
   fullName: "Samuel Test7",
 };
 
 export const CAMILLE = {
-  id: "ed6c61c1-82e6-4751-a263-a9625bde29fa",
+  id: "0cd75839-a57d-4b30-abb1-3fd11a7629b4",
   email: "test.camille.8@friendszy.test",
   fullName: "Camille Test8",
 };
 
 export const ANTOINE = {
-  id: "e9fefef2-3410-4f04-a463-5e2d7f75ff97",
+  id: "a5800ab3-2fb2-4991-9d62-d64bdc880147",
   email: "test.antoine.13@friendszy.test",
   fullName: "Antoine Test13",
 };
 
-// Not a login persona — used only as a moderation target for admin.spec.ts,
-// picked from the bulk-seeded pool so suspend/reactivate never touches one
-// of the 4 curated personas other specs depend on.
+// Not a login persona (no storageState in auth.setup.ts) — used only as a
+// moderation target for admin.spec.ts, so suspend/reactivate never touches
+// one of the 4 curated login personas other specs depend on.
 export const SOPHIE = {
-  id: "a6028506-8891-4c07-820e-50cd997b18c7",
+  id: "8dee63bf-4c63-4e63-91de-67edfad14fb3",
   fullName: "Sophie Test0",
 };
 
