@@ -394,8 +394,13 @@ test.describe("discovery: interest filter and default ranking", () => {
     const page = await context.newPage();
 
     await page.goto(localePath("fr", "/groups"));
-    await page.getByPlaceholder("🔍 Rechercher un intérêt...").fill("Badminton");
-    await page.getByRole("button", { name: /Badminton/ }).click();
+    await page.getByRole("button", { name: "Par intérêt" }).click();
+    await page.getByRole("button", { name: "Tous les intérêts" }).click();
+    // Desktop dropdown and mobile full-screen panel both render at once
+    // (only one is visible per breakpoint via CSS) — the desktop version
+    // comes first in DOM order and is the one visible at this viewport.
+    await page.getByPlaceholder("🔍 Rechercher un intérêt...").first().fill("Badminton");
+    await page.getByRole("button", { name: /Badminton/ }).first().click();
 
     await expect(groupCard(page, "Mordus de Badminton")).toBeVisible();
     await expect(groupCard(page, "Dojo Arts Martiaux")).toHaveCount(0);

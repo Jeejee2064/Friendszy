@@ -250,9 +250,14 @@ export async function addOrReactivateGroupMember(
   if (existing.status === "banned") throw new BannedFromGroupError();
   if (existing.status === "active") return;
 
+  // Reactivating always resets role to 'member' — never leave a stale prior
+  // role (e.g. 'creator' or 'admin') on the row. Without this, someone who
+  // left as creator (role stays 'creator' on their now-inactive row while
+  // the leave trigger promotes a new creator elsewhere) would come back as
+  // a second active creator the moment they rejoin.
   const { error } = await supabase
     .from("group_members")
-    .update({ status: "active" })
+    .update({ status: "active", role: "member" })
     .eq("group_id", groupId)
     .eq("profile_id", profileId);
   if (error) throw error;

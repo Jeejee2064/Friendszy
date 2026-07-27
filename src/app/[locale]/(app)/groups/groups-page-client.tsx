@@ -19,6 +19,7 @@ import { GroupInterestSelect } from "@/components/groups/group-interest-select";
 import { GroupCard } from "@/components/groups/group-card";
 
 type Tab = "discover" | "mine";
+type DiscoverFilterMode = "name" | "interest";
 
 type MyGroupItem = {
   group: GroupRow;
@@ -83,8 +84,17 @@ export function GroupsPageClient({
 }) {
   const t = useTranslations("Groups");
   const [tab, setTab] = useState<Tab>("discover");
+  const [filterMode, setFilterMode] = useState<DiscoverFilterMode>("name");
   const [name, setName] = useState("");
   const [interestId, setInterestId] = useState<number | null>(null);
+
+  // Only one filter is ever active at a time — switching tabs clears the
+  // other one instead of silently keeping it applied in the background.
+  function handleFilterModeChange(mode: DiscoverFilterMode) {
+    setFilterMode(mode);
+    if (mode === "name") setInterestId(null);
+    else setName("");
+  }
   const [groups, setGroups] = useState<GroupCardData[]>(initialDiscoverGroups);
   const [loading, setLoading] = useState(false);
   const [requestingId, setRequestingId] = useState<string | null>(null);
@@ -143,21 +153,40 @@ export function GroupsPageClient({
       </div>
 
       {tab === "discover" ? (
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t("searchPlaceholder")}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-teal2"
-            />
-            <GroupInterestSelect
-              interests={interests}
-              value={interestId}
-              onChange={setInterestId}
-              allowClear
-            />
+        <div className="flex flex-col gap-4">
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <div className="mb-3 flex gap-4 border-b border-border">
+              <FilterTabButton
+                active={filterMode === "name"}
+                onClick={() => handleFilterModeChange("name")}
+              >
+                🔍 {t("filterByNameTab")}
+              </FilterTabButton>
+              <FilterTabButton
+                active={filterMode === "interest"}
+                onClick={() => handleFilterModeChange("interest")}
+              >
+                🔍 {t("filterByInterestTab")}
+              </FilterTabButton>
+            </div>
+
+            {filterMode === "name" ? (
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t("searchPlaceholder")}
+                className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm outline-none focus:border-teal2"
+              />
+            ) : (
+              <GroupInterestSelect
+                interests={interests}
+                value={interestId}
+                onChange={setInterestId}
+                allowClear
+                collapsible
+              />
+            )}
           </div>
 
           {loading ? (
@@ -235,6 +264,32 @@ function TabButton({
         active ? "text-white" : "text-muted"
       }`}
       style={active ? { backgroundImage: "var(--grad)" } : undefined}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Deliberately a different shape from the pill-style TabButton above (which
+// is reserved for the page's actual top-level nav, Discover/My groups) —
+// an underline tab inside a bordered card, so this filter panel reads as a
+// clearly secondary, self-contained search control, not another nav level.
+function FilterTabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`-mb-px border-b-2 pb-2 text-sm font-bold transition-colors ${
+        active ? "border-teal2 text-teal2" : "border-transparent text-muted hover:text-text"
+      }`}
     >
       {children}
     </button>

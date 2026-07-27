@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
@@ -28,21 +28,45 @@ export function GroupInterestSelect({
   value,
   onChange,
   allowClear = false,
+  collapsible = false,
 }: {
   interests: Interest[];
   value: number | null;
   onChange: (id: number | null) => void;
   allowClear?: boolean;
+  // Closed-by-default, opens into a dropdown (desktop) / full-screen panel
+  // (mobile) on click — same interaction as InterestPicker on /search.
+  // Off by default: the creation wizard/settings form render this as the
+  // sole content of their own step, where an always-open grid is fine.
+  collapsible?: boolean;
 }) {
   const locale = useLocale();
   const tCategory = useTranslations("InterestCategories");
   const tFields = useTranslations("ProfileFields");
   const tGroups = useTranslations("Groups");
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   function labelFor(interest: Interest) {
     return locale === "en" ? interest.label_en : interest.label_fr;
   }
+
+  function handleSelect(id: number | null) {
+    onChange(id);
+    if (collapsible) setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!collapsible || !open) return;
+    function handleOutsideClick(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [collapsible, open]);
 
   function renderPill(interest: Interest) {
     const selected = value === interest.id;
@@ -51,7 +75,7 @@ export function GroupInterestSelect({
         key={interest.id}
         type="button"
         layout
-        onClick={() => onChange(interest.id)}
+        onClick={() => handleSelect(interest.id)}
         whileTap={{ scale: 0.92 }}
         animate={{ scale: selected ? 1.05 : 1 }}
         transition={{ type: "spring", stiffness: 500, damping: 25 }}
@@ -120,7 +144,12 @@ export function GroupInterestSelect({
     })
     .filter(([, items]) => items.length > 0);
 
-  return (
+  const selectedInterest = value != null ? interests.find((i) => i.id === value) : undefined;
+  const closedLabel = selectedInterest
+    ? `${selectedInterest.emoji ? `${selectedInterest.emoji} ` : ""}${labelFor(selectedInterest)}`
+    : tGroups("allInterests");
+
+  const body = (
     <div className="flex flex-col gap-3">
       <input
         type="text"
@@ -134,7 +163,7 @@ export function GroupInterestSelect({
           <motion.button
             type="button"
             layout
-            onClick={() => onChange(null)}
+            onClick={() => handleSelect(null)}
             whileTap={{ scale: 0.92 }}
             animate={{ scale: value === null ? 1.05 : 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 25 }}
@@ -158,7 +187,7 @@ export function GroupInterestSelect({
           </p>
         ) : (
           visibleGroups.map(([category, items]) => {
-            const open = isSearching || openCategories.has(category);
+            const isOpenCategory = isSearching || openCategories.has(category);
             return (
               <div
                 key={category || "_"}
@@ -175,13 +204,13 @@ export function GroupInterestSelect({
                       {tCategory.has(category) ? tCategory(category) : category}
                     </span>
                     <span
-                      className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                      className={`transition-transform duration-200 ${isOpenCategory ? "rotate-180" : ""}`}
                     >
                       ⌄
                     </span>
                   </button>
                 )}
-                {open && (
+                {isOpenCategory && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {items.map(renderPill)}
                   </div>
@@ -191,6 +220,50 @@ export function GroupInterestSelect({
           })
         )}
       </div>
+    </div>
+  );
+
+  if (!collapsible) return body;
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm outline-none focus:border-teal2 ${
+          selectedInterest ? "border-teal2 font-semibold text-teal2" : "border-border text-muted"
+        }`}
+      >
+        <span className="truncate">{closedLabel}</span>
+        <span className={`shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
+          ⌄
+        </span>
+      </button>
+
+      {open && (
+        <>
+          {/* Desktop: compact dropdown anchored below the field */}
+          <div className="absolute z-10 mt-1 hidden w-full rounded-lg border border-border bg-card p-3 shadow-lg md:block">
+            <div className="max-h-80 overflow-y-auto">{body}</div>
+          </div>
+
+          {/* Mobile: full-screen panel */}
+          <div className="fixed inset-0 z-50 flex flex-col bg-card md:hidden">
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <span className="font-bold text-text">{tGroups("filterByInterestTab")}</span>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label={tGroups("close")}
+                className="text-lg text-muted hover:text-text"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">{body}</div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

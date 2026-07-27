@@ -1,4 +1,4 @@
-const CACHE_NAME = "friendszy-shell-v3";
+const CACHE_NAME = "friendszy-shell-v4";
 const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -43,15 +43,26 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.match(request).then((cached) => {
-      if (cached) return cached;
+      if (cached) {
+        // Serve the cached copy immediately, refresh it in the background —
+        // any refresh failure is swallowed here, it must never affect the
+        // response already being returned.
+        fetch(request)
+          .then((response) => caches.open(CACHE_NAME).then((cache) => cache.put(request, response)))
+          .catch(() => {});
+        return cached;
+      }
 
-      return fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => cached);
+      // No cache entry to fall back to — resolving to `undefined` here (the
+      // old behavior on a fetch failure) makes respondWith() itself throw,
+      // which is what actually produced "the promise was rejected" network
+      // errors. Let a real fetch failure propagate as a normal failed
+      // request instead.
+      return fetch(request).then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        return response;
+      });
     })
   );
 });

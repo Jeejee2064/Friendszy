@@ -28,54 +28,52 @@ export function GroupMessageBubble({
     : deletedUserLabel;
 
   return (
-    <div className={`flex items-end gap-2 ${isMine ? "flex-row-reverse" : ""}`}>
+    <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
       {!isMine && (
-        <div
-          className="h-7 w-7 shrink-0 overflow-hidden rounded-full"
-          style={!sender?.avatar_url ? { backgroundImage: "var(--grad)" } : undefined}
-        >
-          {sender?.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
-              {senderName.charAt(0).toUpperCase()}
-            </div>
-          )}
+        <div className="mb-1 flex items-center gap-1.5 px-1">
+          <div
+            className="h-5 w-5 shrink-0 overflow-hidden rounded-full"
+            style={!sender?.avatar_url ? { backgroundImage: "var(--grad)" } : undefined}
+          >
+            {sender?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-white">
+                {senderName.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <span className="text-xs font-semibold text-muted">{senderName}</span>
         </div>
       )}
-      <div className={`flex max-w-[75%] flex-col ${isMine ? "items-end" : "items-start"}`}>
-        {!isMine && (
-          <p className="mb-0.5 px-1 text-xs font-semibold text-muted">{senderName}</p>
-        )}
-        <div className="group/bubble relative">
-          <div
-            className={`rounded-2xl px-4 py-2 text-sm ${
-              isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
-            }`}
-            style={
-              isRemoved
-                ? { background: "var(--bg)" }
-                : isMine
-                  ? { backgroundImage: "var(--grad)" }
-                  : { background: "var(--bg)" }
-            }
-          >
-            {isRemoved ? removedLabel : message.content}
-          </div>
-          {canRemove && !isRemoved && (
-            <button
-              type="button"
-              onClick={() => onRemove(message.id)}
-              aria-label={removeLabel}
-              className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
-            >
-              🗑️
-            </button>
-          )}
+      <div className="group/bubble relative max-w-[75%]">
+        <div
+          className={`rounded-2xl px-4 py-2 text-sm ${
+            isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
+          }`}
+          style={
+            isRemoved
+              ? { background: "var(--bg)" }
+              : isMine
+                ? { backgroundImage: "var(--grad)" }
+                : { background: "var(--bg)" }
+          }
+        >
+          {isRemoved ? removedLabel : message.content}
         </div>
-        <span className="mt-1 px-1 text-xs text-muted">{time}</span>
+        {canRemove && !isRemoved && (
+          <button
+            type="button"
+            onClick={() => onRemove(message.id)}
+            aria-label={removeLabel}
+            className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
+          >
+            🗑️
+          </button>
+        )}
       </div>
+      <span className="mt-1 px-1 text-xs text-muted">{time}</span>
     </div>
   );
 }

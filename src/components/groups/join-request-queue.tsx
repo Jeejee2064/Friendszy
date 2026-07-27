@@ -11,8 +11,14 @@ export type JoinRequestWithProfile = GroupJoinRequestRow & { profile: ProfileSum
 
 export function JoinRequestQueue({
   initialRequests,
+  onCountChange,
 }: {
   initialRequests: JoinRequestWithProfile[];
+  // group_join_requests isn't Realtime-enabled, so the tab badge showing
+  // this count (rendered by the parent, outside this component) has no
+  // other way to learn a request was just resolved — without this callback
+  // it stays frozen at the server-rendered initial count.
+  onCountChange?: (count: number) => void;
 }) {
   const t = useTranslations("Groups");
   const tCommon = useTranslations("Common");
@@ -23,7 +29,14 @@ export function JoinRequestQueue({
     setBusyId(requestId);
     try {
       await approveJoinRequest(createClient(), requestId);
-      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+      // Computed here rather than inside the setRequests updater — React can
+      // invoke that updater during another component's render pass, and
+      // calling the parent's setter (onCountChange) from inside it is what
+      // triggered "Cannot update a component while rendering a different
+      // component." Two plain statements in an event handler is safe.
+      const next = requests.filter((r) => r.id !== requestId);
+      setRequests(next);
+      onCountChange?.(next.length);
     } finally {
       setBusyId(null);
     }
@@ -33,7 +46,9 @@ export function JoinRequestQueue({
     setBusyId(requestId);
     try {
       await rejectJoinRequest(createClient(), requestId);
-      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+      const next = requests.filter((r) => r.id !== requestId);
+      setRequests(next);
+      onCountChange?.(next.length);
     } finally {
       setBusyId(null);
     }
