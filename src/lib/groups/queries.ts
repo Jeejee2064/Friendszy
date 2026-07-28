@@ -94,21 +94,26 @@ export async function listGroups(
   return data ?? [];
 }
 
+// Groups are publicly listable (groups_select RLS is unconditional), but
+// group_members RLS restricts row visibility to members of that group —
+// a non-member querying the table directly gets zero rows back for groups
+// they haven't joined, silently under-counting instead of erroring. This
+// RPC is SECURITY DEFINER and returns only aggregated counts (never who's
+// in the group), preserving that roster privacy while still letting
+// anyone see accurate counts on the discover page.
 export async function getMemberCountsByGroup(
   supabase: Client,
   groupIds: string[]
 ): Promise<Map<string, number>> {
   if (groupIds.length === 0) return new Map();
-  const { data, error } = await supabase
-    .from("group_members")
-    .select("group_id")
-    .eq("status", "active")
-    .in("group_id", groupIds);
+  const { data, error } = await supabase.rpc("get_group_member_counts", {
+    p_group_ids: groupIds,
+  });
   if (error) throw error;
 
   const counts = new Map<string, number>();
   for (const row of data ?? []) {
-    counts.set(row.group_id, (counts.get(row.group_id) ?? 0) + 1);
+    counts.set(row.group_id, Number(row.member_count));
   }
   return counts;
 }

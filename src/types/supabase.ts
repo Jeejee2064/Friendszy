@@ -352,6 +352,10 @@ export type Database = {
         Args: { p_city: string };
         Returns: { id: string }[];
       };
+      get_group_member_counts: {
+        Args: { p_group_ids: string[] };
+        Returns: { group_id: string; member_count: number }[];
+      };
       is_group_member: {
         Args: { p_group_id: string };
         Returns: boolean;

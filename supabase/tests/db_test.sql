@@ -406,7 +406,8 @@ select has_trigger('auth', 'users', 'on_auth_user_created', 'trigger on_auth_use
 
 select has_function('public', f, 'function public.' || f || ' exists')
 from unnest(array[
-  'can_invite_to_group', 'get_blocked_profiles', 'handle_creator_leaving',
+  'can_invite_to_group', 'get_blocked_profiles', 'get_group_member_counts',
+  'handle_creator_leaving',
   'handle_group_join_request_approval', 'handle_new_user', 'is_active_user',
   'is_admin', 'is_banned_from_group', 'is_blocked_between',
   'is_conversation_participant', 'is_group_admin', 'is_group_creator',
@@ -434,6 +435,30 @@ select is_definer('public', 'is_group_creator', 'is_group_creator() is SECURITY 
 select is_definer('public', 'can_invite_to_group', 'can_invite_to_group() is SECURITY DEFINER');
 select is_definer('public', 'is_banned_from_group', 'is_banned_from_group() is SECURITY DEFINER');
 select is_definer('public', 'get_blocked_profiles', 'get_blocked_profiles() is SECURITY DEFINER');
+select is_definer('public', 'get_group_member_counts', 'get_group_member_counts() is SECURITY DEFINER (counts are public even though group_members rows are not)');
+
+select ok(
+  has_function_privilege('authenticated', 'public.get_group_member_counts(uuid[])', 'EXECUTE'),
+  'authenticated can execute get_group_member_counts'
+);
+
+-- Regression test for the reported bug: a plain SELECT against
+-- group_members returns zero rows for a caller who isn't a member of that
+-- group (group_members_select RLS only allows is_group_member(group_id)
+-- OR profile_id = auth.uid()) — get_group_member_counts exists precisely
+-- to bypass that gap safely via SECURITY DEFINER, returning only
+-- aggregated counts, never who's actually in the group.
+insert into groups (id, name, creator_id) values
+  ('00000000-0000-0000-0000-0000000000f1', '__pgtap_test_group__', null);
+insert into group_members (group_id, profile_id, role, status)
+  select '00000000-0000-0000-0000-0000000000f1', id, 'creator', 'active'
+  from profiles limit 1;
+
+select is(
+  (select member_count from get_group_member_counts(array['00000000-0000-0000-0000-0000000000f1'::uuid])),
+  1::bigint,
+  'get_group_member_counts returns the true count for a freshly-created test group, not 0'
+);
 select is_definer('public', 'handle_new_user', 'handle_new_user() is SECURITY DEFINER (writes profiles as the triggering user)');
 select is_definer('public', 'protect_profile_sensitive_columns', 'protect_profile_sensitive_columns() is SECURITY DEFINER');
 
