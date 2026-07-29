@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AuthError, User } from "@supabase/supabase-js";
-import { Link, getPathname, useRouter } from "@/i18n/navigation";
+import { getPathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import {
@@ -45,10 +45,22 @@ export default function LoginPage() {
   useEffect(() => {
     const supabase = createClient();
 
+    // The reset-password email link lands here via /auth/callback, which
+    // already exchanged the code for a real session server-side — by the
+    // time this effect runs, getUser() below resolves with a logged-in
+    // user just like a normal sign-in, and PASSWORD_RECOVERY may never
+    // fire client-side. The "?recovery=1" marker (added by
+    // requestPasswordReset's redirectTo) is what actually tells us to show
+    // the new-password screen instead of bouncing to "/".
+    const isRecoveryLink =
+      new URLSearchParams(window.location.search).get("recovery") === "1";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isRecoveryLink) setIsRecovery(true);
+
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setLoadingUser(false);
-      if (data.user) {
+      if (data.user && !isRecoveryLink) {
         router.replace("/");
       }
     });
@@ -142,14 +154,26 @@ export default function LoginPage() {
         <LocaleToggle alwaysExpanded />
       </div>
       <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-lg">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={() => {
+            // "/" requires auth (see proxy.ts), so navigating there while
+            // signed out just bounces the middleware back to /login in its
+            // default mode — which reads as "the X does nothing" from the
+            // forgot-password / recovery screens. Closing those sub-flows
+            // in place is what the user actually expects here.
+            if (user) {
+              router.replace("/");
+            } else {
+              setIsRecovery(false);
+              switchMode("signIn");
+            }
+          }}
           aria-label={t("close")}
-          prefetch={false}
           className="absolute right-5 top-5 text-lg text-muted hover:text-text"
         >
           ✕
-        </Link>
+        </button>
 
         {!loadingUser && user ? (
           <div className="pt-4 text-center">
@@ -176,16 +200,13 @@ export default function LoginPage() {
               {t("resetPassword.updateTitle")}
             </h1>
             <form onSubmit={handleUpdatePassword} className="mt-6 flex flex-col gap-4">
-              <label>
-                <FieldLabel>{t("resetPassword.newPassword")}</FieldLabel>
-                <input
-                  type="password"
-                  required
-                  className="w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-teal2"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </label>
+              <PasswordField
+                label={t("resetPassword.newPassword")}
+                value={newPassword}
+                onChange={setNewPassword}
+                showLabel={t("showPassword")}
+                hideLabel={t("hidePassword")}
+              />
               <SubmitButton pending={pending}>
                 {t("resetPassword.updateSubmit")}
               </SubmitButton>
@@ -254,16 +275,13 @@ export default function LoginPage() {
                   className="w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-teal2"
                 />
               </label>
-              <label>
-                <FieldLabel>{t("signIn.password")}</FieldLabel>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-teal2"
-                />
-              </label>
+              <PasswordField
+                label={t("signIn.password")}
+                value={password}
+                onChange={setPassword}
+                showLabel={t("showPassword")}
+                hideLabel={t("hidePassword")}
+              />
 
               {mode === "signIn" && (
                 <button
@@ -325,6 +343,79 @@ export default function LoginPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  showLabel,
+  hideLabel,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  showLabel: string;
+  hideLabel: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <label>
+      <FieldLabel>{label}</FieldLabel>
+      <div className="relative">
+        <input
+          type={visible ? "text" : "password"}
+          required
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-xl border border-border px-4 py-3 pr-11 text-sm outline-none focus:border-teal2"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? hideLabel : showLabel}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-text"
+        >
+          {visible ? <EyeOffIcon /> : <EyeIcon />}
+        </button>
+      </div>
+    </label>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c7 0 10.5 7 10.5 7a13.9 13.9 0 0 1-3.1 4.1M6.6 6.6C3.4 8.6 1.5 12 1.5 12s3.5 7 10.5 7c1.4 0 2.7-.3 3.9-.7" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
   );
 }
 

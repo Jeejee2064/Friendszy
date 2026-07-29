@@ -23,6 +23,7 @@ type FormState = {
 };
 
 const STEP_COUNT = 4;
+const MIN_INTERESTS = 3;
 
 export function OnboardingWizard({
   userId,
@@ -59,7 +60,7 @@ export function OnboardingWizard({
       if (!form.gender) return t("errors.genderRequired");
     }
     if (step === 2) {
-      if (form.interestIds.length === 0) return t("errors.interestsRequired");
+      if (form.interestIds.length < MIN_INTERESTS) return t("errors.interestsRequired");
     }
     return null;
   }
@@ -188,11 +189,23 @@ export function OnboardingWizard({
         )}
 
         {step === 2 && (
-          <InterestsGrid
-            interests={interests}
-            selectedIds={form.interestIds}
-            onChange={(ids) => update("interestIds", ids)}
-          />
+          <div className="flex flex-col gap-3">
+            <p
+              className={`text-sm font-bold ${
+                form.interestIds.length >= MIN_INTERESTS ? "text-teal2" : "text-muted"
+              }`}
+            >
+              {t("interestsCounter", {
+                count: form.interestIds.length,
+                min: MIN_INTERESTS,
+              })}
+            </p>
+            <InterestsGrid
+              interests={interests}
+              selectedIds={form.interestIds}
+              onChange={(ids) => update("interestIds", ids)}
+            />
+          </div>
         )}
 
         {step === 3 && (

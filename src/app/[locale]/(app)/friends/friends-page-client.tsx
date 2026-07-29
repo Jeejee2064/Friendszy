@@ -162,7 +162,7 @@ export function FriendsPageClient({
     <div className="p-6 md:p-10">
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
-      <div className="mb-6 flex gap-1 border-b border-border">
+      <div className="mb-6 flex gap-3 border-b border-border">
         <TabButton
           active={tab === "friends"}
           onClick={() => setTab("friends")}
@@ -335,7 +335,7 @@ function TabButton({
       {children}
       {count > 0 && (
         <span
-          className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+          className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
           style={{ backgroundImage: "var(--grad)" }}
         >
           {count}

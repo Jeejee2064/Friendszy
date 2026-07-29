@@ -38,6 +38,8 @@
     "emailExample": "ton@courriel.com",
     "close": "Fermer",
     "loadingSession": "Chargement...",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "resetPassword": {
       "requestTitle": "Mot de passe oublié",
       "email": "Courriel",
@@ -144,6 +146,7 @@
     "back": "Précédent",
     "skip": "Passer",
     "finish": "Terminer",
+    "interestsCounter": "{count}/{min} sélectionnés",
     "errors": {
       "fullNameRequired": "Le prénom est requis.",
       "lastNameRequired": "Le nom de famille est requis.",
@@ -151,7 +154,7 @@
       "cityRequired": "La ville est requise.",
       "ageInvalid": "Indique un âge valide (18 ans ou plus).",
       "genderRequired": "Choisis une option.",
-      "interestsRequired": "Choisis au moins un centre d'intérêt.",
+      "interestsRequired": "Choisis au moins 3 centres d'intérêt.",
       "saveFailed": "Une erreur est survenue. Réessaie."
     }
   },

@@ -185,7 +185,9 @@ export function ProfileForm({
         </div>
 
         <div className="mt-4">
-          <p className={fieldLabelClass}>{tFields("interests")}</p>
+          <p className={fieldLabelClass}>
+            {tFields("interests")} ({form.interestIds.length})
+          </p>
           <InterestsGrid
             interests={interests}
             selectedIds={form.interestIds}

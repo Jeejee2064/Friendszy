@@ -43,7 +43,10 @@ export async function AppShell({
           />
         </Link>
 
-        <div className="mb-6 flex flex-col items-center gap-2 px-2 md:flex-row md:px-4">
+        <Link
+          href="/profile"
+          className="mb-6 flex flex-col items-center gap-2 px-2 md:flex-row md:px-4"
+        >
           <div
             className="h-10 w-10 shrink-0 overflow-hidden rounded-full"
             style={
@@ -69,7 +72,7 @@ export async function AppShell({
               <p className="text-xs text-muted">📍 {profile.city}</p>
             )}
           </div>
-        </div>
+        </Link>
 
         <SidebarNav isAdmin={isAdmin} />
 

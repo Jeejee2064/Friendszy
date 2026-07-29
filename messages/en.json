@@ -38,6 +38,8 @@
     "emailExample": "your@email.com",
     "close": "Close",
     "loadingSession": "Loading...",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "resetPassword": {
       "requestTitle": "Forgot password",
       "email": "Email",
@@ -144,6 +146,7 @@
     "back": "Back",
     "skip": "Skip",
     "finish": "Finish",
+    "interestsCounter": "{count}/{min} selected",
     "errors": {
       "fullNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
@@ -151,7 +154,7 @@
       "cityRequired": "City is required.",
       "ageInvalid": "Enter a valid age (18 or older).",
       "genderRequired": "Choose an option.",
-      "interestsRequired": "Choose at least one interest.",
+      "interestsRequired": "Choose at least 3 interests.",
       "saveFailed": "Something went wrong. Try again."
     }
   },
