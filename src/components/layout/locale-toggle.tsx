@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { Modal } from "@/components/ui/modal";
 
 const LOCALES = ["fr", "en"] as const;
 
@@ -40,15 +38,12 @@ export function LocaleToggle({
   // that have plenty of room and should just always show the FR/EN pill.
   alwaysExpanded?: boolean;
 }) {
-  const t = useTranslations("Shell");
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   function switchTo(l: (typeof LOCALES)[number]) {
     router.replace(pathname, { locale: l });
-    setMobileOpen(false);
   }
 
   if (alwaysExpanded) {
@@ -61,20 +56,24 @@ export function LocaleToggle({
         <LocalePill locale={locale} onSelect={switchTo} />
       </div>
 
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-muted md:hidden"
-      >
-        <span className="text-lg">🌐</span>
-      </button>
-
       {/* The FR/EN pill doesn't fit inline in the narrow mobile icon rail
-          (it overflows and gets clipped by the sidebar's scroll container)
-          — a modal renders centered with real width regardless. */}
-      <Modal open={mobileOpen} onClose={() => setMobileOpen(false)} title={t("language")}>
-        <LocalePill locale={locale} onSelect={switchTo} />
-      </Modal>
+          (~48px of usable width), so this stacks FR above EN in a compact
+          column instead of hiding the selector behind a tap-to-open modal. */}
+      <div className="flex flex-col gap-1 md:hidden">
+        {LOCALES.map((l) => (
+          <button
+            key={l}
+            type="button"
+            onClick={() => switchTo(l)}
+            className={`rounded-lg py-1 text-center text-[10px] font-bold uppercase transition-colors ${
+              locale === l ? "text-white" : "text-muted"
+            }`}
+            style={locale === l ? { backgroundImage: "var(--grad)" } : undefined}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
     </>
   );
 }

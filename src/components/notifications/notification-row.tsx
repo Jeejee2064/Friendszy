@@ -82,15 +82,13 @@ export function NotificationRow({
           </div>
         )}
       </div>
-      <p
-        className={`min-w-0 flex-1 truncate text-sm ${isUnread ? "font-bold text-text" : "text-muted"}`}
-      >
-        {label}
-      </p>
-      <span className="shrink-0 text-xs text-muted">
-        {format.relativeTime(new Date(notification.created_at), now)}
-      </span>
-      <span className="shrink-0 text-muted">→</span>
+      <div className="min-w-0 flex-1">
+        <p className={`text-sm ${isUnread ? "font-bold text-text" : "text-muted"}`}>{label}</p>
+        <span className="text-xs text-muted">
+          {format.relativeTime(new Date(notification.created_at), now)}
+        </span>
+      </div>
+      <span className="shrink-0 self-center text-muted">→</span>
     </button>
   );
 }

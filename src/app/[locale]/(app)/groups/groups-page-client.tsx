@@ -131,7 +131,7 @@ export function GroupsPageClient({
   }
 
   return (
-    <div className="p-6 md:p-10">
+    <div className="overflow-x-hidden p-4 md:p-10">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-text">{t("title")}</h1>
         <Link
@@ -139,7 +139,11 @@ export function GroupsPageClient({
           className="shrink-0 rounded-full px-4 py-2 text-sm font-bold text-white"
           style={{ backgroundImage: "var(--grad)" }}
         >
-          + {t("createGroup")}
+          {/* "+ Créer un groupe" alone was wide enough to push the page past
+              320px-wide viewports (shrink-0 refuses to give it up) — collapse
+              to just "+" until there's room for the full label. */}
+          <span className="sm:hidden">+</span>
+          <span className="hidden sm:inline">+ {t("createGroup")}</span>
         </Link>
       </div>
 

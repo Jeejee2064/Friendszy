@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
@@ -28,6 +28,7 @@ export function InterestsGrid({
   maxSelected,
   flatSearchResults = false,
   autoFocus = false,
+  collapseSignal,
 }: {
   interests: Interest[];
   selectedIds: number[];
@@ -38,6 +39,10 @@ export function InterestsGrid({
    * categories (capped) instead of the grouped/filtered category view. */
   flatSearchResults?: boolean;
   autoFocus?: boolean;
+  /** Bump this (e.g. a counter incremented on save) to force every category
+   * closed, even ones with a selection — used on the profile page so a long
+   * list doesn't stay sprawled open after saving. Ignored if never passed. */
+  collapseSignal?: number;
 }) {
   const locale = useLocale();
   const tCategory = useTranslations("InterestCategories");
@@ -121,6 +126,17 @@ export function InterestsGrid({
     }
     return withSelection;
   });
+
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (collapseSignal === undefined) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpenCategories(new Set());
+  }, [collapseSignal]);
 
   function toggleCategory(category: string) {
     setOpenCategories((prev) => {

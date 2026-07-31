@@ -10,6 +10,7 @@ import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { CityAutocomplete } from "@/components/search/city-autocomplete";
 
 const chipButtonClass =
   "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal2";
@@ -47,6 +48,7 @@ export function ProfileForm({
   const [notice, setNotice] = useState<
     { kind: "success" | "error"; message: string } | null
   >(null);
+  const [collapseSignal, setCollapseSignal] = useState(0);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -83,6 +85,7 @@ export function ProfileForm({
       });
       await setMyInterests(supabase, userId, form.interestIds);
       setNotice({ kind: "success", message: t("saveSuccess") });
+      setCollapseSignal((v) => v + 1);
     } catch {
       setNotice({ kind: "error", message: t("saveError") });
     } finally {
@@ -146,16 +149,11 @@ export function ProfileForm({
 
         <div className="mt-4 flex flex-col gap-3">
           <div>
-            <label htmlFor="profile-city" className={fieldLabelClass}>
-              {tFields("cityLabel")}
-            </label>
-            <input
-              id="profile-city"
-              type="text"
-              placeholder={tFields("cityPlaceholder")}
+            <p className={fieldLabelClass}>{tFields("cityLabel")}</p>
+            <CityAutocomplete
               value={form.city}
-              onChange={(e) => update("city", e.target.value)}
-              className={fieldInputClass}
+              onChange={(v) => update("city", v)}
+              placeholder={tFields("cityPlaceholder")}
             />
           </div>
           <div>
@@ -192,6 +190,7 @@ export function ProfileForm({
             interests={interests}
             selectedIds={form.interestIds}
             onChange={(ids) => update("interestIds", ids)}
+            collapseSignal={collapseSignal}
           />
         </div>
 

@@ -139,13 +139,16 @@ export default function LoginPage() {
     setNotice(null);
     setPending(true);
     const { error } = await updatePassword(newPassword);
-    setPending(false);
     if (error) {
+      setPending(false);
       reportError(t("genericError"), error);
-    } else {
-      setNotice({ kind: "success", message: t("resetPassword.updateSuccess") });
-      setIsRecovery(false);
+      return;
     }
+    // Same hard-navigation rationale as handleSignIn: the recovery flow
+    // already leaves the user with a valid session at this point, so send
+    // them straight into the app instead of dropping them on the generic
+    // "already signed in" screen after they just set a new password.
+    window.location.href = getPathname({ href: "/", locale });
   }
 
   return (
@@ -175,7 +178,25 @@ export default function LoginPage() {
           ✕
         </button>
 
-        {!loadingUser && user ? (
+        {isRecovery ? (
+          <>
+            <h1 className="pt-4 text-2xl font-extrabold text-text">
+              {t("resetPassword.updateTitle")}
+            </h1>
+            <form onSubmit={handleUpdatePassword} className="mt-6 flex flex-col gap-4">
+              <PasswordField
+                label={t("resetPassword.newPassword")}
+                value={newPassword}
+                onChange={setNewPassword}
+                showLabel={t("showPassword")}
+                hideLabel={t("hidePassword")}
+              />
+              <SubmitButton pending={pending}>
+                {t("resetPassword.updateSubmit")}
+              </SubmitButton>
+            </form>
+          </>
+        ) : !loadingUser && user ? (
           <div className="pt-4 text-center">
             <div
               className="mx-auto flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white"
@@ -194,24 +215,6 @@ export default function LoginPage() {
           </div>
         ) : loadingUser ? (
           <p className="pt-4 text-center text-sm text-muted">{t("loadingSession")}</p>
-        ) : isRecovery ? (
-          <>
-            <h1 className="pt-4 text-2xl font-extrabold text-text">
-              {t("resetPassword.updateTitle")}
-            </h1>
-            <form onSubmit={handleUpdatePassword} className="mt-6 flex flex-col gap-4">
-              <PasswordField
-                label={t("resetPassword.newPassword")}
-                value={newPassword}
-                onChange={setNewPassword}
-                showLabel={t("showPassword")}
-                hideLabel={t("hidePassword")}
-              />
-              <SubmitButton pending={pending}>
-                {t("resetPassword.updateSubmit")}
-              </SubmitButton>
-            </form>
-          </>
         ) : mode === "forgot" ? (
           <>
             <h1 className="pt-4 text-2xl font-extrabold text-text">
