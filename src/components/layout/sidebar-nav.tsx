@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/messages", icon: "💬", key: "messages" },
   { href: "/friends", icon: "👥", key: "friends" },
   { href: "/groups", icon: "🧑‍🤝‍🧑", key: "groups" },
+  { href: "/partners", icon: "🤝", key: "partners" },
   { href: "/profile", icon: "👤", key: "profile" },
 ] as const;
 

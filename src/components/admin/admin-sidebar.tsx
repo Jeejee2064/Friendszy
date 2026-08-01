@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/admin", key: "dashboard", icon: "📊" },
   { href: "/admin/moderation", key: "moderation", icon: "🛡️" },
   { href: "/admin/members", key: "members", icon: "👥" },
+  { href: "/admin/partners", key: "partners", icon: "🤝" },
   { href: "/admin/logs", key: "logs", icon: "📋" },
 ] as const;
 

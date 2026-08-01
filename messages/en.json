@@ -64,6 +64,7 @@
     "friends": "My friends",
     "groups": "Groups",
     "search": "Search",
+    "partners": "Activities",
     "profile": "My profile",
     "admin": "Admin"
   },
@@ -329,6 +330,7 @@
     "blockAction": "Block",
     "modalTitleProfile": "Report this profile",
     "modalTitleMessage": "Report this message",
+    "modalTitlePartnerListing": "Report this activity",
     "reasons": {
       "harassment": "Harassment or bullying",
       "inappropriate_content": "Inappropriate content",
@@ -351,6 +353,60 @@
     "unblockError": "Something went wrong. Try again.",
     "loadError": "Couldn't load the list. Try again later."
   },
+  "Partners": {
+    "form": {
+      "createTitle": "Add an activity",
+      "editTitle": "Edit activity",
+      "stepOf": "Step {step} / {total}",
+      "steps": {
+        "basics": "Basics",
+        "location": "Location",
+        "contact": "Contact",
+        "photos": "Photos"
+      },
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "mapHint": "Click the map or drag the pin to adjust the exact location.",
+      "mapLocating": "Locating...",
+      "nameLabel": "Business name",
+      "namePlaceholder": "E.g. Friends' Café",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "A few words about this partner...",
+      "categoryLabel": "Category",
+      "cityLabel": "City",
+      "cityPlaceholder": "E.g. Montréal",
+      "addressLabel": "Address",
+      "addressPlaceholder": "E.g. 123 Main St (optional)",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "E.g. 514 555-1234",
+      "websiteLabel": "Website",
+      "websitePlaceholder": "https://...",
+      "photosLabel": "Photos",
+      "photosAdd": "Add",
+      "photosError": "Upload failed. Try again.",
+      "photoRemove": "Remove this photo",
+      "errors": {
+        "nameRequired": "Business name is required.",
+        "categoryRequired": "Choose a category.",
+        "cityRequired": "City is required.",
+        "saveFailed": "Something went wrong. Try again."
+      }
+    },
+    "discovery": {
+      "title": "Activities",
+      "createButton": "Add an activity",
+      "categoryLabel": "Category",
+      "cityLabel": "City",
+      "cityPlaceholder": "Search a city...",
+      "loading": "Loading...",
+      "noResults": "No activity matches these filters.",
+      "contactPhone": "📞 Call",
+      "contactWebsite": "🌐 Website",
+      "editLink": "Edit my activity",
+      "pendingBadge": "Pending activation"
+    }
+  },
   "Admin": {
     "title": "Moderation",
     "noReports": "No open reports.",
@@ -358,6 +414,7 @@
     "reporterLabel": "Reported by",
     "targetTypeProfile": "Profile",
     "targetTypeMessage": "Message",
+    "targetTypePartnerListing": "Partner listing",
     "targetTypeUnsupported": "Unsupported report type",
     "reasonLabel": "Reason",
     "dateLabel": "Date",
@@ -369,6 +426,7 @@
       "ban": "Ban",
       "reactivate": "Reactivate",
       "removeMessage": "Remove message",
+      "deactivateListing": "Deactivate listing",
       "resolve": "Mark as resolved",
       "dismiss": "Dismiss"
     },
@@ -380,12 +438,18 @@
       "reactivateTitle": "Reactivate this account?",
       "reactivateBody": "Reactivate {name}? They will regain full access to Friendszy.",
       "removeMessageTitle": "Remove this message?",
-      "removeMessageBody": "The message will be hidden and shown as \"Message removed\" to users. This action cannot be undone."
+      "removeMessageBody": "The message will be hidden and shown as \"Message removed\" to users. This action cannot be undone.",
+      "deactivateListingTitle": "Deactivate this listing?",
+      "deactivateListingBody": "Deactivate the listing \"{name}\"? It will disappear from the directory until reactivated."
     },
     "statusBadge": {
       "active": "Active",
       "suspended": "Suspended",
       "banned": "Banned"
+    },
+    "partnerListingStatusBadge": {
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "actionSuccess": "Action completed.",
     "actionError": "Something went wrong. Try again.",
@@ -397,6 +461,7 @@
       "typeAll": "All",
       "typeProfile": "Profile",
       "typeMessage": "Message",
+      "typePartnerListing": "Partner listing",
       "statusLabel": "Status",
       "statusPending": "Pending",
       "statusResolved": "Resolved",
@@ -457,10 +522,29 @@
       "messagesSentLabel": "Messages sent",
       "never": "Never"
     },
+    "partners": {
+      "title": "Partner listings",
+      "searchPlaceholder": "Business name",
+      "cityLabel": "City",
+      "statusLabel": "Status",
+      "statusAll": "All",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusBadge": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "noListings": "No listing matches these filters.",
+      "actions": {
+        "activate": "Activate",
+        "deactivate": "Deactivate"
+      }
+    },
     "nav": {
       "dashboard": "Dashboard",
       "moderation": "Moderation",
       "members": "Members",
+      "partners": "Partners",
       "logs": "Logs",
       "events": "Events",
       "eventsSoon": "Coming soon"

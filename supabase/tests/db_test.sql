@@ -35,7 +35,7 @@ select has_table('public', t, 'table public.' || t || ' exists')
 from unnest(array[
   'blocks', 'conversations', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interests', 'messages',
-  'notifications', 'profile_interests', 'profiles', 'reports'
+  'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
 ]) as t;
 
 select ok(
@@ -46,7 +46,7 @@ select ok(
 from unnest(array[
   'blocks', 'conversations', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interests', 'messages',
-  'notifications', 'profile_interests', 'profiles', 'reports'
+  'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================
@@ -156,6 +156,26 @@ select has_column('public', 'notifications', 'read_at', 'notifications.read_at e
 select has_column('public', 'notifications', 'created_at', 'notifications.created_at exists');
 select col_is_pk('public', 'notifications', array['id'], 'notifications PK is (id)');
 
+-- partner_listings
+select has_column('public', 'partner_listings', 'id', 'partner_listings.id exists');
+select has_column('public', 'partner_listings', 'profile_id', 'partner_listings.profile_id exists');
+select has_column('public', 'partner_listings', 'name', 'partner_listings.name exists');
+select has_column('public', 'partner_listings', 'description', 'partner_listings.description exists');
+select has_column('public', 'partner_listings', 'interest_id', 'partner_listings.interest_id exists');
+select has_column('public', 'partner_listings', 'city', 'partner_listings.city exists');
+select has_column('public', 'partner_listings', 'address', 'partner_listings.address exists');
+select has_column('public', 'partner_listings', 'latitude', 'partner_listings.latitude exists');
+select has_column('public', 'partner_listings', 'longitude', 'partner_listings.longitude exists');
+select has_column('public', 'partner_listings', 'phone', 'partner_listings.phone exists');
+select has_column('public', 'partner_listings', 'website', 'partner_listings.website exists');
+select has_column('public', 'partner_listings', 'photo_urls', 'partner_listings.photo_urls exists');
+select has_column('public', 'partner_listings', 'status', 'partner_listings.status exists');
+select has_column('public', 'partner_listings', 'created_at', 'partner_listings.created_at exists');
+select has_column('public', 'partner_listings', 'updated_at', 'partner_listings.updated_at exists');
+select col_is_pk('public', 'partner_listings', array['id'], 'partner_listings PK is (id)');
+select col_default_is('public', 'partner_listings', 'status', 'inactive', 'partner_listings.status defaults to inactive');
+select col_default_is('public', 'partner_listings', 'photo_urls', '{}', 'partner_listings.photo_urls defaults to {}');
+
 -- profile_interests
 select has_column('public', 'profile_interests', 'profile_id', 'profile_interests.profile_id exists');
 select has_column('public', 'profile_interests', 'interest_id', 'profile_interests.interest_id exists');
@@ -224,6 +244,8 @@ select col_is_fk('public', 'messages', 'conversation_id', 'messages.conversation
 select col_is_fk('public', 'messages', 'sender_id', 'messages.sender_id is a FK');
 select col_is_fk('public', 'messages', 'removed_by', 'messages.removed_by is a FK');
 select col_is_fk('public', 'notifications', 'user_id', 'notifications.user_id is a FK');
+select col_is_fk('public', 'partner_listings', 'profile_id', 'partner_listings.profile_id is a FK');
+select col_is_fk('public', 'partner_listings', 'interest_id', 'partner_listings.interest_id is a FK');
 select col_is_fk('public', 'profile_interests', 'profile_id', 'profile_interests.profile_id is a FK');
 select col_is_fk('public', 'profile_interests', 'interest_id', 'profile_interests.interest_id is a FK');
 select col_is_fk('public', 'profiles', 'id', 'profiles.id is a FK (references auth.users)');
@@ -247,6 +269,10 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'groups_creator_id_fkey') = 'n',
   'groups.creator_id -> profiles(id) is ON DELETE SET NULL (group survives its creator''s account deletion)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'partner_listings_profile_id_fkey') = 'n',
+  'partner_listings.profile_id -> profiles(id) is ON DELETE SET NULL (listing survives its creator''s account deletion)'
 );
 
 -- ============================================================
@@ -340,8 +366,30 @@ select ok(
 select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.reports'::regclass
     and conname = 'reports_target_type_check'
-    and pg_get_constraintdef(oid) = 'CHECK ((target_type = ANY (ARRAY[''profile''::text, ''message''::text, ''group_message''::text, ''group''::text])))'),
-  'reports.target_type is constrained to profile/message/group_message/group'
+    and pg_get_constraintdef(oid) = 'CHECK ((target_type = ANY (ARRAY[''profile''::text, ''message''::text, ''group_message''::text, ''group''::text, ''partner_listing''::text])))'),
+  'reports.target_type is constrained to profile/message/group_message/group/partner_listing'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
+    and conname = 'partner_listings_status_check'
+    and pg_get_constraintdef(oid) = 'CHECK ((status = ANY (ARRAY[''active''::text, ''inactive''::text])))'),
+  'partner_listings.status is constrained to active/inactive'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
+    and conname = 'partner_listings_coordinates_check'
+    and pg_get_constraintdef(oid) = 'CHECK (((latitude IS NULL) = (longitude IS NULL)))'),
+  'partner_listings: latitude/longitude are both null or both set'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
+    and conname = 'partner_listings_coordinates_range_check'),
+  'partner_listings.latitude/longitude are range-constrained'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
+    and conname = 'partner_listings_photo_urls_check'),
+  'partner_listings.photo_urls is capped in length'
 );
 
 -- ============================================================
@@ -362,6 +410,10 @@ select has_index('public', 'groups', 'idx_groups_interest', 'index idx_groups_in
 select has_index('public', 'messages', 'idx_messages_conversation', 'index idx_messages_conversation exists');
 select has_index('public', 'messages', 'idx_messages_unread', 'index idx_messages_unread exists');
 select has_index('public', 'notifications', 'idx_notifications_user_unread', 'index idx_notifications_user_unread exists');
+select has_index('public', 'partner_listings', 'idx_partner_listings_city', 'index idx_partner_listings_city exists');
+select has_index('public', 'partner_listings', 'idx_partner_listings_interest_id', 'index idx_partner_listings_interest_id exists');
+select has_index('public', 'partner_listings', 'idx_partner_listings_status', 'index idx_partner_listings_status exists');
+select has_index('public', 'partner_listings', 'idx_partner_listings_profile_id', 'index idx_partner_listings_profile_id exists');
 select has_index('public', 'profile_interests', 'idx_profile_interests_interest', 'index idx_profile_interests_interest exists');
 select has_index('public', 'profiles', 'idx_profiles_city', 'index idx_profiles_city exists');
 select has_index('public', 'reports', 'idx_reports_open', 'index idx_reports_open exists');
@@ -396,6 +448,8 @@ select has_trigger('public', 'group_members', 'on_group_member_inserted', 'trigg
 select has_trigger('public', 'group_messages', 'enforce_group_message_immutability', 'trigger enforce_group_message_immutability exists on group_messages');
 select has_trigger('public', 'messages', 'enforce_message_immutability', 'trigger enforce_message_immutability exists on messages (messages are immutable once sent)');
 select has_trigger('public', 'messages', 'messages_touch_conversation', 'trigger messages_touch_conversation exists on messages');
+select has_trigger('public', 'partner_listings', 'partner_listings_set_updated_at', 'trigger partner_listings_set_updated_at exists on partner_listings');
+select has_trigger('public', 'partner_listings', 'enforce_partner_listing_sensitive_columns', 'trigger enforce_partner_listing_sensitive_columns exists on partner_listings (status/profile_id/created_at protected)');
 select has_trigger('public', 'profiles', 'enforce_profile_sensitive_columns', 'trigger enforce_profile_sensitive_columns exists on profiles (plan/moderation_status/is_admin protected)');
 select has_trigger('public', 'profiles', 'profiles_set_updated_at', 'trigger profiles_set_updated_at exists on profiles');
 select has_trigger('auth', 'users', 'on_auth_user_created', 'trigger on_auth_user_created exists on auth.users (creates the profile row)');
@@ -411,11 +465,13 @@ from unnest(array[
   'handle_group_join_request_approval', 'handle_new_user', 'is_active_user',
   'is_admin', 'is_banned_from_group', 'is_blocked_between',
   'is_conversation_participant', 'is_group_admin', 'is_group_creator',
-  'is_group_member', 'match_city_ids', 'notify_friend_added',
+  'is_group_member', 'match_city_ids', 'match_partner_listing_city_ids',
+  'notify_friend_added',
   'notify_friend_request_accepted', 'notify_group_invitation',
   'notify_group_join_request', 'notify_group_join_request_approved',
   'protect_creator_role', 'protect_group_member_changes',
   'protect_group_message_immutability', 'protect_message_immutability',
+  'protect_partner_listing_status',
   'protect_profile_sensitive_columns', 'set_updated_at',
   'touch_conversation_last_message'
 ]) as f;
@@ -461,6 +517,7 @@ select is(
 );
 select is_definer('public', 'handle_new_user', 'handle_new_user() is SECURITY DEFINER (writes profiles as the triggering user)');
 select is_definer('public', 'protect_profile_sensitive_columns', 'protect_profile_sensitive_columns() is SECURITY DEFINER');
+select is_definer('public', 'protect_partner_listing_status', 'protect_partner_listing_status() is SECURITY DEFINER');
 
 -- ============================================================
 -- 9. RLS policies — exact set per table (catches drift: an added,
@@ -472,11 +529,12 @@ select policies_are('public', 'blocks', array[
 ], 'blocks has exactly the expected policies');
 
 select policies_are('public', 'conversations', array[
-  'conversations_insert', 'conversations_select'
+  'conversations_insert', 'conversations_select', 'conversations_select_admin'
 ], 'conversations has exactly the expected policies');
 
 select policies_are('public', 'friendships', array[
-  'friendships_delete', 'friendships_insert', 'friendships_select_own', 'friendships_update'
+  'friendships_delete', 'friendships_insert', 'friendships_select_admin',
+  'friendships_select_own', 'friendships_update'
 ], 'friendships has exactly the expected policies');
 
 select policies_are('public', 'group_join_requests', array[
@@ -484,11 +542,13 @@ select policies_are('public', 'group_join_requests', array[
 ], 'group_join_requests has exactly the expected policies');
 
 select policies_are('public', 'group_members', array[
-  'group_members_insert', 'group_members_select', 'group_members_update'
+  'group_members_insert', 'group_members_select', 'group_members_select_admin',
+  'group_members_update'
 ], 'group_members has exactly the expected policies');
 
 select policies_are('public', 'group_messages', array[
-  'group_messages_insert', 'group_messages_select', 'group_messages_update_admin'
+  'group_messages_insert', 'group_messages_select', 'group_messages_select_admin',
+  'group_messages_update_admin'
 ], 'group_messages has exactly the expected policies');
 
 select policies_are('public', 'groups', array[
@@ -507,6 +567,10 @@ select policies_are('public', 'messages', array[
 select policies_are('public', 'notifications', array[
   'notifications_select_own', 'notifications_update_own'
 ], 'notifications has exactly the expected policies (no insert policy — only triggers/server create notifications)');
+
+select policies_are('public', 'partner_listings', array[
+  'partner_listings_insert', 'partner_listings_select', 'partner_listings_update'
+], 'partner_listings has exactly the expected policies');
 
 select policies_are('public', 'profile_interests', array[
   'profile_interests_delete_own', 'profile_interests_insert_own', 'profile_interests_select'
@@ -550,6 +614,16 @@ select ok(
     like '%can_invite_to_group(group_id) AND (role = ''member''::text)%',
   'group_members_insert: only the real group creator can self-insert as creator; everyone else must come in as member via can_invite_to_group, and banned profiles are always rejected'
 );
+select ok(
+  (select with_check from pg_policies where schemaname = 'public' and tablename = 'partner_listings' and policyname = 'partner_listings_insert')
+    = '(is_active_user() AND (profile_id = auth.uid()) AND (status = ''inactive''::text))',
+  'partner_listings_insert: only active members can create a listing, only as themselves, and it always starts inactive'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'partner_listings' and policyname = 'partner_listings_select')
+    = '((status = ''active''::text) OR (profile_id = auth.uid()) OR is_admin())',
+  'partner_listings_select: strangers only see active listings, but the creator and admins always see it regardless of status'
+);
 
 -- ============================================================
 -- 10. Grants — every RLS policy is moot without the base GRANT
@@ -586,6 +660,9 @@ select table_privs_are('public', 'messages', 'authenticated',
 select table_privs_are('public', 'notifications', 'authenticated',
   array['REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on notifications (no INSERT — only DB triggers create notifications)');
+select table_privs_are('public', 'partner_listings', 'authenticated',
+  array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
+  'authenticated has expected privileges on partner_listings');
 select table_privs_are('public', 'profile_interests', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
   'authenticated has expected privileges on profile_interests');
@@ -604,7 +681,7 @@ select table_privs_are('public', t, 'anon',
 from unnest(array[
   'blocks', 'conversations', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interests', 'messages',
-  'notifications', 'profile_interests', 'profiles', 'reports'
+  'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================
@@ -638,6 +715,27 @@ select ok(
 select ok(
   exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'group_avatars_update'),
   'storage.objects has group_avatars_update policy (must be group admin to change the group photo)'
+);
+
+-- ============================================================
+-- 12. Storage — partner-photos bucket
+-- ============================================================
+
+select ok(
+  exists(select 1 from storage.buckets where id = 'partner-photos' and public),
+  'storage bucket partner-photos exists and is public'
+);
+select ok(
+  exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'partner_photos_select'),
+  'storage.objects has partner_photos_select policy'
+);
+select ok(
+  exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'partner_photos_insert'),
+  'storage.objects has partner_photos_insert policy (owner of the listing, admin, or a not-yet-created listing id — bootstrap upload)'
+);
+select ok(
+  exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'partner_photos_delete'),
+  'storage.objects has partner_photos_delete policy'
 );
 
 select * from finish();

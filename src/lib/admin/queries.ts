@@ -4,6 +4,7 @@ import { getProfilesByIds } from "@/lib/profile/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { getMessagesByIds, type MessageRow } from "@/lib/messages/queries";
 import { listOpenReports, listAllReports, type ReportRow } from "@/lib/reports/queries";
+import { getPartnerListingsByIds, type PartnerListingRow } from "@/lib/partners/queries";
 import type { ModerationStatus, ReportWithTarget } from "./types";
 
 type Client = SupabaseClient<Database>;
@@ -43,18 +44,31 @@ async function hydrateReports(
   const messageTargetIds = reports
     .filter((r) => r.target_type === "message")
     .map((r) => r.target_id);
+  const partnerListingTargetIds = reports
+    .filter((r) => r.target_type === "partner_listing")
+    .map((r) => r.target_id);
   const reporterIds = [
     ...new Set(reports.map((r) => r.reporter_id).filter((v): v is string => !!v)),
   ];
 
-  const [targetProfiles, targetMessages, reporterProfiles] = await Promise.all([
-    getProfilesByIds(supabase, profileTargetIds),
-    getMessagesByIds(supabase, messageTargetIds),
-    getProfilesByIds(supabase, reporterIds),
-  ]);
+  const [targetProfiles, targetMessages, targetPartnerListings, reporterProfiles] =
+    await Promise.all([
+      getProfilesByIds(supabase, profileTargetIds),
+      getMessagesByIds(supabase, messageTargetIds),
+      getPartnerListingsByIds(supabase, partnerListingTargetIds),
+      getProfilesByIds(supabase, reporterIds),
+    ]);
 
   const senderIds = [...new Set(targetMessages.map((m) => m.sender_id))];
-  const senderProfiles = await getProfilesByIds(supabase, senderIds);
+  const listingCreatorIds = [
+    ...new Set(
+      targetPartnerListings.map((l) => l.profile_id).filter((v): v is string => !!v)
+    ),
+  ];
+  const [senderProfiles, listingCreatorProfiles] = await Promise.all([
+    getProfilesByIds(supabase, senderIds),
+    getProfilesByIds(supabase, listingCreatorIds),
+  ]);
   const relevantIds = [...profileTargetIds, ...senderIds];
   const [moderationStatusById, createdAtById] = await Promise.all([
     getModerationStatuses(supabase, relevantIds),
@@ -69,6 +83,12 @@ async function hydrateReports(
   );
   const senderById = new Map<string, ProfileSummary>(senderProfiles.map((p) => [p.id, p]));
   const messageById = new Map<string, MessageRow>(targetMessages.map((m) => [m.id, m]));
+  const listingCreatorById = new Map<string, ProfileSummary>(
+    listingCreatorProfiles.map((p) => [p.id, p])
+  );
+  const listingById = new Map<string, PartnerListingRow>(
+    targetPartnerListings.map((l) => [l.id, l])
+  );
 
   return reports.map((report) => {
     const reporterProfile = report.reporter_id
@@ -81,6 +101,7 @@ async function hydrateReports(
         reporterProfile,
         targetProfile: profileById.get(report.target_id) ?? null,
         targetMessage: null,
+        targetPartnerListing: null,
         targetModerationStatus: moderationStatusById.get(report.target_id) ?? null,
         targetCreatedAt: createdAtById.get(report.target_id) ?? null,
       };
@@ -95,10 +116,26 @@ async function hydrateReports(
         targetMessage: message
           ? { ...message, senderProfile: senderById.get(message.sender_id) ?? null }
           : null,
+        targetPartnerListing: null,
         targetModerationStatus: message
           ? (moderationStatusById.get(message.sender_id) ?? null)
           : null,
         targetCreatedAt: message ? (createdAtById.get(message.sender_id) ?? null) : null,
+      };
+    }
+
+    if (report.target_type === "partner_listing") {
+      const listing = listingById.get(report.target_id);
+      return {
+        ...report,
+        reporterProfile,
+        targetProfile: null,
+        targetMessage: null,
+        targetPartnerListing: listing
+          ? { ...listing, creatorProfile: listing.profile_id ? (listingCreatorById.get(listing.profile_id) ?? null) : null }
+          : null,
+        targetModerationStatus: null,
+        targetCreatedAt: null,
       };
     }
 
@@ -107,6 +144,7 @@ async function hydrateReports(
       reporterProfile,
       targetProfile: null,
       targetMessage: null,
+      targetPartnerListing: null,
       targetModerationStatus: null,
       targetCreatedAt: null,
     };

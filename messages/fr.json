@@ -64,6 +64,7 @@
     "friends": "Mes amis",
     "groups": "Groupes",
     "search": "Rechercher",
+    "partners": "Activités",
     "profile": "Mon profil",
     "admin": "Admin"
   },
@@ -329,6 +330,7 @@
     "blockAction": "Bloquer",
     "modalTitleProfile": "Signaler ce profil",
     "modalTitleMessage": "Signaler ce message",
+    "modalTitlePartnerListing": "Signaler cette activité",
     "reasons": {
       "harassment": "Harcèlement ou intimidation",
       "inappropriate_content": "Contenu inapproprié",
@@ -351,6 +353,60 @@
     "unblockError": "Une erreur est survenue. Réessaie.",
     "loadError": "Impossible de charger la liste. Réessaie plus tard."
   },
+  "Partners": {
+    "form": {
+      "createTitle": "Ajouter une activité",
+      "editTitle": "Modifier l'activité",
+      "stepOf": "Étape {step} / {total}",
+      "steps": {
+        "basics": "Infos de base",
+        "location": "Emplacement",
+        "contact": "Contact",
+        "photos": "Photos"
+      },
+      "back": "Retour",
+      "next": "Suivant",
+      "finish": "Terminer",
+      "mapHint": "Clique sur la carte ou glisse le repère pour ajuster l'emplacement exact.",
+      "mapLocating": "Localisation en cours...",
+      "nameLabel": "Nom du commerce",
+      "namePlaceholder": "Ex. Café des amis",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Quelques mots sur ce partenaire...",
+      "categoryLabel": "Catégorie",
+      "cityLabel": "Ville",
+      "cityPlaceholder": "Ex. Montréal",
+      "addressLabel": "Adresse",
+      "addressPlaceholder": "Ex. 123 rue Principale (optionnel)",
+      "phoneLabel": "Téléphone",
+      "phonePlaceholder": "Ex. 514 555-1234",
+      "websiteLabel": "Site web",
+      "websitePlaceholder": "https://...",
+      "photosLabel": "Photos",
+      "photosAdd": "Ajouter",
+      "photosError": "Le téléversement a échoué. Réessaie.",
+      "photoRemove": "Retirer cette photo",
+      "errors": {
+        "nameRequired": "Le nom du commerce est requis.",
+        "categoryRequired": "Choisis une catégorie.",
+        "cityRequired": "La ville est requise.",
+        "saveFailed": "Une erreur est survenue. Réessaie."
+      }
+    },
+    "discovery": {
+      "title": "Activités",
+      "createButton": "Ajouter une activité",
+      "categoryLabel": "Catégorie",
+      "cityLabel": "Ville",
+      "cityPlaceholder": "Rechercher une ville...",
+      "loading": "Chargement...",
+      "noResults": "Aucune activité ne correspond à ces filtres.",
+      "contactPhone": "📞 Appeler",
+      "contactWebsite": "🌐 Site web",
+      "editLink": "Modifier mon activité",
+      "pendingBadge": "En attente d'activation"
+    }
+  },
   "Admin": {
     "title": "Espace de modération",
     "noReports": "Aucun signalement en attente.",
@@ -358,6 +414,7 @@
     "reporterLabel": "Signalé par",
     "targetTypeProfile": "Profil",
     "targetTypeMessage": "Message",
+    "targetTypePartnerListing": "Fiche partenaire",
     "targetTypeUnsupported": "Type de signalement non pris en charge",
     "reasonLabel": "Motif",
     "dateLabel": "Date",
@@ -369,6 +426,7 @@
       "ban": "Bannir",
       "reactivate": "Réactiver",
       "removeMessage": "Retirer le message",
+      "deactivateListing": "Désactiver la fiche",
       "resolve": "Marquer comme traité",
       "dismiss": "Ignorer"
     },
@@ -380,12 +438,18 @@
       "reactivateTitle": "Réactiver ce compte ?",
       "reactivateBody": "Réactiver {name} ? La personne retrouvera un accès complet à Friendszy.",
       "removeMessageTitle": "Retirer ce message ?",
-      "removeMessageBody": "Le message sera masqué et affiché comme « Message retiré » pour les utilisateurs. Cette action ne peut pas être annulée."
+      "removeMessageBody": "Le message sera masqué et affiché comme « Message retiré » pour les utilisateurs. Cette action ne peut pas être annulée.",
+      "deactivateListingTitle": "Désactiver cette fiche ?",
+      "deactivateListingBody": "Désactiver la fiche « {name} » ? Elle disparaîtra de l'annuaire jusqu'à réactivation."
     },
     "statusBadge": {
       "active": "Actif",
       "suspended": "Suspendu",
       "banned": "Banni"
+    },
+    "partnerListingStatusBadge": {
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "actionSuccess": "Action effectuée.",
     "actionError": "Une erreur est survenue. Réessaie.",
@@ -397,6 +461,7 @@
       "typeAll": "Tous",
       "typeProfile": "Profil",
       "typeMessage": "Message",
+      "typePartnerListing": "Fiche partenaire",
       "statusLabel": "Statut",
       "statusPending": "En attente",
       "statusResolved": "Résolu",
@@ -457,10 +522,29 @@
       "messagesSentLabel": "Messages envoyés",
       "never": "Jamais"
     },
+    "partners": {
+      "title": "Fiches partenaires",
+      "searchPlaceholder": "Nom du commerce",
+      "cityLabel": "Ville",
+      "statusLabel": "Statut",
+      "statusAll": "Tous",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "statusBadge": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "noListings": "Aucune fiche ne correspond à ces filtres.",
+      "actions": {
+        "activate": "Activer",
+        "deactivate": "Désactiver"
+      }
+    },
     "nav": {
       "dashboard": "Dashboard",
       "moderation": "Modération",
       "members": "Membres",
+      "partners": "Partenaires",
       "logs": "Journal",
       "events": "Events",
       "eventsSoon": "Bientôt disponible"

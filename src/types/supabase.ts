@@ -340,6 +340,46 @@ export type Database = {
         >;
         Relationships: [];
       };
+      partner_listings: {
+        Row: {
+          id: string;
+          profile_id: string | null;
+          name: string;
+          description: string | null;
+          interest_id: number;
+          city: string;
+          address: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          phone: string | null;
+          website: string | null;
+          photo_urls: string[];
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id?: string | null;
+          name: string;
+          description?: string | null;
+          interest_id: number;
+          city: string;
+          address?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          phone?: string | null;
+          website?: string | null;
+          photo_urls?: string[];
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["partner_listings"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -371,6 +411,10 @@ export type Database = {
         }[];
       };
       match_city_ids: {
+        Args: { p_city: string };
+        Returns: { id: string }[];
+      };
+      match_partner_listing_city_ids: {
         Args: { p_city: string };
         Returns: { id: string }[];
       };

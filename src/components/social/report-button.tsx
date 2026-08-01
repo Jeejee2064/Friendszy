@@ -22,7 +22,7 @@ export function ReportButton({
   compact = false,
 }: {
   reporterId: string;
-  targetType: "profile" | "message";
+  targetType: "profile" | "message" | "partner_listing";
   targetId: string;
   compact?: boolean;
 }) {
@@ -85,7 +85,13 @@ export function ReportButton({
       <Modal
         open={open}
         onClose={handleClose}
-        title={targetType === "profile" ? t("modalTitleProfile") : t("modalTitleMessage")}
+        title={
+          targetType === "profile"
+            ? t("modalTitleProfile")
+            : targetType === "partner_listing"
+              ? t("modalTitlePartnerListing")
+              : t("modalTitleMessage")
+        }
       >
         {success ? (
           <div className="flex flex-col gap-3">

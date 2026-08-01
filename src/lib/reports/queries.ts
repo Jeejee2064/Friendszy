@@ -9,7 +9,7 @@ export type ReportStatus = "open" | "reviewing" | "resolved" | "dismissed";
 export async function createReport(
   supabase: Client,
   reporterId: string,
-  targetType: "profile" | "message",
+  targetType: "profile" | "message" | "partner_listing",
   targetId: string,
   reason: string
 ) {

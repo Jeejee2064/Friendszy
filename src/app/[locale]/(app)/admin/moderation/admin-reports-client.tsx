@@ -5,14 +5,15 @@ import { useLocale, useNow, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { updateReportStatus } from "@/lib/reports/queries";
 import { setModerationStatus, removeMessageAsAdmin, logAdminAction } from "@/lib/admin/queries";
+import { setPartnerListingActive } from "@/lib/partners/queries";
 import type { ModerationStatus, ReportWithTarget } from "@/lib/admin/types";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 
-type ConfirmKind = "suspend" | "ban" | "reactivate" | "removeMessage";
+type ConfirmKind = "suspend" | "ban" | "reactivate" | "removeMessage" | "deactivateListing";
 type ConfirmAction = { kind: ConfirmKind; report: ReportWithTarget };
 
-type TypeFilter = "all" | "profile" | "message";
+type TypeFilter = "all" | "profile" | "message" | "partner_listing";
 type StatusFilter = "pending" | "resolved" | "dismissed";
 type DateFilter = "all" | "today" | "7d" | "30d";
 
@@ -41,6 +42,8 @@ function targetDisplayName(report: ReportWithTarget, deletedLabel: string): stri
     return profileDisplayName(report.targetProfile, deletedLabel);
   if (report.target_type === "message")
     return profileDisplayName(report.targetMessage?.senderProfile, deletedLabel);
+  if (report.target_type === "partner_listing")
+    return report.targetPartnerListing?.name ?? deletedLabel;
   return "";
 }
 
@@ -156,6 +159,22 @@ export function AdminReportsClient({
           actionType: "remove_message",
           targetType: "message",
           targetId: report.targetMessage.id,
+        }).catch(() => {});
+      } else if (kind === "deactivateListing") {
+        if (!report.targetPartnerListing) return;
+        await setPartnerListingActive(supabase, report.targetPartnerListing.id, false);
+        setReports((prev) =>
+          prev.map((r) =>
+            r.id === report.id && r.targetPartnerListing
+              ? { ...r, targetPartnerListing: { ...r.targetPartnerListing, status: "inactive" } }
+              : r
+          )
+        );
+        logAdminAction(supabase, {
+          adminId,
+          actionType: "deactivate",
+          targetType: "partner_listing",
+          targetId: report.targetPartnerListing.id,
         }).catch(() => {});
       } else {
         const uid = targetUserId(report);
@@ -294,6 +313,28 @@ export function AdminReportsClient({
       );
     }
 
+    if (report.target_type === "partner_listing") {
+      const listing = report.targetPartnerListing;
+      return (
+        <div className="rounded-xl border border-border p-3">
+          <p className="text-sm font-bold text-text">
+            {t("targetTypePartnerListing")}: {listing?.name ?? tCommon("deletedUser")}
+          </p>
+          {listing && (
+            <p className="mt-1 text-sm text-muted">
+              {listing.city} ·{" "}
+              {profileDisplayName(listing.creatorProfile, tCommon("deletedUser"))}
+            </p>
+          )}
+          {listing && (
+            <span className="mt-1.5 inline-block text-xs text-muted">
+              {t(`partnerListingStatusBadge.${listing.status}`)}
+            </span>
+          )}
+        </div>
+      );
+    }
+
     return <p className="text-sm italic text-muted">{t("targetTypeUnsupported")}</p>;
   }
 
@@ -341,6 +382,17 @@ export function AdminReportsClient({
             className="rounded-full border border-border px-3 py-2 text-xs font-semibold text-text"
           >
             {t("actions.removeMessage")}
+          </button>
+        )}
+
+        {report.target_type === "partner_listing" && report.targetPartnerListing?.status === "active" && (
+          <button
+            type="button"
+            onClick={() => setConfirmAction({ kind: "deactivateListing", report })}
+            className="rounded-full px-3 py-2 text-xs font-bold text-white"
+            style={{ background: "#e55" }}
+          >
+            {t("actions.deactivateListing")}
           </button>
         )}
 
@@ -392,6 +444,7 @@ export function AdminReportsClient({
             <option value="all">{t("filters.typeAll")}</option>
             <option value="profile">{t("filters.typeProfile")}</option>
             <option value="message">{t("filters.typeMessage")}</option>
+            <option value="partner_listing">{t("filters.typePartnerListing")}</option>
           </select>
         </label>
 
