@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AuthError, User } from "@supabase/supabase-js";
-import { getPathname, useRouter } from "@/i18n/navigation";
+import { getPathname, Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import {
@@ -38,6 +38,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<FormNotice | null>(null);
@@ -111,8 +112,14 @@ export default function LoginPage() {
   async function handleSignUp(e: FormEvent) {
     e.preventDefault();
     setNotice(null);
+    // Defense in depth: the submit button is already disabled until this is
+    // checked, but don't rely on that alone.
+    if (!privacyAccepted) {
+      setNotice({ kind: "error", message: t("privacyRequired") });
+      return;
+    }
     setPending(true);
-    const { error } = await signUpWithEmail(email, password);
+    const { error } = await signUpWithEmail(email, password, new Date().toISOString());
     setPending(false);
     if (error) {
       reportError(t("signUp.error"), error);
@@ -296,7 +303,34 @@ export default function LoginPage() {
                 </button>
               )}
 
-              <SubmitButton pending={pending}>
+              {mode === "signUp" && (
+                <label className="flex items-start gap-2 text-sm text-muted">
+                  <input
+                    type="checkbox"
+                    checked={privacyAccepted}
+                    onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-teal2"
+                  />
+                  <span>
+                    {t.rich("privacyConsent", {
+                      link: (chunks) => (
+                        <Link
+                          href="/privacy"
+                          target="_blank"
+                          className="font-semibold text-teal2 hover:underline"
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </span>
+                </label>
+              )}
+
+              <SubmitButton
+                pending={pending}
+                disabled={mode === "signUp" && !privacyAccepted}
+              >
                 {mode === "signIn" ? t("signIn.submit") : t("signUp.submit")} →
               </SubmitButton>
             </form>
@@ -454,15 +488,17 @@ function AuthTab({
 
 function SubmitButton({
   pending,
+  disabled = false,
   children,
 }: {
   pending: boolean;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className="mt-1 rounded-full py-3 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
       style={{ backgroundImage: "var(--grad)" }}
     >

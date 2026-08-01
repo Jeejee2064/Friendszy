@@ -200,6 +200,28 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["reports"]["Insert"]>;
         Relationships: [];
       };
+      admin_actions: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action_type: string;
+          target_type: string;
+          target_id: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          action_type: string;
+          target_type: string;
+          target_id: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_actions"]["Insert"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;

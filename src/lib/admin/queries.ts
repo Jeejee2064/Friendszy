@@ -3,7 +3,7 @@ import type { Database } from "@/types/supabase";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { getMessagesByIds, type MessageRow } from "@/lib/messages/queries";
-import { listOpenReports } from "@/lib/reports/queries";
+import { listOpenReports, listAllReports, type ReportRow } from "@/lib/reports/queries";
 import type { ModerationStatus, ReportWithTarget } from "./types";
 
 type Client = SupabaseClient<Database>;
@@ -23,11 +23,20 @@ async function getModerationStatuses(
   );
 }
 
-export async function listOpenReportsWithTargets(
-  supabase: Client
-): Promise<ReportWithTarget[]> {
-  const reports = await listOpenReports(supabase);
+async function getProfileCreatedAtMap(
+  supabase: Client,
+  ids: string[]
+): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const { data, error } = await supabase.from("profiles").select("id, created_at").in("id", ids);
+  if (error) throw error;
+  return new Map((data ?? []).map((row) => [row.id, row.created_at]));
+}
 
+async function hydrateReports(
+  supabase: Client,
+  reports: ReportRow[]
+): Promise<ReportWithTarget[]> {
   const profileTargetIds = reports
     .filter((r) => r.target_type === "profile")
     .map((r) => r.target_id);
@@ -46,9 +55,10 @@ export async function listOpenReportsWithTargets(
 
   const senderIds = [...new Set(targetMessages.map((m) => m.sender_id))];
   const senderProfiles = await getProfilesByIds(supabase, senderIds);
-  const moderationStatusById = await getModerationStatuses(supabase, [
-    ...profileTargetIds,
-    ...senderIds,
+  const relevantIds = [...profileTargetIds, ...senderIds];
+  const [moderationStatusById, createdAtById] = await Promise.all([
+    getModerationStatuses(supabase, relevantIds),
+    getProfileCreatedAtMap(supabase, relevantIds),
   ]);
 
   const profileById = new Map<string, ProfileSummary>(
@@ -72,6 +82,7 @@ export async function listOpenReportsWithTargets(
         targetProfile: profileById.get(report.target_id) ?? null,
         targetMessage: null,
         targetModerationStatus: moderationStatusById.get(report.target_id) ?? null,
+        targetCreatedAt: createdAtById.get(report.target_id) ?? null,
       };
     }
 
@@ -87,6 +98,7 @@ export async function listOpenReportsWithTargets(
         targetModerationStatus: message
           ? (moderationStatusById.get(message.sender_id) ?? null)
           : null,
+        targetCreatedAt: message ? (createdAtById.get(message.sender_id) ?? null) : null,
       };
     }
 
@@ -96,8 +108,61 @@ export async function listOpenReportsWithTargets(
       targetProfile: null,
       targetMessage: null,
       targetModerationStatus: null,
+      targetCreatedAt: null,
     };
   });
+}
+
+export async function listOpenReportsWithTargets(
+  supabase: Client
+): Promise<ReportWithTarget[]> {
+  const reports = await listOpenReports(supabase);
+  return hydrateReports(supabase, reports);
+}
+
+export async function listAllReportsWithTargets(
+  supabase: Client,
+  limit = 200
+): Promise<ReportWithTarget[]> {
+  const reports = await listAllReports(supabase, limit);
+  return hydrateReports(supabase, reports);
+}
+
+export type AdminActionRow = Database["public"]["Tables"]["admin_actions"]["Row"];
+export type AdminActionWithNames = AdminActionRow & {
+  adminProfile: ProfileSummary | null;
+  targetProfile: ProfileSummary | null;
+};
+
+export async function listAdminActions(
+  supabase: Client,
+  limit = 200
+): Promise<AdminActionWithNames[]> {
+  const { data, error } = await supabase
+    .from("admin_actions")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  const actions = data ?? [];
+
+  const adminIds = [...new Set(actions.map((a) => a.admin_id))];
+  const profileTargetIds = [
+    ...new Set(actions.filter((a) => a.target_type === "profile").map((a) => a.target_id)),
+  ];
+
+  const [adminProfiles, targetProfiles] = await Promise.all([
+    getProfilesByIds(supabase, adminIds),
+    getProfilesByIds(supabase, profileTargetIds),
+  ]);
+  const adminById = new Map(adminProfiles.map((p) => [p.id, p]));
+  const targetById = new Map(targetProfiles.map((p) => [p.id, p]));
+
+  return actions.map((a) => ({
+    ...a,
+    adminProfile: adminById.get(a.admin_id) ?? null,
+    targetProfile: a.target_type === "profile" ? (targetById.get(a.target_id) ?? null) : null,
+  }));
 }
 
 export async function setModerationStatus(
@@ -109,6 +174,31 @@ export async function setModerationStatus(
     .from("profiles")
     .update({ moderation_status: status })
     .eq("id", targetUserId);
+  if (error) throw error;
+}
+
+/**
+ * Best-effort: a failed audit-log write shouldn't surface as an error on an
+ * otherwise-successful moderation action, so callers should not await this
+ * inline with the primary action's error handling.
+ */
+export async function logAdminAction(
+  supabase: Client,
+  params: {
+    adminId: string;
+    actionType: string;
+    targetType: string;
+    targetId: string;
+    reason?: string;
+  }
+) {
+  const { error } = await supabase.from("admin_actions").insert({
+    admin_id: params.adminId,
+    action_type: params.actionType,
+    target_type: params.targetType,
+    target_id: params.targetId,
+    reason: params.reason ?? null,
+  });
   if (error) throw error;
 }
 

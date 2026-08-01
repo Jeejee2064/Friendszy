@@ -39,6 +39,18 @@ export async function proxy(request: NextRequest) {
       );
     }
 
+    // Shared password gate in front of /admin, checked before the real
+    // is_admin check below — an outer convenience lock, not a replacement
+    // for it (see src/app/api/admin/gate/route.ts).
+    if (
+      (path === "/admin" || path.startsWith("/admin/")) &&
+      request.cookies.get("admin_gate")?.value !== "granted"
+    ) {
+      return NextResponse.redirect(
+        new URL(withLocalePrefix(pathname, "/admin-gate"), request.url)
+      );
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select(

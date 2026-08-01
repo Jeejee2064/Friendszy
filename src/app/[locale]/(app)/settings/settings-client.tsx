@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { deleteMyAccount } from "@/lib/account/actions";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
@@ -10,6 +11,7 @@ import { usePwaInstall } from "@/lib/pwa/install-context";
 export function SettingsPageClient({ locale }: { locale: string }) {
   const t = useTranslations("Settings");
   const tPwa = useTranslations("Pwa");
+  const tPrivacy = useTranslations("Privacy");
   const { platform, alreadyInstalled, deferredPrompt, promptInstall } = usePwaInstall();
   const isMobile = platform === "ios" || platform === "android";
   const [iosInstructionsOpen, setIosInstructionsOpen] = useState(false);
@@ -110,6 +112,17 @@ export function SettingsPageClient({ locale }: { locale: string }) {
           >
             {exporting ? "…" : t("exportButton")}
           </button>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-2 font-bold text-text">{tPrivacy("settingsCardTitle")}</h2>
+          <p className="mb-4 text-sm text-muted">{tPrivacy("settingsCardBody")}</p>
+          <Link
+            href="/privacy"
+            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+          >
+            {tPrivacy("settingsCardLink")}
+          </Link>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">

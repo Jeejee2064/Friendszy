@@ -40,6 +40,8 @@
     "loadingSession": "Loading...",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "privacyConsent": "I have read and accept the <link>Privacy Policy</link>.",
+    "privacyRequired": "You must accept the Privacy Policy to create an account.",
     "resetPassword": {
       "requestTitle": "Forgot password",
       "email": "Email",
@@ -386,7 +388,122 @@
       "banned": "Banned"
     },
     "actionSuccess": "Action completed.",
-    "actionError": "Something went wrong. Try again."
+    "actionError": "Something went wrong. Try again.",
+    "urgentBadge": "🔥 Urgent",
+    "newAccountBadge": "New account",
+    "viewAction": "View",
+    "filters": {
+      "typeLabel": "Type",
+      "typeAll": "All",
+      "typeProfile": "Profile",
+      "typeMessage": "Message",
+      "statusLabel": "Status",
+      "statusPending": "Pending",
+      "statusResolved": "Resolved",
+      "statusDismissed": "Dismissed",
+      "dateLabel": "Period",
+      "dateAll": "All",
+      "dateToday": "Today",
+      "date7d": "Last 7 days",
+      "date30d": "Last 30 days"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}"
+    },
+    "detail": {
+      "title": "Report detail",
+      "reportHistoryTitle": "Other reports against this user",
+      "noOtherReports": "No other reports against this user."
+    },
+    "members": {
+      "title": "Members",
+      "searchPlaceholder": "Name or username",
+      "cityLabel": "City",
+      "cityAll": "All",
+      "registeredLabel": "Registered",
+      "registered7d": "Last 7 days",
+      "registered30d": "Last 30 days",
+      "registered90d": "Last 90 days",
+      "registeredAll": "All",
+      "statusLabel": "Status",
+      "statusAll": "All",
+      "reportsLabel": "Reports received",
+      "reports0": "0",
+      "reports1to2": "1-2",
+      "reports3plus": "3+",
+      "reportsAll": "All",
+      "columnMember": "Member",
+      "columnCity": "City",
+      "columnAge": "Age",
+      "columnRegistered": "Registered",
+      "columnReports": "Reports",
+      "columnFriends": "Friends",
+      "columnStatus": "Status",
+      "noMembers": "No member matches these filters.",
+      "exportButton": "Export CSV",
+      "exporting": "Exporting…",
+      "exportError": "Export failed. Try again.",
+      "rlsPendingNotice": "—",
+      "detailTitle": "Member profile",
+      "bioLabel": "Bio",
+      "interestsLabel": "Interests",
+      "friendsLabel": "Friends",
+      "groupsLabel": "Groups joined",
+      "reportsReceivedLabel": "Report history",
+      "noReportsReceived": "No reports received.",
+      "lastSeenLabel": "Last seen",
+      "messagesSentLabel": "Messages sent",
+      "never": "Never"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "moderation": "Moderation",
+      "members": "Members",
+      "logs": "Logs",
+      "events": "Events",
+      "eventsSoon": "Coming soon"
+    },
+    "logs": {
+      "title": "Admin action log",
+      "filterAdminLabel": "Admin",
+      "filterTargetLabel": "Target user",
+      "filterActionLabel": "Action type",
+      "allAdmins": "All",
+      "allTargets": "All",
+      "allActions": "All",
+      "columnAdmin": "Admin",
+      "columnAction": "Action",
+      "columnTarget": "Target",
+      "columnDate": "Date",
+      "noActions": "No actions recorded yet.",
+      "targetTypeReport": "Report",
+      "targetTypeMessage": "Message"
+    },
+    "dashboard": {
+      "title": "Overview",
+      "totalMembers": "Registered members",
+      "newMembersThisMonth": "New this month",
+      "messagesToday": "Messages today",
+      "reportsPending": "Pending reports",
+      "activeGroupChats": "Active groups (7d)",
+      "friendsThisWeek": "Friendships created (7d)",
+      "newBadge": "+{count} in 24h",
+      "rlsPendingNotice": "Database not migrated yet",
+      "signupsChartTitle": "New signups (last 30 days)",
+      "topCitiesChartTitle": "Top 5 cities",
+      "recentReportsTitle": "Latest pending reports",
+      "noPendingReports": "No pending reports.",
+      "moderateLink": "Moderate"
+    },
+    "gate": {
+      "title": "Admin access",
+      "subtitle": "Enter the password to access the admin area.",
+      "passwordLabel": "Password",
+      "submit": "Enter",
+      "error": "Incorrect password."
+    }
   },
   "Suspended": {
     "suspendedTitle": "Your account has been suspended",
@@ -399,6 +516,14 @@
     "title": "Page not found",
     "body": "The page you're looking for doesn't exist anymore.",
     "backHome": "Back home"
+  },
+  "Privacy": {
+    "pageTitle": "Privacy Policy",
+    "backLink": "Back",
+    "lastUpdated": "Last updated: {date}",
+    "settingsCardTitle": "Privacy",
+    "settingsCardBody": "Review Friendszy's privacy policy at any time.",
+    "settingsCardLink": "Read the privacy policy"
   },
   "Common": {
     "deletedUser": "Deleted user"

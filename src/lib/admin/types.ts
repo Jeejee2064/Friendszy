@@ -10,4 +10,6 @@ export type ReportWithTarget = ReportRow & {
   targetMessage: (MessageRow & { senderProfile: ProfileSummary | null }) | null;
   /** moderation_status of the reported user (profile target, or message sender) */
   targetModerationStatus: ModerationStatus | null;
+  /** created_at of the reported user's profile — drives the "new account" flag. */
+  targetCreatedAt: string | null;
 };

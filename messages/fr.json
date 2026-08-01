@@ -40,6 +40,8 @@
     "loadingSession": "Chargement...",
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe",
+    "privacyConsent": "J'ai lu et j'accepte la <link>politique de confidentialité</link>.",
+    "privacyRequired": "Tu dois accepter la politique de confidentialité pour créer un compte.",
     "resetPassword": {
       "requestTitle": "Mot de passe oublié",
       "email": "Courriel",
@@ -386,7 +388,122 @@
       "banned": "Banni"
     },
     "actionSuccess": "Action effectuée.",
-    "actionError": "Une erreur est survenue. Réessaie."
+    "actionError": "Une erreur est survenue. Réessaie.",
+    "urgentBadge": "🔥 Urgent",
+    "newAccountBadge": "Nouveau compte",
+    "viewAction": "Voir",
+    "filters": {
+      "typeLabel": "Type",
+      "typeAll": "Tous",
+      "typeProfile": "Profil",
+      "typeMessage": "Message",
+      "statusLabel": "Statut",
+      "statusPending": "En attente",
+      "statusResolved": "Résolu",
+      "statusDismissed": "Ignoré",
+      "dateLabel": "Période",
+      "dateAll": "Tout",
+      "dateToday": "Aujourd'hui",
+      "date7d": "7 derniers jours",
+      "date30d": "30 derniers jours"
+    },
+    "pagination": {
+      "prev": "Précédent",
+      "next": "Suivant",
+      "pageOf": "Page {page} / {total}"
+    },
+    "detail": {
+      "title": "Détail du signalement",
+      "reportHistoryTitle": "Autres signalements contre cet utilisateur",
+      "noOtherReports": "Aucun autre signalement contre cet utilisateur."
+    },
+    "members": {
+      "title": "Membres",
+      "searchPlaceholder": "Nom, prénom ou pseudo",
+      "cityLabel": "Ville",
+      "cityAll": "Toutes",
+      "registeredLabel": "Inscription",
+      "registered7d": "7 derniers jours",
+      "registered30d": "30 derniers jours",
+      "registered90d": "90 derniers jours",
+      "registeredAll": "Tout",
+      "statusLabel": "Statut",
+      "statusAll": "Tous",
+      "reportsLabel": "Signalements reçus",
+      "reports0": "0",
+      "reports1to2": "1-2",
+      "reports3plus": "3+",
+      "reportsAll": "Tous",
+      "columnMember": "Membre",
+      "columnCity": "Ville",
+      "columnAge": "Âge",
+      "columnRegistered": "Inscrit le",
+      "columnReports": "Signalements",
+      "columnFriends": "Amis",
+      "columnStatus": "Statut",
+      "noMembers": "Aucun membre ne correspond à ces filtres.",
+      "exportButton": "Exporter CSV",
+      "exporting": "Export en cours…",
+      "exportError": "L'export a échoué. Réessaie.",
+      "rlsPendingNotice": "—",
+      "detailTitle": "Fiche membre",
+      "bioLabel": "Bio",
+      "interestsLabel": "Centres d'intérêt",
+      "friendsLabel": "Amis",
+      "groupsLabel": "Groupes rejoints",
+      "reportsReceivedLabel": "Historique des signalements",
+      "noReportsReceived": "Aucun signalement reçu.",
+      "lastSeenLabel": "Dernière connexion",
+      "messagesSentLabel": "Messages envoyés",
+      "never": "Jamais"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "moderation": "Modération",
+      "members": "Membres",
+      "logs": "Journal",
+      "events": "Events",
+      "eventsSoon": "Bientôt disponible"
+    },
+    "logs": {
+      "title": "Journal des actions admin",
+      "filterAdminLabel": "Admin",
+      "filterTargetLabel": "Utilisateur cible",
+      "filterActionLabel": "Type d'action",
+      "allAdmins": "Tous",
+      "allTargets": "Tous",
+      "allActions": "Tous",
+      "columnAdmin": "Admin",
+      "columnAction": "Action",
+      "columnTarget": "Cible",
+      "columnDate": "Date",
+      "noActions": "Aucune action enregistrée.",
+      "targetTypeReport": "Signalement",
+      "targetTypeMessage": "Message"
+    },
+    "dashboard": {
+      "title": "Vue d'ensemble",
+      "totalMembers": "Membres inscrits",
+      "newMembersThisMonth": "Nouveaux ce mois",
+      "messagesToday": "Messages aujourd'hui",
+      "reportsPending": "Signalements en attente",
+      "activeGroupChats": "Groupes actifs (7j)",
+      "friendsThisWeek": "Amitiés créées (7j)",
+      "newBadge": "+{count} en 24h",
+      "rlsPendingNotice": "Base de données pas encore à jour",
+      "signupsChartTitle": "Nouveaux inscrits (30 derniers jours)",
+      "topCitiesChartTitle": "Top 5 des villes",
+      "recentReportsTitle": "Derniers signalements en attente",
+      "noPendingReports": "Aucun signalement en attente.",
+      "moderateLink": "Modérer"
+    },
+    "gate": {
+      "title": "Accès admin",
+      "subtitle": "Entre le mot de passe pour accéder à l'espace admin.",
+      "passwordLabel": "Mot de passe",
+      "submit": "Accéder",
+      "error": "Mot de passe incorrect."
+    }
   },
   "Suspended": {
     "suspendedTitle": "Ton compte a été suspendu",
@@ -399,6 +516,14 @@
     "title": "Page introuvable",
     "body": "La page que tu cherches n'existe pas ou plus.",
     "backHome": "Retour à l'accueil"
+  },
+  "Privacy": {
+    "pageTitle": "Politique de confidentialité",
+    "backLink": "Retour",
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "settingsCardTitle": "Confidentialité",
+    "settingsCardBody": "Consulte la politique de confidentialité de Friendszy à tout moment.",
+    "settingsCardLink": "Lire la politique de confidentialité"
   },
   "Common": {
     "deletedUser": "Utilisateur supprimé"
