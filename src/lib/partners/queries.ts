@@ -6,6 +6,16 @@ type Client = SupabaseClient<Database>;
 export type PartnerListingRow = Database["public"]["Tables"]["partner_listings"]["Row"];
 export type PartnerListingStatus = "active" | "inactive";
 
+/** Listings awaiting admin activation — drives the sidebar badge count, same role as countOpenReports for moderation. */
+export async function countPendingPartnerListings(supabase: Client): Promise<number> {
+  const { count, error } = await supabase
+    .from("partner_listings")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "inactive");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function createPartnerListing(
   supabase: Client,
   fields: {

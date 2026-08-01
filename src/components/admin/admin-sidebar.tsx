@@ -11,15 +11,27 @@ const NAV_ITEMS = [
   { href: "/admin/logs", key: "logs", icon: "📋" },
 ] as const;
 
-export function AdminSidebar({ pendingReportsCount }: { pendingReportsCount: number }) {
+export function AdminSidebar({
+  pendingReportsCount,
+  pendingPartnersCount,
+}: {
+  pendingReportsCount: number;
+  pendingPartnersCount: number;
+}) {
   const pathname = usePathname();
   const t = useTranslations("Admin.nav");
+
+  const badgeCountByKey: Partial<Record<(typeof NAV_ITEMS)[number]["key"], number>> = {
+    moderation: pendingReportsCount,
+    partners: pendingPartnersCount,
+  };
 
   return (
     <nav className="flex w-56 shrink-0 flex-col gap-1 border-r border-border bg-card p-4">
       {NAV_ITEMS.map((item) => {
         const active =
           item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+        const badgeCount = badgeCountByKey[item.key] ?? 0;
         return (
           <Link
             key={item.href}
@@ -30,12 +42,12 @@ export function AdminSidebar({ pendingReportsCount }: { pendingReportsCount: num
           >
             <span className="text-base">{item.icon}</span>
             {t(item.key)}
-            {item.key === "moderation" && pendingReportsCount > 0 && (
+            {badgeCount > 0 && (
               <span
                 className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
                 style={{ background: "#e55" }}
               >
-                {pendingReportsCount}
+                {badgeCount}
               </span>
             )}
           </Link>

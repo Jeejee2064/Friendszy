@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useNow, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { updateReportStatus } from "@/lib/reports/queries";
 import { setModerationStatus, removeMessageAsAdmin, logAdminAction } from "@/lib/admin/queries";
@@ -57,6 +58,7 @@ export function AdminReportsClient({
   const t = useTranslations("Admin");
   const tCommon = useTranslations("Common");
   const locale = useLocale();
+  const router = useRouter();
   const now = useNow({ updateInterval: 60_000 });
   const [reports, setReports] = useState<ReportWithTarget[]>(initialReports);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
@@ -194,6 +196,10 @@ export function AdminReportsClient({
       }
       setConfirmAction(null);
       setFeedback("success");
+      // Every branch above can move a count the sidebar badges show (open
+      // reports, pending partner listings) — refresh the server-rendered
+      // layout so those badges reflect it without a full navigation.
+      router.refresh();
     } catch {
       setFeedback("error");
     } finally {
@@ -219,6 +225,9 @@ export function AdminReportsClient({
         targetId: reportId,
       }).catch(() => {});
       setFeedback("success");
+      // Resolving/dismissing changes the open-reports count the sidebar
+      // badge shows — refresh so it updates without a full navigation.
+      router.refresh();
     } catch {
       setFeedback("error");
     } finally {

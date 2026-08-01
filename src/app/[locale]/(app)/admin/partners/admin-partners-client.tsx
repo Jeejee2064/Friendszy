@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   listAllPartnerListingsForAdmin,
@@ -26,6 +27,7 @@ export function AdminPartnersClient({
   const t = useTranslations("Admin.partners");
   const tAdmin = useTranslations("Admin");
   const locale = useLocale();
+  const router = useRouter();
 
   const [listings, setListings] = useState<PartnerListingRow[]>(initialListings);
   const [loading, setLoading] = useState(false);
@@ -86,6 +88,9 @@ export function AdminPartnersClient({
         targetId: listing.id,
       }).catch(() => {});
       setFeedback("success");
+      // Activating/deactivating changes the pending-listings count the
+      // sidebar badge shows — refresh so it updates without a full navigation.
+      router.refresh();
     } catch {
       setFeedback("error");
     }
