@@ -380,6 +380,100 @@ export type Database = {
         >;
         Relationships: [];
       };
+      events: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          city: string;
+          address: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          interest_id: number;
+          creator_id: string | null;
+          starts_at: string;
+          ends_at: string;
+          capacity: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          city: string;
+          address?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          interest_id: number;
+          creator_id?: string | null;
+          starts_at: string;
+          ends_at: string;
+          capacity?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
+        Relationships: [];
+      };
+      event_photos: {
+        Row: {
+          id: string;
+          event_id: string;
+          url: string;
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          url: string;
+          position?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["event_photos"]["Insert"]>;
+        Relationships: [];
+      };
+      event_registrations: {
+        Row: {
+          event_id: string;
+          profile_id: string;
+          created_at: string;
+        };
+        Insert: {
+          event_id: string;
+          profile_id: string;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["event_registrations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      event_messages: {
+        Row: {
+          id: string;
+          event_id: string;
+          sender_id: string;
+          content: string | null;
+          removed_at: string | null;
+          removed_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          sender_id: string;
+          content?: string | null;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["event_messages"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -441,6 +535,22 @@ export type Database = {
       is_banned_from_group: {
         Args: { p_group_id: string; p_profile_id: string };
         Returns: boolean;
+      };
+      match_event_city_ids: {
+        Args: { p_city: string };
+        Returns: { id: string }[];
+      };
+      is_event_participant: {
+        Args: { p_event_id: string };
+        Returns: boolean;
+      };
+      is_event_organizer: {
+        Args: { p_event_id: string };
+        Returns: boolean;
+      };
+      get_event_registration_counts: {
+        Args: { p_event_ids: string[] };
+        Returns: { event_id: string; registration_count: number }[];
       };
     };
     Enums: Record<string, never>;

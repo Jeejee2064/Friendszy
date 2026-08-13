@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useTranslations } from "next-intl";
 
 const QUEBEC_CENTER: [number, number] = [-71.5, 52];
 const QUEBEC_ZOOM = 4.5;
@@ -11,18 +10,25 @@ const LOCATED_ZOOM = 13;
 
 type Coordinates = { latitude: number; longitude: number };
 
+// Shared by every "drop a pin" creation flow (partner listings, events, ...):
+// typing a city/address geocodes and centers the map, then the user can drag
+// the marker to the exact spot. Caller owns the copy (hintText/locatingText)
+// so this stays feature-agnostic.
 export function LocationPickerMap({
   city,
   address,
   value,
   onChange,
+  hintText,
+  locatingText,
 }: {
   city: string;
   address: string;
   value: { latitude: number | null; longitude: number | null };
   onChange: (coords: Coordinates) => void;
+  hintText: string;
+  locatingText: string;
 }) {
-  const t = useTranslations("Partners.form");
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -97,7 +103,7 @@ export function LocationPickerMap({
       geocodedFromRef.current = { city: trimmedCity, address: trimmedAddress };
       setLocating(true);
       try {
-        const response = await fetch("/api/partners/geocode", {
+        const response = await fetch("/api/geocode", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ city: trimmedCity, address: trimmedAddress || undefined }),
@@ -124,7 +130,7 @@ export function LocationPickerMap({
         ref={containerRef}
         className="h-64 w-full overflow-hidden rounded-lg border border-border"
       />
-      <p className="text-xs text-muted">{locating ? t("mapLocating") : t("mapHint")}</p>
+      <p className="text-xs text-muted">{locating ? locatingText : hintText}</p>
     </div>
   );
 }

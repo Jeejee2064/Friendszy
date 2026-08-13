@@ -17,6 +17,7 @@ import type { Database } from "@/types/supabase";
 import type { Interest } from "@/lib/profile/types";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
 import { GroupCard } from "@/components/groups/group-card";
+import { TabButton } from "@/components/ui/tab-button";
 
 type Tab = "discover" | "mine";
 type DiscoverFilterMode = "name" | "interest";
@@ -251,33 +252,12 @@ export function GroupsPageClient({
   );
 }
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-        active ? "text-white" : "text-muted"
-      }`}
-      style={active ? { backgroundImage: "var(--grad)" } : undefined}
-    >
-      {children}
-    </button>
-  );
-}
-
-// Deliberately a different shape from the pill-style TabButton above (which
-// is reserved for the page's actual top-level nav, Discover/My groups) —
-// an underline tab inside a bordered card, so this filter panel reads as a
-// clearly secondary, self-contained search control, not another nav level.
+// Deliberately a different shape from the shared pill-style TabButton above
+// (imported from @/components/ui/tab-button, also used by the Découvrir
+// page's Both/Events/Activities toggle) — that one is reserved for a page's
+// actual top-level nav; this is an underline tab inside a bordered card, so
+// this filter panel reads as a clearly secondary, self-contained search
+// control, not another nav level.
 function FilterTabButton({
   active,
   onClick,

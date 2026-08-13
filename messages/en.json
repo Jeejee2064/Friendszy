@@ -64,7 +64,7 @@
     "friends": "My friends",
     "groups": "Groups",
     "search": "Search",
-    "partners": "Activities",
+    "discover": "Discover",
     "profile": "My profile",
     "admin": "Admin"
   },
@@ -331,6 +331,8 @@
     "modalTitleProfile": "Report this profile",
     "modalTitleMessage": "Report this message",
     "modalTitlePartnerListing": "Report this activity",
+    "modalTitleEvent": "Report this event",
+    "modalTitleEventMessage": "Report this message",
     "reasons": {
       "harassment": "Harassment or bullying",
       "inappropriate_content": "Inappropriate content",
@@ -352,6 +354,34 @@
     "unblock": "Unblock",
     "unblockError": "Something went wrong. Try again.",
     "loadError": "Couldn't load the list. Try again later."
+  },
+  "Map": {
+    "viewDetails": "View listing",
+    "kindEvent": "Event",
+    "kindPartner": "Partner"
+  },
+  "Discover": {
+    "title": "Discover",
+    "toggleBoth": "Both",
+    "toggleEvents": "Events",
+    "togglePartners": "Activities",
+    "categoryLabel": "Category",
+    "dateLabel": "Date",
+    "clearDate": "Clear",
+    "loading": "Loading...",
+    "sectionEvents": "Events",
+    "sectionPartners": "Activities",
+    "noResultsEvents": "No events around here yet — be the first to create one!",
+    "noResultsPartners": "No activities around here yet — be the first to add one!",
+    "emptyEventsCta": "Organize an event",
+    "emptyPartnersCta": "Add my business",
+    "viewList": "View list",
+    "viewMap": "View map",
+    "fab": {
+      "ariaLabel": "Create",
+      "organizeEvent": "Organize an event",
+      "addBusiness": "Add my business"
+    }
   },
   "Partners": {
     "form": {
@@ -394,18 +424,88 @@
       }
     },
     "discovery": {
-      "title": "Activities",
-      "createButton": "Add an activity",
-      "categoryLabel": "Category",
-      "cityLabel": "City",
-      "cityPlaceholder": "Search a city...",
-      "loading": "Loading...",
-      "noResults": "No activity matches these filters.",
       "contactPhone": "📞 Call",
       "contactWebsite": "🌐 Website",
       "editLink": "Edit my activity",
       "pendingBadge": "Pending activation"
     }
+  },
+  "Events": {
+    "form": {
+      "createTitle": "Create an event",
+      "stepOf": "Step {step} / {total}",
+      "steps": {
+        "basics": "Basics",
+        "location": "Location",
+        "review": "Review"
+      },
+      "back": "Back",
+      "next": "Next",
+      "finish": "Create event",
+      "titleLabel": "Title",
+      "titlePlaceholder": "E.g. Board game night",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "A few words about this event...",
+      "categoryLabel": "Category",
+      "startsAtLabel": "Starts",
+      "endsAtLabel": "Ends",
+      "capacityLabel": "Max capacity",
+      "capacityPlaceholder": "Unlimited if left blank",
+      "capacityHint": "Leave blank for unlimited capacity.",
+      "photosLabel": "Photos",
+      "photosAdd": "Add",
+      "photosError": "Upload failed. Try again.",
+      "photoRemove": "Remove this photo",
+      "cityLabel": "City",
+      "cityPlaceholder": "E.g. Montréal",
+      "addressLabel": "Address",
+      "addressPlaceholder": "E.g. 123 Main St (optional)",
+      "mapHint": "Click the map or drag the pin to adjust the exact location.",
+      "mapLocating": "Locating...",
+      "reviewDate": "When",
+      "reviewLocation": "Where",
+      "reviewCapacity": "Capacity",
+      "reviewCapacityUnlimited": "Unlimited",
+      "errors": {
+        "titleRequired": "Title is required.",
+        "categoryRequired": "Choose a category.",
+        "cityRequired": "City is required.",
+        "datesInvalid": "The end date must be after the start date.",
+        "saveFailed": "Something went wrong. Try again."
+      }
+    },
+    "discovery": {
+      "spotsUnlimited": "{count} registered",
+      "spotsLimited": "{count} / {capacity} registered",
+      "full": "Full",
+      "detailsLink": "View event"
+    },
+    "detail": {
+      "organizerLabel": "Hosted by {name}",
+      "deletedOrganizer": "Organizer not found",
+      "registerButton": "Register",
+      "unregisterButton": "Cancel registration",
+      "registering": "…",
+      "registeredNotice": "You're registered for this event.",
+      "fullNotice": "This event is full.",
+      "endedNotice": "This event has ended.",
+      "contactOrganizer": "Contact the organizer",
+      "messaging": "…",
+      "chatTitle": "Chat",
+      "chatLockedNotice": "Register to access the chat.",
+      "errors": {
+        "fullError": "This event is full.",
+        "endedError": "This event has already ended.",
+        "registerFailed": "Something went wrong. Try again."
+      }
+    },
+    "noMessagesYet": "No messages yet.",
+    "messagePlaceholder": "Write a message...",
+    "send": "Send",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "messageRemovedPlaceholder": "This message was removed",
+    "removeMessage": "Remove this message"
   },
   "Admin": {
     "title": "Moderation",
@@ -538,7 +638,11 @@
       "actions": {
         "activate": "Activate",
         "deactivate": "Deactivate"
-      }
+      },
+      "detailTitle": "Partner listing",
+      "descriptionLabel": "Description",
+      "addressLabel": "Address",
+      "submittedByLabel": "Submitted by"
     },
     "nav": {
       "dashboard": "Dashboard",

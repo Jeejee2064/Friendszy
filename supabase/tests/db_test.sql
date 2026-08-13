@@ -33,7 +33,8 @@ select has_extension('unaccent', 'extension unaccent is installed (city search)'
 
 select has_table('public', t, 'table public.' || t || ' exists')
 from unnest(array[
-  'blocks', 'conversations', 'friendships', 'group_join_requests',
+  'blocks', 'conversations', 'event_messages', 'event_photos',
+  'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interests', 'messages',
   'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
 ]) as t;
@@ -44,7 +45,8 @@ select ok(
   'RLS is enabled on public.' || t
 )
 from unnest(array[
-  'blocks', 'conversations', 'friendships', 'group_join_requests',
+  'blocks', 'conversations', 'event_messages', 'event_photos',
+  'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interests', 'messages',
   'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
 ]) as t;
@@ -220,6 +222,48 @@ select has_column('public', 'reports', 'resolved_by', 'reports.resolved_by exist
 select col_is_pk('public', 'reports', array['id'], 'reports PK is (id)');
 select col_default_is('public', 'reports', 'status', 'open', 'reports.status defaults to open');
 
+-- events (Phase 2)
+select has_column('public', 'events', 'id', 'events.id exists');
+select has_column('public', 'events', 'title', 'events.title exists');
+select has_column('public', 'events', 'description', 'events.description exists');
+select has_column('public', 'events', 'city', 'events.city exists');
+select has_column('public', 'events', 'address', 'events.address exists');
+select has_column('public', 'events', 'latitude', 'events.latitude exists');
+select has_column('public', 'events', 'longitude', 'events.longitude exists');
+select has_column('public', 'events', 'interest_id', 'events.interest_id exists');
+select has_column('public', 'events', 'creator_id', 'events.creator_id exists');
+select has_column('public', 'events', 'starts_at', 'events.starts_at exists');
+select has_column('public', 'events', 'ends_at', 'events.ends_at exists');
+select has_column('public', 'events', 'capacity', 'events.capacity exists');
+select has_column('public', 'events', 'created_at', 'events.created_at exists');
+select has_column('public', 'events', 'updated_at', 'events.updated_at exists');
+select col_is_pk('public', 'events', array['id'], 'events PK is (id)');
+
+-- event_photos
+select has_column('public', 'event_photos', 'id', 'event_photos.id exists');
+select has_column('public', 'event_photos', 'event_id', 'event_photos.event_id exists');
+select has_column('public', 'event_photos', 'url', 'event_photos.url exists');
+select has_column('public', 'event_photos', 'position', 'event_photos.position exists');
+select has_column('public', 'event_photos', 'created_at', 'event_photos.created_at exists');
+select col_is_pk('public', 'event_photos', array['id'], 'event_photos PK is (id)');
+select col_default_is('public', 'event_photos', 'position', '0', 'event_photos.position defaults to 0');
+
+-- event_registrations
+select has_column('public', 'event_registrations', 'event_id', 'event_registrations.event_id exists');
+select has_column('public', 'event_registrations', 'profile_id', 'event_registrations.profile_id exists');
+select has_column('public', 'event_registrations', 'created_at', 'event_registrations.created_at exists');
+select col_is_pk('public', 'event_registrations', array['event_id', 'profile_id'], 'event_registrations PK is (event_id, profile_id)');
+
+-- event_messages
+select has_column('public', 'event_messages', 'id', 'event_messages.id exists');
+select has_column('public', 'event_messages', 'event_id', 'event_messages.event_id exists');
+select has_column('public', 'event_messages', 'sender_id', 'event_messages.sender_id exists');
+select has_column('public', 'event_messages', 'content', 'event_messages.content exists');
+select has_column('public', 'event_messages', 'removed_at', 'event_messages.removed_at exists');
+select has_column('public', 'event_messages', 'removed_by', 'event_messages.removed_by exists');
+select has_column('public', 'event_messages', 'created_at', 'event_messages.created_at exists');
+select col_is_pk('public', 'event_messages', array['id'], 'event_messages PK is (id)');
+
 -- ============================================================
 -- 4. Foreign keys
 -- ============================================================
@@ -252,6 +296,15 @@ select col_is_fk('public', 'profiles', 'id', 'profiles.id is a FK (references au
 select col_is_fk('public', 'reports', 'reporter_id', 'reports.reporter_id is a FK');
 select col_is_fk('public', 'reports', 'resolved_by', 'reports.resolved_by is a FK');
 
+select col_is_fk('public', 'events', 'interest_id', 'events.interest_id is a FK');
+select col_is_fk('public', 'events', 'creator_id', 'events.creator_id is a FK');
+select col_is_fk('public', 'event_photos', 'event_id', 'event_photos.event_id is a FK');
+select col_is_fk('public', 'event_registrations', 'event_id', 'event_registrations.event_id is a FK');
+select col_is_fk('public', 'event_registrations', 'profile_id', 'event_registrations.profile_id is a FK');
+select col_is_fk('public', 'event_messages', 'event_id', 'event_messages.event_id is a FK');
+select col_is_fk('public', 'event_messages', 'sender_id', 'event_messages.sender_id is a FK');
+select col_is_fk('public', 'event_messages', 'removed_by', 'event_messages.removed_by is a FK');
+
 -- Cascade behaviour that matters for account deletion (Loi 25 compliance):
 -- deleting a profile must cascade-clean everything that references it.
 select ok(
@@ -273,6 +326,34 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'partner_listings_profile_id_fkey') = 'n',
   'partner_listings.profile_id -> profiles(id) is ON DELETE SET NULL (listing survives its creator''s account deletion)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'events_creator_id_fkey') = 'n',
+  'events.creator_id -> profiles(id) is ON DELETE SET NULL (event survives its creator''s account deletion)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'event_photos_event_id_fkey') = 'c',
+  'event_photos.event_id -> events(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'event_registrations_event_id_fkey') = 'c',
+  'event_registrations.event_id -> events(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'event_registrations_profile_id_fkey') = 'c',
+  'event_registrations.profile_id -> profiles(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'event_messages_event_id_fkey') = 'c',
+  'event_messages.event_id -> events(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'event_messages_sender_id_fkey') = 'c',
+  'event_messages.sender_id -> profiles(id) is ON DELETE CASCADE (a deleted user''s event messages go with them, like messages/group_messages)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'event_messages_removed_by_fkey') = 'n',
+  'event_messages.removed_by -> profiles(id) is ON DELETE SET NULL'
 );
 
 -- ============================================================
@@ -366,8 +447,8 @@ select ok(
 select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.reports'::regclass
     and conname = 'reports_target_type_check'
-    and pg_get_constraintdef(oid) = 'CHECK ((target_type = ANY (ARRAY[''profile''::text, ''message''::text, ''group_message''::text, ''group''::text, ''partner_listing''::text])))'),
-  'reports.target_type is constrained to profile/message/group_message/group/partner_listing'
+    and pg_get_constraintdef(oid) = 'CHECK ((target_type = ANY (ARRAY[''profile''::text, ''message''::text, ''group_message''::text, ''group''::text, ''partner_listing''::text, ''event''::text, ''event_message''::text])))'),
+  'reports.target_type is constrained to profile/message/group_message/group/partner_listing/event/event_message'
 );
 select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
@@ -390,6 +471,27 @@ select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
     and conname = 'partner_listings_photo_urls_check'),
   'partner_listings.photo_urls is capped in length'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.events'::regclass
+    and conname = 'events_dates_check' and pg_get_constraintdef(oid) = 'CHECK ((ends_at >= starts_at))'),
+  'events: ends_at >= starts_at is enforced'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.events'::regclass
+    and conname = 'events_capacity_check'),
+  'events.capacity is null or a positive number'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.events'::regclass
+    and conname = 'events_coordinates_check'
+    and pg_get_constraintdef(oid) = 'CHECK (((latitude IS NULL) = (longitude IS NULL)))'),
+  'events: latitude/longitude are both null or both set'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.events'::regclass
+    and conname = 'events_coordinates_range_check'),
+  'events.latitude/longitude are range-constrained'
 );
 
 -- ============================================================
@@ -417,6 +519,14 @@ select has_index('public', 'partner_listings', 'idx_partner_listings_profile_id'
 select has_index('public', 'profile_interests', 'idx_profile_interests_interest', 'index idx_profile_interests_interest exists');
 select has_index('public', 'profiles', 'idx_profiles_city', 'index idx_profiles_city exists');
 select has_index('public', 'reports', 'idx_reports_open', 'index idx_reports_open exists');
+select has_index('public', 'events', 'idx_events_interest', 'index idx_events_interest exists');
+select has_index('public', 'events', 'idx_events_creator', 'index idx_events_creator exists');
+select has_index('public', 'events', 'idx_events_city', 'index idx_events_city exists');
+select has_index('public', 'events', 'idx_events_starts_at', 'index idx_events_starts_at exists');
+select has_index('public', 'events', 'idx_events_ends_at', 'index idx_events_ends_at exists (powers the "archive by end date" filter)');
+select has_index('public', 'event_photos', 'idx_event_photos_event', 'index idx_event_photos_event exists');
+select has_index('public', 'event_registrations', 'idx_event_registrations_profile', 'index idx_event_registrations_profile exists');
+select has_index('public', 'event_messages', 'idx_event_messages_event', 'index idx_event_messages_event exists');
 
 -- Exact definitions of the two data-integrity safety nets — these are the
 -- last line of defense against bugs like the "duplicate active creator"
@@ -453,6 +563,11 @@ select has_trigger('public', 'partner_listings', 'enforce_partner_listing_sensit
 select has_trigger('public', 'profiles', 'enforce_profile_sensitive_columns', 'trigger enforce_profile_sensitive_columns exists on profiles (plan/moderation_status/is_admin protected)');
 select has_trigger('public', 'profiles', 'profiles_set_updated_at', 'trigger profiles_set_updated_at exists on profiles');
 select has_trigger('auth', 'users', 'on_auth_user_created', 'trigger on_auth_user_created exists on auth.users (creates the profile row)');
+select has_trigger('public', 'events', 'events_set_updated_at', 'trigger events_set_updated_at exists on events');
+select has_trigger('public', 'events', 'enforce_event_sensitive_columns', 'trigger enforce_event_sensitive_columns exists on events (creator_id/created_at protected)');
+select has_trigger('public', 'event_photos', 'enforce_event_photos_limit', 'trigger enforce_event_photos_limit exists on event_photos (caps at 5 per event)');
+select has_trigger('public', 'event_registrations', 'enforce_event_registration_capacity', 'trigger enforce_event_registration_capacity exists on event_registrations');
+select has_trigger('public', 'event_messages', 'enforce_event_message_immutability', 'trigger enforce_event_message_immutability exists on event_messages');
 
 -- ============================================================
 -- 8. Functions
@@ -460,16 +575,22 @@ select has_trigger('auth', 'users', 'on_auth_user_created', 'trigger on_auth_use
 
 select has_function('public', f, 'function public.' || f || ' exists')
 from unnest(array[
-  'can_invite_to_group', 'get_blocked_profiles', 'get_group_member_counts',
+  'can_invite_to_group', 'enforce_event_photos_limit',
+  'enforce_event_registration_capacity', 'get_blocked_profiles',
+  'get_event_registration_counts', 'get_group_member_counts',
   'handle_creator_leaving',
   'handle_group_join_request_approval', 'handle_new_user', 'is_active_user',
   'is_admin', 'is_banned_from_group', 'is_blocked_between',
-  'is_conversation_participant', 'is_group_admin', 'is_group_creator',
-  'is_group_member', 'match_city_ids', 'match_partner_listing_city_ids',
+  'is_conversation_participant', 'is_event_organizer', 'is_event_participant',
+  'is_group_admin', 'is_group_creator',
+  'is_group_member', 'match_city_ids', 'match_event_city_ids',
+  'match_partner_listing_city_ids',
   'notify_friend_added',
   'notify_friend_request_accepted', 'notify_group_invitation',
   'notify_group_join_request', 'notify_group_join_request_approved',
-  'protect_creator_role', 'protect_group_member_changes',
+  'protect_creator_role', 'protect_event_message_immutability',
+  'protect_event_sensitive_columns',
+  'protect_group_member_changes',
   'protect_group_message_immutability', 'protect_message_immutability',
   'protect_partner_listing_status',
   'protect_profile_sensitive_columns', 'set_updated_at',
@@ -518,6 +639,97 @@ select is(
 select is_definer('public', 'handle_new_user', 'handle_new_user() is SECURITY DEFINER (writes profiles as the triggering user)');
 select is_definer('public', 'protect_profile_sensitive_columns', 'protect_profile_sensitive_columns() is SECURITY DEFINER');
 select is_definer('public', 'protect_partner_listing_status', 'protect_partner_listing_status() is SECURITY DEFINER');
+
+-- Events (Phase 2) — same SECURITY DEFINER rationale as their group
+-- counterparts (is_group_member/is_group_admin/get_group_member_counts).
+select is_definer('public', 'is_event_participant', 'is_event_participant() is SECURITY DEFINER');
+select is_definer('public', 'is_event_organizer', 'is_event_organizer() is SECURITY DEFINER');
+select is_definer('public', 'get_event_registration_counts', 'get_event_registration_counts() is SECURITY DEFINER (counts are public even though event_registrations rows are not)');
+select is_definer('public', 'protect_event_sensitive_columns', 'protect_event_sensitive_columns() is SECURITY DEFINER');
+select is_definer('public', 'enforce_event_photos_limit', 'enforce_event_photos_limit() is SECURITY DEFINER');
+select is_definer('public', 'enforce_event_registration_capacity', 'enforce_event_registration_capacity() is SECURITY DEFINER');
+select is_definer('public', 'protect_event_message_immutability', 'protect_event_message_immutability() is SECURITY DEFINER');
+
+select ok(
+  has_function_privilege('authenticated', 'public.get_event_registration_counts(uuid[])', 'EXECUTE'),
+  'authenticated can execute get_event_registration_counts'
+);
+
+-- is_event_participant()/is_event_organizer() read auth.uid(), which is null
+-- outside of a real authenticated request — this pgTAP run has no JWT
+-- context, so both must resolve to false rather than erroring.
+select is(
+  is_event_participant('00000000-0000-0000-0000-0000000000f1'::uuid),
+  false,
+  'is_event_participant() is false outside of an authenticated request context'
+);
+select is(
+  is_event_organizer('00000000-0000-0000-0000-0000000000f1'::uuid),
+  false,
+  'is_event_organizer() is false outside of an authenticated request context'
+);
+
+-- Functional test: capacity is enforced at the DB level (not just the
+-- client), including for an event with unlimited capacity vs. a full one.
+insert into events (id, title, interest_id, creator_id, city, starts_at, ends_at, capacity)
+values (
+  '00000000-0000-0000-0000-0000000000e1',
+  '__pgtap_test_event__',
+  (select id from interests limit 1),
+  null,
+  'Québec',
+  now() + interval '1 day',
+  now() + interval '1 day' + interval '2 hours',
+  1
+);
+
+insert into event_registrations (event_id, profile_id)
+select '00000000-0000-0000-0000-0000000000e1', id from profiles limit 1;
+
+select is(
+  (select registration_count from get_event_registration_counts(array['00000000-0000-0000-0000-0000000000e1'::uuid])),
+  1::bigint,
+  'get_event_registration_counts returns the true count for the freshly-registered test event'
+);
+
+select throws_ok(
+  $$insert into event_registrations (event_id, profile_id)
+    select '00000000-0000-0000-0000-0000000000e1', id from profiles offset 1 limit 1$$,
+  'This event is full',
+  'enforce_event_registration_capacity blocks a registration once the event''s capacity is reached'
+);
+
+-- Functional test: registering for an event that already ended is rejected.
+insert into events (id, title, interest_id, creator_id, city, starts_at, ends_at, capacity)
+values (
+  '00000000-0000-0000-0000-0000000000e2',
+  '__pgtap_test_event_past__',
+  (select id from interests limit 1),
+  null,
+  'Québec',
+  now() - interval '3 days',
+  now() - interval '2 days',
+  null
+);
+
+select throws_ok(
+  $$insert into event_registrations (event_id, profile_id)
+    select '00000000-0000-0000-0000-0000000000e2', id from profiles limit 1$$,
+  'This event has already ended',
+  'enforce_event_registration_capacity rejects registering for an event that has already ended'
+);
+
+-- Functional test: an event cannot have more than 5 photos.
+insert into event_photos (event_id, url)
+select '00000000-0000-0000-0000-0000000000e1', 'https://example.com/p' || g || '.jpg'
+from generate_series(1, 5) as g;
+
+select throws_ok(
+  $$insert into event_photos (event_id, url)
+    values ('00000000-0000-0000-0000-0000000000e1', 'https://example.com/p6.jpg')$$,
+  'An event cannot have more than 5 photos',
+  'enforce_event_photos_limit blocks a 6th photo on the same event'
+);
 
 -- ============================================================
 -- 9. RLS policies — exact set per table (catches drift: an added,
@@ -584,6 +796,23 @@ select policies_are('public', 'reports', array[
   'reports_insert_own', 'reports_select', 'reports_update_admin'
 ], 'reports has exactly the expected policies (no update-own — reporters cannot edit after filing)');
 
+select policies_are('public', 'events', array[
+  'events_delete', 'events_insert', 'events_select', 'events_update'
+], 'events has exactly the expected policies');
+
+select policies_are('public', 'event_photos', array[
+  'event_photos_delete', 'event_photos_insert', 'event_photos_select'
+], 'event_photos has exactly the expected policies');
+
+select policies_are('public', 'event_registrations', array[
+  'event_registrations_delete', 'event_registrations_insert', 'event_registrations_select'
+], 'event_registrations has exactly the expected policies');
+
+select policies_are('public', 'event_messages', array[
+  'event_messages_insert', 'event_messages_select', 'event_messages_select_admin',
+  'event_messages_update_admin'
+], 'event_messages has exactly the expected policies');
+
 -- Spot-check a few security-critical policy definitions verbatim, since
 -- "a policy with this name exists" doesn't guarantee its logic is right.
 select ok(
@@ -623,6 +852,28 @@ select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'partner_listings' and policyname = 'partner_listings_select')
     = '((status = ''active''::text) OR (profile_id = auth.uid()) OR is_admin())',
   'partner_listings_select: strangers only see active listings, but the creator and admins always see it regardless of status'
+);
+select ok(
+  (select with_check from pg_policies where schemaname = 'public' and tablename = 'event_messages' and policyname = 'event_messages_insert')
+    like '%is_event_participant(event_id)%',
+  'event_messages_insert requires the sender to be a registered participant of the event'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'event_messages' and policyname = 'event_messages_select')
+    = 'is_event_participant(event_id)',
+  'event_messages_select: the chat is only visible to registered participants, not every profile'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'event_messages' and policyname = 'event_messages_update_admin')
+    like '%is_event_organizer(event_id)%' and
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'event_messages' and policyname = 'event_messages_update_admin')
+    like '%is_admin()%',
+  'event_messages can only be soft-removed by the event organizer or a platform admin'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'event_registrations' and policyname = 'event_registrations_select')
+    like '%is_event_participant(event_id)%',
+  'event_registrations_select: any registered participant can see who else is registered, like group_members'
 );
 
 -- ============================================================
@@ -672,6 +923,18 @@ select table_privs_are('public', 'profiles', 'authenticated',
 select table_privs_are('public', 'reports', 'authenticated',
   array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on reports');
+select table_privs_are('public', 'events', 'authenticated',
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
+  'authenticated has expected privileges on events');
+select table_privs_are('public', 'event_photos', 'authenticated',
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
+  'authenticated has expected privileges on event_photos');
+select table_privs_are('public', 'event_registrations', 'authenticated',
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
+  'authenticated has expected privileges on event_registrations');
+select table_privs_are('public', 'event_messages', 'authenticated',
+  array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
+  'authenticated has expected privileges on event_messages');
 
 -- anon gets nothing beyond the implicit PUBLIC grants on every table —
 -- there is no unauthenticated read access anywhere in this schema.
@@ -679,7 +942,8 @@ select table_privs_are('public', t, 'anon',
   array['REFERENCES', 'TRIGGER', 'TRUNCATE'],
   'anon has no explicit privileges on ' || t || ' (unauthenticated users see nothing)')
 from unnest(array[
-  'blocks', 'conversations', 'friendships', 'group_join_requests',
+  'blocks', 'conversations', 'event_messages', 'event_photos',
+  'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interests', 'messages',
   'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
 ]) as t;
@@ -736,6 +1000,27 @@ select ok(
 select ok(
   exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'partner_photos_delete'),
   'storage.objects has partner_photos_delete policy'
+);
+
+-- ============================================================
+-- 13. Storage — event-photos bucket
+-- ============================================================
+
+select ok(
+  exists(select 1 from storage.buckets where id = 'event-photos' and public),
+  'storage bucket event-photos exists and is public'
+);
+select ok(
+  exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'event_photos_bucket_select'),
+  'storage.objects has event_photos_bucket_select policy'
+);
+select ok(
+  exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'event_photos_bucket_insert'),
+  'storage.objects has event_photos_bucket_insert policy (organizer of the event, admin, or a not-yet-created event id — bootstrap upload)'
+);
+select ok(
+  exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'event_photos_bucket_delete'),
+  'storage.objects has event_photos_bucket_delete policy'
 );
 
 select * from finish();

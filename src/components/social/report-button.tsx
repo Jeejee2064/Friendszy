@@ -22,7 +22,7 @@ export function ReportButton({
   compact = false,
 }: {
   reporterId: string;
-  targetType: "profile" | "message" | "partner_listing";
+  targetType: "profile" | "message" | "partner_listing" | "event" | "event_message";
   targetId: string;
   compact?: boolean;
 }) {
@@ -90,7 +90,11 @@ export function ReportButton({
             ? t("modalTitleProfile")
             : targetType === "partner_listing"
               ? t("modalTitlePartnerListing")
-              : t("modalTitleMessage")
+              : targetType === "event"
+                ? t("modalTitleEvent")
+                : targetType === "event_message"
+                  ? t("modalTitleEventMessage")
+                  : t("modalTitleMessage")
         }
       >
         {success ? (

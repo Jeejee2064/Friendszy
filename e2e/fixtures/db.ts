@@ -289,6 +289,107 @@ export async function seedGroupMessage(
   return data.id;
 }
 
+export type SeedEventRegistration = {
+  profileId: string;
+};
+
+/**
+ * Crée un événement directement (sans passer par l'assistant de création)
+ * avec son créateur auto-inscrit + des inscriptions additionnelles
+ * optionnelles — pour les tests dont le sujet est en aval de la création
+ * elle-même. Retourne l'id de l'événement ; toujours suivi d'un
+ * deleteEvents([id]) en teardown.
+ */
+export async function seedEvent(
+  fields: {
+    title: string;
+    interestLabelFr: string;
+    creatorId: string;
+    city?: string;
+    startsAt?: string;
+    endsAt?: string;
+    capacity?: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
+  },
+  extraRegistrations: SeedEventRegistration[] = []
+): Promise<string> {
+  const interestId = await getInterestId(fields.interestLabelFr);
+  const startsAt = fields.startsAt ?? new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+  const endsAt = fields.endsAt ?? new Date(Date.now() + 26 * 3600 * 1000).toISOString();
+
+  const { data: event, error: eventError } = await adminClient
+    .from("events")
+    .insert({
+      title: fields.title,
+      interest_id: interestId,
+      creator_id: fields.creatorId,
+      city: fields.city ?? "Québec",
+      starts_at: startsAt,
+      ends_at: endsAt,
+      capacity: fields.capacity ?? null,
+      latitude: fields.latitude ?? null,
+      longitude: fields.longitude ?? null,
+    })
+    .select("id")
+    .single();
+  if (eventError) throw eventError;
+
+  const rows = [
+    { event_id: event.id, profile_id: fields.creatorId },
+    ...extraRegistrations.map((r) => ({ event_id: event.id, profile_id: r.profileId })),
+  ];
+  const { error: registrationsError } = await adminClient
+    .from("event_registrations")
+    .insert(rows);
+  if (registrationsError) throw registrationsError;
+
+  return event.id;
+}
+
+/**
+ * Supprime des événements précis et toutes les lignes des tables enfants qui
+ * les référencent — deletes explicites plutôt que de compter sur un cascade.
+ */
+export async function deleteEvents(eventIds: string[]) {
+  if (eventIds.length === 0) return;
+  await adminClient.from("event_messages").delete().in("event_id", eventIds);
+  await adminClient.from("event_registrations").delete().in("event_id", eventIds);
+  await adminClient.from("event_photos").delete().in("event_id", eventIds);
+  await adminClient.from("events").delete().in("id", eventIds);
+}
+
+/**
+ * Filet de sécurité pour tout le fichier events.spec.ts : supprime tout
+ * événement jamais créé par l'un de ces profils, peu importe comment
+ * (assistant ou seedEvent) — au cas où un run précédent aurait été
+ * interrompu en cours de route et aurait laissé un événement fantôme visible
+ * en découverte.
+ */
+export async function resetEventsForCreators(creatorIds: string[]) {
+  const { data, error } = await adminClient
+    .from("events")
+    .select("id")
+    .in("creator_id", creatorIds);
+  if (error) throw error;
+  await deleteEvents((data ?? []).map((e) => e.id));
+}
+
+/** Insère un message d'événement directement, sans passer par sendEventMessage() — retourne son id. */
+export async function seedEventMessage(
+  eventId: string,
+  senderId: string,
+  content: string
+): Promise<string> {
+  const { data, error } = await adminClient
+    .from("event_messages")
+    .insert({ event_id: eventId, sender_id: senderId, content })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id;
+}
+
 // Exposé pour les vérifications post-suppression de compte (e2e/account-deletion.spec.ts),
 // qui a besoin de lire des tables/colonnes trop variées pour justifier un wrapper dédié par cas.
 export { adminClient as supabaseAdmin };

@@ -1,23 +1,31 @@
 "use client";
 
 import { useState, type ChangeEvent } from "react";
-import { useTranslations } from "next-intl";
 import { processAvatarImage } from "@/lib/image/process-avatar";
 
-const MAX_PHOTOS = 8;
-
+// Shared by every "upload up to N photos" creation flow (partner listings,
+// events, ...) — caller owns the copy and the cap so this stays
+// feature-agnostic (an events cap of 5 is enforced at the DB level too, via
+// enforce_event_photos_limit; partner listings cap at 8 client-side only).
 export function PhotoPicker({
   upload,
   remove,
   value,
   onChange,
+  addLabel,
+  errorLabel,
+  removeLabel,
+  maxPhotos = 8,
 }: {
   upload: (blob: Blob) => Promise<string>;
   remove?: (url: string) => Promise<void>;
   value: string[];
   onChange: (urls: string[]) => void;
+  addLabel: string;
+  errorLabel: string;
+  removeLabel: string;
+  maxPhotos?: number;
 }) {
-  const t = useTranslations("Partners.form");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
 
@@ -26,7 +34,7 @@ export function PhotoPicker({
     e.target.value = "";
     if (files.length === 0) return;
 
-    const toUpload = files.slice(0, Math.max(0, MAX_PHOTOS - value.length));
+    const toUpload = files.slice(0, Math.max(0, maxPhotos - value.length));
     if (toUpload.length === 0) return;
 
     setError(false);
@@ -63,16 +71,16 @@ export function PhotoPicker({
             <button
               type="button"
               onClick={() => handleRemove(url)}
-              aria-label={t("photoRemove")}
+              aria-label={removeLabel}
               className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-xs text-white"
             >
               ✕
             </button>
           </div>
         ))}
-        {value.length < MAX_PHOTOS && (
+        {value.length < maxPhotos && (
           <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-center text-xs font-semibold text-teal2">
-            {pending ? "…" : `+ ${t("photosAdd")}`}
+            {pending ? "…" : `+ ${addLabel}`}
             <input
               type="file"
               accept="image/*"
@@ -86,7 +94,7 @@ export function PhotoPicker({
       </div>
       {error && (
         <p className="text-xs" style={{ color: "#e55" }}>
-          {t("photosError")}
+          {errorLabel}
         </p>
       )}
     </div>

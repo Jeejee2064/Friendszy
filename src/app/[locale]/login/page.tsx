@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AuthError, User } from "@supabase/supabase-js";
 import { getPathname, Link, useRouter } from "@/i18n/navigation";
@@ -397,11 +397,20 @@ function PasswordField({
   hideLabel: string;
 }) {
   const [visible, setVisible] = useState(false);
+  // Explicit htmlFor/id instead of implicitly wrapping the input in a
+  // <label> — the show/hide button used to live inside that label too,
+  // which browsers fold into the input's accessible name (it was reading
+  // as "Mot de passe Afficher le mot de passe"), breaking anything
+  // targeting the field by its label text, screen readers included.
+  const inputId = useId();
   return (
-    <label>
-      <FieldLabel>{label}</FieldLabel>
+    <div>
+      <label htmlFor={inputId}>
+        <FieldLabel>{label}</FieldLabel>
+      </label>
       <div className="relative">
         <input
+          id={inputId}
           type={visible ? "text" : "password"}
           required
           value={value}
@@ -417,7 +426,7 @@ function PasswordField({
           {visible ? <EyeOffIcon /> : <EyeIcon />}
         </button>
       </div>
-    </label>
+    </div>
   );
 }
 

@@ -23,7 +23,7 @@ test.skip(
 async function loginAs(page: Page, email: string) {
   await page.goto(localePath("fr", "/login"));
   await page.getByLabel("Courriel").fill(email);
-  await page.getByLabel("Mot de passe").fill(TEST_PASSWORD);
+  await page.getByLabel("Mot de passe", { exact: true }).fill(TEST_PASSWORD);
   await page.getByRole("button", { name: /se connecter/i }).click();
   await expect(page).toHaveURL(localePath("fr", "/"), { timeout: 40_000 });
 }

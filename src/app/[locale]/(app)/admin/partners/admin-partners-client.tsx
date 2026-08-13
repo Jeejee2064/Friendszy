@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   listAllPartnerListingsForAdmin,
@@ -10,8 +10,10 @@ import {
   type PartnerListingRow,
 } from "@/lib/partners/queries";
 import { logAdminAction } from "@/lib/admin/queries";
-import type { Interest } from "@/lib/profile/types";
+import { getProfilesByIds } from "@/lib/profile/queries";
+import type { Interest, ProfileSummary } from "@/lib/profile/types";
 import { Notice } from "@/components/ui/notice";
+import { Modal } from "@/components/ui/modal";
 
 const PAGE_SIZE = 10;
 
@@ -26,6 +28,7 @@ export function AdminPartnersClient({
 }) {
   const t = useTranslations("Admin.partners");
   const tAdmin = useTranslations("Admin");
+  const tCommon = useTranslations("Common");
   const locale = useLocale();
   const router = useRouter();
 
@@ -36,6 +39,8 @@ export function AdminPartnersClient({
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [page, setPage] = useState(1);
   const [feedback, setFeedback] = useState<"success" | "error" | null>(null);
+  const [submitters, setSubmitters] = useState<Map<string, ProfileSummary>>(new Map());
+  const [detailListingId, setDetailListingId] = useState<string | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -48,6 +53,23 @@ export function AdminPartnersClient({
     }, 350);
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const ids = [...new Set(listings.map((l) => l.profile_id).filter((id): id is string => !!id))];
+    getProfilesByIds(supabase, ids).then((profiles) => {
+      setSubmitters(new Map(profiles.map((p) => [p.id, p])));
+    });
+  }, [listings]);
+
+  function submitterName(profileId: string | null): string {
+    if (!profileId) return "—";
+    const profile = submitters.get(profileId);
+    if (!profile) return tCommon("deletedUser");
+    return profile.full_name
+      ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+      : tCommon("deletedUser");
+  }
 
   function interestFor(id: number) {
     return interests.find((i) => i.id === id);
@@ -69,6 +91,8 @@ export function AdminPartnersClient({
 
   const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE));
   const pageListings = filteredListings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const detailListing = listings.find((l) => l.id === detailListingId) ?? null;
+  const detailInterest = detailListing ? interestFor(detailListing.interest_id) : undefined;
 
   async function handleToggleActive(listing: PartnerListingRow) {
     setFeedback(null);
@@ -150,26 +174,41 @@ export function AdminPartnersClient({
                 key={listing.id}
                 className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:justify-between"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-text">{listing.name}</p>
+                <button
+                  type="button"
+                  onClick={() => setDetailListingId(listing.id)}
+                  className="min-w-0 flex-1 text-left"
+                >
+                  <p className="truncate text-sm font-bold text-text hover:underline">
+                    {listing.name}
+                  </p>
                   <p className="truncate text-xs text-muted">
                     {listing.city}
                     {interest ? ` · ${interest.emoji ? `${interest.emoji} ` : ""}${labelFor(interest)}` : ""}
                   </p>
-                </div>
+                </button>
                 <span className="text-xs font-semibold text-muted">
                   {t(`statusBadge.${listing.status}`)}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => handleToggleActive(listing)}
-                  className="shrink-0 rounded-full px-3 py-2 text-xs font-bold text-white"
-                  style={{
-                    background: listing.status === "active" ? "#e55" : "var(--teal2)",
-                  }}
-                >
-                  {t(listing.status === "active" ? "actions.deactivate" : "actions.activate")}
-                </button>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDetailListingId(listing.id)}
+                    className="rounded-full border border-border px-3 py-2 text-xs font-semibold text-text"
+                  >
+                    {tAdmin("viewAction")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(listing)}
+                    className="rounded-full px-3 py-2 text-xs font-bold text-white"
+                    style={{
+                      background: listing.status === "active" ? "#e55" : "var(--teal2)",
+                    }}
+                  >
+                    {t(listing.status === "active" ? "actions.deactivate" : "actions.activate")}
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -199,6 +238,115 @@ export function AdminPartnersClient({
           </button>
         </div>
       )}
+
+      <Modal
+        open={!!detailListing}
+        onClose={() => setDetailListingId(null)}
+        title={detailListing ? t("detailTitle") : undefined}
+      >
+        {detailListing && (
+          <div className="flex flex-col gap-4">
+            {detailListing.photo_urls.length > 0 && (
+              <div className="-mx-6 flex gap-2 overflow-x-auto px-6">
+                {detailListing.photo_urls.map((url) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={url}
+                    src={url}
+                    alt=""
+                    className="h-24 w-24 shrink-0 rounded-xl object-cover"
+                  />
+                ))}
+              </div>
+            )}
+
+            <div>
+              <p className="text-lg font-extrabold text-text">{detailListing.name}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {detailInterest && (
+                  <span className="w-fit rounded-full border border-blue px-2.5 py-0.5 text-xs font-semibold text-blue">
+                    {detailInterest.emoji ? `${detailInterest.emoji} ` : ""}
+                    {labelFor(detailInterest)}
+                  </span>
+                )}
+                <span className="text-xs font-semibold text-muted">
+                  {t(`statusBadge.${detailListing.status}`)}
+                </span>
+              </div>
+            </div>
+
+            {detailListing.description && (
+              <div>
+                <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">
+                  {t("descriptionLabel")}
+                </h3>
+                <p className="text-sm text-text">{detailListing.description}</p>
+              </div>
+            )}
+
+            <div>
+              <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">
+                {t("addressLabel")}
+              </h3>
+              <p className="text-sm text-text">
+                {detailListing.city}
+                {detailListing.address ? ` — ${detailListing.address}` : ""}
+              </p>
+            </div>
+
+            {(detailListing.phone || detailListing.website) && (
+              <div className="flex flex-wrap gap-3 text-sm">
+                {detailListing.phone && (
+                  <a
+                    href={`tel:${detailListing.phone}`}
+                    className="font-semibold text-teal2 hover:underline"
+                  >
+                    📞 {detailListing.phone}
+                  </a>
+                )}
+                {detailListing.website && (
+                  <a
+                    href={detailListing.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-teal2 hover:underline"
+                  >
+                    🌐 {detailListing.website}
+                  </a>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-between border-t border-border pt-3 text-xs text-muted">
+              <span>
+                {t("submittedByLabel")}:{" "}
+                {detailListing.profile_id && submitters.has(detailListing.profile_id) ? (
+                  <Link
+                    href={`/profile/${detailListing.profile_id}`}
+                    className="font-semibold text-teal2 hover:underline"
+                  >
+                    {submitterName(detailListing.profile_id)}
+                  </Link>
+                ) : (
+                  submitterName(detailListing.profile_id)
+                )}
+              </span>
+              <span>{new Date(detailListing.created_at).toLocaleDateString(locale)}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleToggleActive(detailListing)}
+              className="rounded-full px-4 py-2.5 text-sm font-bold text-white"
+              style={{
+                background: detailListing.status === "active" ? "#e55" : "var(--teal2)",
+              }}
+            >
+              {t(detailListing.status === "active" ? "actions.deactivate" : "actions.activate")}
+            </button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

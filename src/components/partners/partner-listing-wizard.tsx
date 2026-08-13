@@ -13,8 +13,8 @@ import {
 import type { Interest } from "@/lib/profile/types";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
-import { PhotoPicker } from "@/components/partners/photo-picker";
-import { LocationPickerMap } from "@/components/partners/location-picker-map";
+import { PhotoPicker } from "@/components/media/photo-picker";
+import { LocationPickerMap } from "@/components/map/location-picker-map";
 
 const fieldLabelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted";
 const fieldInputClass =
@@ -223,6 +223,8 @@ export function PartnerListingWizard({
               address={form.address}
               value={coords}
               onChange={setCoords}
+              hintText={t("mapHint")}
+              locatingText={t("mapLocating")}
             />
           </div>
         )}
@@ -264,6 +266,9 @@ export function PartnerListingWizard({
             remove={(url) => removePartnerListingPhoto(createClient(), url)}
             value={form.photoUrls}
             onChange={(urls) => update("photoUrls", urls)}
+            addLabel={t("photosAdd")}
+            errorLabel={t("photosError")}
+            removeLabel={t("photoRemove")}
           />
         )}
 

@@ -37,6 +37,36 @@ body {
   font-family: var(--font-nunito);
 }
 
+/* Map pin popups (MapView) — reskin Mapbox's default chrome so the popup
+   reads as one of our own cards instead of the library's plain white box.
+   The inner layout/content itself is built in map-view.tsx; this just
+   strips the default padding/radius/shadow so our markup can own them. */
+.mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow:
+    0 16px 32px -12px rgba(13, 36, 32, 0.28),
+    0 2px 8px rgba(13, 36, 32, 0.12);
+}
+.mapboxgl-popup-close-button {
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(13, 36, 32, 0.45);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+}
+.mapboxgl-popup-close-button:hover {
+  background: rgba(13, 36, 32, 0.7);
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
