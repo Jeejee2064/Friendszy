@@ -35,8 +35,9 @@ select has_table('public', t, 'table public.' || t || ' exists')
 from unnest(array[
   'blocks', 'conversations', 'event_messages', 'event_photos',
   'event_registrations', 'events', 'friendships', 'group_join_requests',
-  'group_members', 'group_messages', 'groups', 'interests', 'messages',
-  'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
+  'group_members', 'group_messages', 'groups', 'interest_suggestions',
+  'interests', 'messages', 'notifications', 'partner_listings',
+  'profile_interests', 'profiles', 'reports'
 ]) as t;
 
 select ok(
@@ -47,8 +48,9 @@ select ok(
 from unnest(array[
   'blocks', 'conversations', 'event_messages', 'event_photos',
   'event_registrations', 'events', 'friendships', 'group_join_requests',
-  'group_members', 'group_messages', 'groups', 'interests', 'messages',
-  'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
+  'group_members', 'group_messages', 'groups', 'interest_suggestions',
+  'interests', 'messages', 'notifications', 'partner_listings',
+  'profile_interests', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================
@@ -171,6 +173,9 @@ select has_column('public', 'partner_listings', 'longitude', 'partner_listings.l
 select has_column('public', 'partner_listings', 'phone', 'partner_listings.phone exists');
 select has_column('public', 'partner_listings', 'website', 'partner_listings.website exists');
 select has_column('public', 'partner_listings', 'photo_urls', 'partner_listings.photo_urls exists');
+select has_column('public', 'partner_listings', 'logo_url', 'partner_listings.logo_url exists');
+select has_column('public', 'partner_listings', 'tagline', 'partner_listings.tagline exists');
+select has_column('public', 'partner_listings', 'opening_hours', 'partner_listings.opening_hours exists');
 select has_column('public', 'partner_listings', 'status', 'partner_listings.status exists');
 select has_column('public', 'partner_listings', 'created_at', 'partner_listings.created_at exists');
 select has_column('public', 'partner_listings', 'updated_at', 'partner_listings.updated_at exists');
@@ -221,6 +226,22 @@ select has_column('public', 'reports', 'resolved_at', 'reports.resolved_at exist
 select has_column('public', 'reports', 'resolved_by', 'reports.resolved_by exists');
 select col_is_pk('public', 'reports', array['id'], 'reports PK is (id)');
 select col_default_is('public', 'reports', 'status', 'open', 'reports.status defaults to open');
+
+-- interest_suggestions
+select has_column('public', 'interest_suggestions', 'id', 'interest_suggestions.id exists');
+select has_column('public', 'interest_suggestions', 'suggested_by', 'interest_suggestions.suggested_by exists');
+select has_column('public', 'interest_suggestions', 'label', 'interest_suggestions.label exists');
+select has_column('public', 'interest_suggestions', 'locale', 'interest_suggestions.locale exists');
+select has_column('public', 'interest_suggestions', 'category', 'interest_suggestions.category exists');
+select has_column('public', 'interest_suggestions', 'status', 'interest_suggestions.status exists');
+select has_column('public', 'interest_suggestions', 'created_at', 'interest_suggestions.created_at exists');
+select has_column('public', 'interest_suggestions', 'resolved_at', 'interest_suggestions.resolved_at exists');
+select has_column('public', 'interest_suggestions', 'resolved_by', 'interest_suggestions.resolved_by exists');
+select has_column('public', 'interest_suggestions', 'resolved_label_fr', 'interest_suggestions.resolved_label_fr exists');
+select has_column('public', 'interest_suggestions', 'resolved_label_en', 'interest_suggestions.resolved_label_en exists');
+select has_column('public', 'interest_suggestions', 'created_interest_id', 'interest_suggestions.created_interest_id exists');
+select col_is_pk('public', 'interest_suggestions', array['id'], 'interest_suggestions PK is (id)');
+select col_default_is('public', 'interest_suggestions', 'status', 'pending', 'interest_suggestions.status defaults to pending');
 
 -- events (Phase 2)
 select has_column('public', 'events', 'id', 'events.id exists');
@@ -296,6 +317,10 @@ select col_is_fk('public', 'profiles', 'id', 'profiles.id is a FK (references au
 select col_is_fk('public', 'reports', 'reporter_id', 'reports.reporter_id is a FK');
 select col_is_fk('public', 'reports', 'resolved_by', 'reports.resolved_by is a FK');
 
+select col_is_fk('public', 'interest_suggestions', 'suggested_by', 'interest_suggestions.suggested_by is a FK');
+select col_is_fk('public', 'interest_suggestions', 'resolved_by', 'interest_suggestions.resolved_by is a FK');
+select col_is_fk('public', 'interest_suggestions', 'created_interest_id', 'interest_suggestions.created_interest_id is a FK');
+
 select col_is_fk('public', 'events', 'interest_id', 'events.interest_id is a FK');
 select col_is_fk('public', 'events', 'creator_id', 'events.creator_id is a FK');
 select col_is_fk('public', 'event_photos', 'event_id', 'event_photos.event_id is a FK');
@@ -354,6 +379,18 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'event_messages_removed_by_fkey') = 'n',
   'event_messages.removed_by -> profiles(id) is ON DELETE SET NULL'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'interest_suggestions_suggested_by_fkey') = 'c',
+  'interest_suggestions.suggested_by -> profiles(id) is ON DELETE CASCADE (a deleted user''s suggestions go with them, like messages/event_messages — this column is NOT NULL, so SET NULL like reports.reporter_id is not an option)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'interest_suggestions_resolved_by_fkey') = 'n',
+  'interest_suggestions.resolved_by -> profiles(id) is ON DELETE SET NULL (same as reports.resolved_by)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'interest_suggestions_created_interest_id_fkey') = 'n',
+  'interest_suggestions.created_interest_id -> interests(id) is ON DELETE SET NULL'
 );
 
 -- ============================================================
@@ -451,6 +488,24 @@ select ok(
   'reports.target_type is constrained to profile/message/group_message/group/partner_listing/event/event_message'
 );
 select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.interest_suggestions'::regclass
+    and conname = 'interest_suggestions_locale_check'
+    and pg_get_constraintdef(oid) = 'CHECK ((locale = ANY (ARRAY[''fr''::text, ''en''::text])))'),
+  'interest_suggestions.locale is constrained to fr/en'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.interest_suggestions'::regclass
+    and conname = 'interest_suggestions_category_check'
+    and pg_get_constraintdef(oid) = 'CHECK ((category = ANY (ARRAY[''sports''::text, ''plein_air''::text, ''arts_creatifs''::text, ''jeux''::text, ''lecture''::text, ''cinema_culture_pop''::text, ''genres_musicaux''::text, ''instruments_musique''::text, ''cuisine''::text, ''bien_etre''::text, ''autre''::text])))'),
+  'interest_suggestions.category is constrained to the 11 real categories (10 existing + autre), not free text'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.interest_suggestions'::regclass
+    and conname = 'interest_suggestions_status_check'
+    and pg_get_constraintdef(oid) = 'CHECK ((status = ANY (ARRAY[''pending''::text, ''approved''::text, ''rejected''::text])))'),
+  'interest_suggestions.status is constrained to pending/approved/rejected'
+);
+select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
     and conname = 'partner_listings_status_check'
     and pg_get_constraintdef(oid) = 'CHECK ((status = ANY (ARRAY[''active''::text, ''inactive''::text])))'),
@@ -471,6 +526,12 @@ select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
     and conname = 'partner_listings_photo_urls_check'),
   'partner_listings.photo_urls is capped in length'
+);
+select ok(
+  exists(select 1 from pg_constraint where conrelid = 'public.partner_listings'::regclass
+    and conname = 'partner_listings_tagline_check'
+    and pg_get_constraintdef(oid) = 'CHECK ((char_length(tagline) <= 140))'),
+  'partner_listings.tagline is capped at 140 characters'
 );
 select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.events'::regclass
@@ -519,6 +580,8 @@ select has_index('public', 'partner_listings', 'idx_partner_listings_profile_id'
 select has_index('public', 'profile_interests', 'idx_profile_interests_interest', 'index idx_profile_interests_interest exists');
 select has_index('public', 'profiles', 'idx_profiles_city', 'index idx_profiles_city exists');
 select has_index('public', 'reports', 'idx_reports_open', 'index idx_reports_open exists');
+select has_index('public', 'interest_suggestions', 'interest_suggestions_pending_unique', 'index interest_suggestions_pending_unique exists');
+select has_index('public', 'interest_suggestions', 'idx_interest_suggestions_pending', 'index idx_interest_suggestions_pending exists');
 select has_index('public', 'events', 'idx_events_interest', 'index idx_events_interest exists');
 select has_index('public', 'events', 'idx_events_creator', 'index idx_events_creator exists');
 select has_index('public', 'events', 'idx_events_city', 'index idx_events_city exists');
@@ -540,6 +603,11 @@ select ok(
   (select indexdef from pg_indexes where schemaname = 'public' and indexname = 'group_members_one_active_creator')
     = 'CREATE UNIQUE INDEX group_members_one_active_creator ON public.group_members USING btree (group_id) WHERE ((role = ''creator''::text) AND (status = ''active''::text))',
   'group_members_one_active_creator: at most one active creator per group'
+);
+select ok(
+  (select indexdef from pg_indexes where schemaname = 'public' and indexname = 'interest_suggestions_pending_unique')
+    = 'CREATE UNIQUE INDEX interest_suggestions_pending_unique ON public.interest_suggestions USING btree (suggested_by) WHERE (status = ''pending''::text)',
+  'interest_suggestions_pending_unique: at most one pending suggestion per user'
 );
 
 -- ============================================================
@@ -568,6 +636,7 @@ select has_trigger('public', 'events', 'enforce_event_sensitive_columns', 'trigg
 select has_trigger('public', 'event_photos', 'enforce_event_photos_limit', 'trigger enforce_event_photos_limit exists on event_photos (caps at 5 per event)');
 select has_trigger('public', 'event_registrations', 'enforce_event_registration_capacity', 'trigger enforce_event_registration_capacity exists on event_registrations');
 select has_trigger('public', 'event_messages', 'enforce_event_message_immutability', 'trigger enforce_event_message_immutability exists on event_messages');
+select has_trigger('public', 'interest_suggestions', 'on_interest_suggestion_resolved', 'trigger on_interest_suggestion_resolved exists on interest_suggestions');
 
 -- ============================================================
 -- 8. Functions
@@ -578,7 +647,7 @@ from unnest(array[
   'can_invite_to_group', 'enforce_event_photos_limit',
   'enforce_event_registration_capacity', 'get_blocked_profiles',
   'get_event_registration_counts', 'get_group_member_counts',
-  'handle_creator_leaving',
+  'handle_creator_leaving', 'handle_interest_suggestion_resolution',
   'handle_group_join_request_approval', 'handle_new_user', 'is_active_user',
   'is_admin', 'is_banned_from_group', 'is_blocked_between',
   'is_conversation_participant', 'is_event_organizer', 'is_event_participant',
@@ -731,6 +800,98 @@ select throws_ok(
   'enforce_event_photos_limit blocks a 6th photo on the same event'
 );
 
+select is_definer('public', 'handle_interest_suggestion_resolution', 'handle_interest_suggestion_resolution() is SECURITY DEFINER (writes interests + notifications as a side effect of an authenticated-user-privileged UPDATE)');
+
+-- Functional test: approving a suggestion generates the right slug (lower,
+-- unaccented, non-alphanumeric -> underscore), creates the interests row,
+-- writes back created_interest_id, and notifies the suggester — all inside
+-- the single UPDATE the admin client issues.
+insert into interest_suggestions (id, suggested_by, label, locale, category)
+select '00000000-0000-0000-0000-0000000000a1', id, 'Randonnée en Forêt', 'fr', 'plein_air'
+from profiles limit 1;
+
+update interest_suggestions
+set status = 'approved',
+    resolved_at = now(),
+    resolved_by = (select id from profiles limit 1),
+    resolved_label_fr = 'Randonnée en forêt',
+    resolved_label_en = 'Forest hiking'
+where id = '00000000-0000-0000-0000-0000000000a1';
+
+select is(
+  (select created_interest_id is not null from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a1'),
+  true,
+  'approving a suggestion sets created_interest_id on the same row'
+);
+select is(
+  (select slug from interests where id = (select created_interest_id from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a1')),
+  'randonnee_en_foret',
+  'the generated slug is lowercased, unaccented, and has non-alphanumeric characters replaced with underscores'
+);
+select is(
+  (select count(*)::int from notifications
+     where user_id = (select suggested_by from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a1')
+       and type = 'interest_suggestion_approved'
+       and (payload->>'interest_id')::int = (select created_interest_id from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a1')
+       and payload->>'label' = 'Randonnée en forêt'),
+  1,
+  'approving a suggestion notifies the suggester with the interest id and the locale-appropriate resolved label'
+);
+
+-- Functional test: a second suggestion whose resolved label collides on
+-- slug gets a numeric suffix instead of failing the unique constraint.
+insert into interest_suggestions (id, suggested_by, label, locale, category)
+select '00000000-0000-0000-0000-0000000000a2', id, 'Randonnée en forêt bis', 'fr', 'plein_air'
+from profiles limit 1;
+
+update interest_suggestions
+set status = 'approved', resolved_at = now(), resolved_by = (select id from profiles limit 1),
+    resolved_label_fr = 'Randonnée en forêt', resolved_label_en = 'Forest hiking (2)'
+where id = '00000000-0000-0000-0000-0000000000a2';
+
+select is(
+  (select slug from interests where id = (select created_interest_id from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a2')),
+  'randonnee_en_foret_2',
+  'a colliding slug gets a numeric suffix rather than erroring'
+);
+
+-- Functional test: rejecting a suggestion notifies the suggester with the
+-- originally-proposed label (no resolved translation exists) and creates
+-- no interests row.
+insert into interest_suggestions (id, suggested_by, label, locale, category)
+select '00000000-0000-0000-0000-0000000000a3', id, 'Un intérêt refusé', 'fr', 'autre'
+from profiles limit 1;
+
+update interest_suggestions
+set status = 'rejected', resolved_at = now(), resolved_by = (select id from profiles limit 1)
+where id = '00000000-0000-0000-0000-0000000000a3';
+
+select is(
+  (select created_interest_id from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a3'),
+  null,
+  'rejecting a suggestion never creates an interests row'
+);
+select is(
+  (select count(*)::int from notifications
+     where user_id = (select suggested_by from interest_suggestions where id = '00000000-0000-0000-0000-0000000000a3')
+       and type = 'interest_suggestion_rejected'
+       and payload->>'label' = 'Un intérêt refusé'),
+  1,
+  'rejecting a suggestion notifies the suggester with the originally-proposed label'
+);
+
+-- Functional test: the partial unique index actually blocks a second
+-- pending suggestion from the same user.
+insert into interest_suggestions (suggested_by, label, locale, category)
+select id, 'Premier en attente', 'fr', 'jeux' from profiles limit 1;
+
+select throws_ok(
+  $$insert into interest_suggestions (suggested_by, label, locale, category)
+    select id, 'Deuxieme en attente', 'fr', 'jeux' from profiles limit 1$$,
+  'duplicate key value violates unique constraint "interest_suggestions_pending_unique"',
+  'interest_suggestions_pending_unique blocks a second pending suggestion from the same user'
+);
+
 -- ============================================================
 -- 9. RLS policies — exact set per table (catches drift: an added,
 --    removed, or renamed policy will fail this immediately)
@@ -796,6 +957,10 @@ select policies_are('public', 'reports', array[
   'reports_insert_own', 'reports_select', 'reports_update_admin'
 ], 'reports has exactly the expected policies (no update-own — reporters cannot edit after filing)');
 
+select policies_are('public', 'interest_suggestions', array[
+  'interest_suggestions_insert_own', 'interest_suggestions_select', 'interest_suggestions_update_admin'
+], 'interest_suggestions has exactly the expected policies (same shape as reports)');
+
 select policies_are('public', 'events', array[
   'events_delete', 'events_insert', 'events_select', 'events_update'
 ], 'events has exactly the expected policies');
@@ -824,6 +989,21 @@ select ok(
   (select with_check from pg_policies where schemaname = 'public' and tablename = 'friendships' and policyname = 'friendships_insert')
     = '(is_active_user() AND (requester_id = auth.uid()) AND (NOT is_blocked_between(auth.uid(), addressee_id)))',
   'friendships_insert blocks suspended/banned users and blocked pairs from friend-requesting'
+);
+select ok(
+  (select with_check from pg_policies where schemaname = 'public' and tablename = 'interest_suggestions' and policyname = 'interest_suggestions_insert_own')
+    = '(is_active_user() AND (suggested_by = auth.uid()))',
+  'interest_suggestions_insert_own: only active members can suggest, only as themselves'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'interest_suggestions' and policyname = 'interest_suggestions_select')
+    = '((suggested_by = auth.uid()) OR is_admin())',
+  'interest_suggestions_select: a user sees only their own suggestions, admins see all'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'interest_suggestions' and policyname = 'interest_suggestions_update_admin')
+    = 'is_admin()',
+  'interest_suggestions_update_admin: only an admin can approve/reject'
 );
 select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'group_messages' and policyname = 'group_messages_update_admin')
@@ -923,6 +1103,9 @@ select table_privs_are('public', 'profiles', 'authenticated',
 select table_privs_are('public', 'reports', 'authenticated',
   array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on reports');
+select table_privs_are('public', 'interest_suggestions', 'authenticated',
+  array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
+  'authenticated has expected privileges on interest_suggestions (no DELETE, same shape as reports)');
 select table_privs_are('public', 'events', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on events');
@@ -944,8 +1127,9 @@ select table_privs_are('public', t, 'anon',
 from unnest(array[
   'blocks', 'conversations', 'event_messages', 'event_photos',
   'event_registrations', 'events', 'friendships', 'group_join_requests',
-  'group_members', 'group_messages', 'groups', 'interests', 'messages',
-  'notifications', 'partner_listings', 'profile_interests', 'profiles', 'reports'
+  'group_members', 'group_messages', 'groups', 'interest_suggestions',
+  'interests', 'messages', 'notifications', 'partner_listings',
+  'profile_interests', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================

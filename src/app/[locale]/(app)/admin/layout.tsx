@@ -3,6 +3,7 @@ import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { countOpenReports } from "@/lib/reports/queries";
 import { countPendingPartnerListings } from "@/lib/partners/queries";
+import { countPendingInterestSuggestions } from "@/lib/interest-suggestions/queries";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
@@ -35,10 +36,12 @@ export default async function AdminLayout({
     return null;
   }
 
-  const [pendingReportsCount, pendingPartnersCount] = await Promise.all([
-    countOpenReports(supabase),
-    countPendingPartnerListings(supabase),
-  ]);
+  const [pendingReportsCount, pendingPartnersCount, pendingInterestSuggestionsCount] =
+    await Promise.all([
+      countOpenReports(supabase),
+      countPendingPartnerListings(supabase),
+      countPendingInterestSuggestions(supabase),
+    ]);
   const adminName = [profile.full_name, profile.last_name].filter(Boolean).join(" ") || user.email;
 
   return (
@@ -46,6 +49,7 @@ export default async function AdminLayout({
       <AdminSidebar
         pendingReportsCount={pendingReportsCount}
         pendingPartnersCount={pendingPartnersCount}
+        pendingInterestSuggestionsCount={pendingInterestSuggestionsCount}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-4">

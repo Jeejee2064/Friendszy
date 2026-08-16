@@ -103,14 +103,37 @@
       "Bash(xargs -r kill)",
       "Bash(curl -s -o /dev/null -w \"login status: %{http_code}\\\\n\" http://localhost:3100/login)",
       "Bash(curl -s -o /dev/null -w \"port 3000 status: %{http_code}\\\\n\" http://localhost:3000/login)",
-      "Bash(PLAYWRIGHT_PORT=3000 npx playwright test e2e/_verify-deleted-user-hidden.spec.ts --reporter=list)"
+      "Bash(PLAYWRIGHT_PORT=3000 npx playwright test e2e/_verify-deleted-user-hidden.spec.ts --reporter=list)",
+      "Bash(git merge *)",
+      "Bash(git branch *)",
+      "Bash(curl -s -o /tmp/discover.html -w \"status: %{http_code}\\\\n\" -b \"\" http://localhost:3000/discover)",
+      "Bash(kill 12958 12959 12970)",
+      "Bash(node -e \"console.log\\(require.resolve\\('pg'\\)\\)\")",
+      "Bash(PGPASSWORD='lesamiscestpourlavie' psql -h aws-1-ca-central-1.pooler.supabase.com -p 5432 -U postgres.nwsflifmyrdmcybmlvrh -d postgres -Atc \"select data_type from information_schema.columns where table_schema='public' and table_name='interests' and column_name='id';\")",
+      "Bash(PGPASSWORD=lesamiscestpourlavie psql -h aws-1-ca-central-1.pooler.supabase.com -p 5432 -U postgres.nwsflifmyrdmcybmlvrh -d postgres -v ON_ERROR_STOP=1 -c 'BEGIN;' -f /tmp/claude-1000/-home-yerom-Desktop-WEB-Friendszy-friendszy/27f6aec0-37ae-4f5a-a6f9-f0c696f63c0b/scratchpad/interest_suggestions_migration.sql -c 'COMMIT;')",
+      "Bash(PGPASSWORD='lesamiscestpourlavie' psql -h aws-1-ca-central-1.pooler.supabase.com -p 5432 -U postgres.nwsflifmyrdmcybmlvrh -d postgres -Atc \"select id from profiles limit 1;\")",
+      "Bash(export DB_URL='postgresql://postgres.nwsflifmyrdmcybmlvrh:lesamiscestpourlavie@aws-1-ca-central-1.pooler.supabase.com:5432/postgres')",
+      "Bash(npx -y supabase@latest gen types typescript --db-url postgresql://postgres.nwsflifmyrdmcybmlvrh:lesamiscestpourlavie@aws-1-ca-central-1.pooler.supabase.com:5432/postgres --schema public)",
+      "Bash(unset DB_URL)",
+      "Bash(npx -y supabase@latest gen types typescript --help)",
+      "Bash(npx -y supabase@latest gen types typescript --experimental --db-url postgresql://postgres.nwsflifmyrdmcybmlvrh:lesamiscestpourlavie@aws-1-ca-central-1.pooler.supabase.com:5432/postgres --schema public)",
+      "Bash(npx -y supabase@1.226.4 gen types typescript --db-url postgresql://postgres.nwsflifmyrdmcybmlvrh:lesamiscestpourlavie@aws-1-ca-central-1.pooler.supabase.com:5432/postgres --schema public)",
+      "Bash(grep -n \"^      [a-z_]*: {$\" /home/yerom/Desktop/WEB/Friendszy/friendszy/src/types/supabase.ts)",
+      "Bash(mkdir -p /home/yerom/Desktop/WEB/Friendszy/friendszy/src/app/\\\\[locale\\\\]/\\\\\\(app\\\\\\)/admin/interest-suggestions)",
+      "Bash(PGPASSWORD='lesamiscestpourlavie' psql -h aws-1-ca-central-1.pooler.supabase.com -p 5432 -U postgres.nwsflifmyrdmcybmlvrh -d postgres -Atc \"select conname, pg_get_constraintdef\\(oid\\) from pg_constraint where conrelid='public.admin_actions'::regclass and contype='c';\")",
+      "Bash(echo \"TSC EXIT: $?\")",
+      "Bash(python3 -c \"import json; json.load\\(open\\('messages/fr.json'\\)\\); json.load\\(open\\('messages/en.json'\\)\\); print\\('JSON OK'\\)\")",
+      "Bash(sort -t: -k1,1 -u)",
+      "Bash(awk -F: '{print $1}')",
+      "Bash(grep -v \"^node_modules/mapbox-gl$\\\\|^node_modules/react-map-gl$\")"
     ],
     "additionalDirectories": [
       "/home/yerom/Desktop/WEB/Friendszy/friendszy/src/app/[locale]",
       "/tmp",
       "/home/yerom/Desktop/WEB/Friendszy/friendszy/src/app/[locale]/test-auth",
       "/home/yerom/Desktop/WEB/Friendszy/friendszy/src/app/[locale]/(app)/messages/[conversationId]",
-      "/home/yerom/.claude/plans"
+      "/home/yerom/.claude/plans",
+      "/home/yerom/Desktop/WEB/Friendszy/friendszy/src/app/[locale]/(app)/admin"
     ]
   }
 }

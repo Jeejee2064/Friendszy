@@ -15,6 +15,8 @@ import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
 import { PhotoPicker } from "@/components/media/photo-picker";
 import { LocationPickerMap } from "@/components/map/location-picker-map";
+import { OpeningHoursEditor } from "@/components/partners/opening-hours-editor";
+import type { OpeningHours, OpeningHoursDay } from "@/lib/partners/opening-hours";
 
 const fieldLabelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted";
 const fieldInputClass =
@@ -29,9 +31,12 @@ export type PartnerListingFormState = {
   phone: string;
   website: string;
   photoUrls: string[];
+  logoUrl: string;
+  tagline: string;
+  openingHours: OpeningHours;
 };
 
-const STEP_COUNT = 4;
+const STEP_COUNT = 6;
 
 export function PartnerListingWizard({
   userId,
@@ -49,6 +54,7 @@ export function PartnerListingWizard({
   initialCoordinates?: { latitude: number | null; longitude: number | null };
 }) {
   const t = useTranslations("Partners.form");
+  const tDays = useTranslations("Partners.days");
   const router = useRouter();
 
   const [listingId] = useState(() => editListingId ?? crypto.randomUUID());
@@ -63,6 +69,9 @@ export function PartnerListingWizard({
       phone: "",
       website: "",
       photoUrls: [],
+      logoUrl: "",
+      tagline: "",
+      openingHours: {},
     }
   );
   const [coords, setCoords] = useState(initialCoordinates ?? { latitude: null, longitude: null });
@@ -79,7 +88,7 @@ export function PartnerListingWizard({
   function validateStep(): string | null {
     if (step === 0 && !form.name.trim()) return t("errors.nameRequired");
     if (step === 0 && form.interestId == null) return t("errors.categoryRequired");
-    if (step === 1 && !form.city.trim()) return t("errors.cityRequired");
+    if (step === 2 && !form.city.trim()) return t("errors.cityRequired");
     return null;
   }
 
@@ -114,6 +123,9 @@ export function PartnerListingWizard({
         phone: form.phone.trim() || null,
         website: form.website.trim() || null,
         photo_urls: form.photoUrls,
+        logo_url: form.logoUrl || null,
+        tagline: form.tagline.trim() || null,
+        opening_hours: Object.keys(form.openingHours).length > 0 ? form.openingHours : null,
       };
 
       if (mode === "create") {
@@ -128,7 +140,23 @@ export function PartnerListingWizard({
     }
   }
 
-  const stepTitles = [t("steps.basics"), t("steps.location"), t("steps.contact"), t("steps.photos")];
+  const stepTitles = [
+    t("steps.basics"),
+    t("steps.identity"),
+    t("steps.location"),
+    t("steps.contact"),
+    t("steps.hours"),
+    t("steps.photos"),
+  ];
+  const dayLabels: Record<OpeningHoursDay, string> = {
+    mon: tDays("mon"),
+    tue: tDays("tue"),
+    wed: tDays("wed"),
+    thu: tDays("thu"),
+    fri: tDays("fri"),
+    sat: tDays("sat"),
+    sun: tDays("sun"),
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-8 bg-bg px-6 py-16">
@@ -189,6 +217,7 @@ export function PartnerListingWizard({
                 interests={interests}
                 value={form.interestId}
                 onChange={(id) => update("interestId", id)}
+                userId={userId}
                 collapsible
               />
             </div>
@@ -196,6 +225,38 @@ export function PartnerListingWizard({
         )}
 
         {step === 1 && (
+          <div className="flex flex-col gap-3">
+            <div>
+              <p className={fieldLabelClass}>{t("logoLabel")}</p>
+              <PhotoPicker
+                upload={(blob) => uploadPartnerListingPhoto(createClient(), listingId, blob)}
+                remove={(url) => removePartnerListingPhoto(createClient(), url)}
+                value={form.logoUrl ? [form.logoUrl] : []}
+                onChange={(urls) => update("logoUrl", urls[0] ?? "")}
+                addLabel={t("logoAdd")}
+                errorLabel={t("logoError")}
+                removeLabel={t("logoRemove")}
+                maxPhotos={1}
+              />
+            </div>
+            <div>
+              <label htmlFor="partner-tagline" className={fieldLabelClass}>
+                {t("taglineLabel")}
+              </label>
+              <input
+                id="partner-tagline"
+                type="text"
+                maxLength={140}
+                placeholder={t("taglinePlaceholder")}
+                value={form.tagline}
+                onChange={(e) => update("tagline", e.target.value)}
+                className={fieldInputClass}
+              />
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
           <div className="flex flex-col gap-3">
             <div>
               <p className={fieldLabelClass}>{t("cityLabel")}</p>
@@ -229,7 +290,7 @@ export function PartnerListingWizard({
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="flex flex-col gap-3">
             <div>
               <label htmlFor="partner-phone" className={fieldLabelClass}>
@@ -260,7 +321,17 @@ export function PartnerListingWizard({
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
+          <OpeningHoursEditor
+            value={form.openingHours}
+            onChange={(hours) => update("openingHours", hours)}
+            dayLabels={dayLabels}
+            closedLabel={t("hoursClosed")}
+            copyToAllLabel={t("hoursCopyToAll")}
+          />
+        )}
+
+        {step === 5 && (
           <PhotoPicker
             upload={(blob) => uploadPartnerListingPhoto(createClient(), listingId, blob)}
             remove={(url) => removePartnerListingPhoto(createClient(), url)}

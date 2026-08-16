@@ -2,6 +2,7 @@ import type { ProfileSummary } from "@/lib/profile/types";
 import type { MessageRow } from "@/lib/messages/queries";
 import type { ReportRow } from "@/lib/reports/queries";
 import type { PartnerListingRow } from "@/lib/partners/queries";
+import type { InterestSuggestionRow } from "@/lib/interest-suggestions/queries";
 
 export type ModerationStatus = "active" | "suspended" | "banned";
 
@@ -14,4 +15,8 @@ export type ReportWithTarget = ReportRow & {
   targetModerationStatus: ModerationStatus | null;
   /** created_at of the reported user's profile — drives the "new account" flag. */
   targetCreatedAt: string | null;
+};
+
+export type InterestSuggestionWithProfile = InterestSuggestionRow & {
+  suggesterProfile: ProfileSummary | null;
 };

@@ -25,11 +25,13 @@ export function GroupSettingsForm({
   myRole,
   interests,
   initial,
+  userId,
 }: {
   groupId: string;
   myRole: GroupMemberRole;
   interests: Interest[];
   initial: FormState;
+  userId: string;
 }) {
   const t = useTranslations("Groups");
   const router = useRouter();
@@ -138,6 +140,7 @@ export function GroupSettingsForm({
             interests={interests}
             value={form.interestId}
             onChange={(id) => update("interestId", id)}
+            userId={userId}
           />
         </div>
 

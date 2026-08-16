@@ -357,6 +357,7 @@ export function SearchPageClient({
             selectedIds={interestIds}
             onChange={setInterestIds}
             myInterestIds={myInterestIds}
+            userId={userId}
           />
           {interestIds.length === 0 && (
             <p className="mt-2 text-xs text-muted">{t("interestsRequiredHint")}</p>
@@ -462,6 +463,7 @@ export function SearchPageClient({
                   selectedIds={interestIds}
                   onChange={setInterestIds}
                   myInterestIds={myInterestIds}
+                  userId={userId}
                 />
                 {interestIds.length === 0 && (
                   <p className="mt-2 text-xs text-muted">{t("interestsRequiredHint")}</p>

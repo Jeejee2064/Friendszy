@@ -39,6 +39,7 @@ export default async function GroupSettingsPage({
         groupId={group.id}
         myRole={myRole}
         interests={interests}
+        userId={user.id}
         initial={{
           name: group.name,
           description: group.description ?? "",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -12,9 +12,11 @@ import {
 } from "@/lib/events/queries";
 import type { EventCardData } from "@/lib/events/types";
 import { listPartnerListings, type PartnerListingRow } from "@/lib/partners/queries";
+import { isOpenNow, type OpeningHours } from "@/lib/partners/opening-hours";
 import type { Interest } from "@/lib/profile/types";
 import { haversineDistanceKm } from "@/lib/geocoding/distance";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
+import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { TabButton } from "@/components/ui/tab-button";
 import { EventCard } from "@/components/events/event-card";
 import { PartnerCard } from "@/components/partners/partner-card";
@@ -37,11 +39,18 @@ export function DiscoverPageClient({
   initialCenter: { latitude: number; longitude: number } | null;
 }) {
   const t = useTranslations("Discover");
+  const tEvents = useTranslations("Events.discovery");
   const locale = useLocale();
+  const format = useFormatter();
 
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("both");
   const [interestId, setInterestId] = useState<number | null>(null);
   const [date, setDate] = useState("");
+  // Free text (CityAutocomplete, same widget used everywhere else in the
+  // app a city is picked) rather than a closed list of only the cities
+  // currently in the data — "" means no city filter.
+  const [city, setCity] = useState("");
+  const [debouncedCity, setDebouncedCity] = useState("");
   const [view, setView] = useState<"map" | "list">("list");
 
   const [events, setEvents] = useState<EventCardData[]>(initialEvents);
@@ -67,11 +76,50 @@ export function DiscoverPageClient({
     return () => observer.disconnect();
   }, [view]);
 
+  // city is free text now (CityAutocomplete) — debounce it before it
+  // drives anything network-bound, so typing doesn't fire a query/geocode
+  // per keystroke. interestId/date stay undebounced, exactly as before
+  // (neither is free text — a select and a native date picker).
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedCity(city.trim()), 400);
+    return () => clearTimeout(timeout);
+  }, [city]);
+
+  // Where to recenter the map when a city filter is active — geocoded
+  // independently of whatever events/listings currently match, so picking
+  // a real city always flies there even if nothing's plotted there yet
+  // (the whole point of free text over a "only cities with content" list).
+  const [focusCenter, setFocusCenter] = useState<{ latitude: number; longitude: number } | null>(
+    null
+  );
+  useEffect(() => {
+    if (!debouncedCity) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFocusCenter(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const response = await fetch("/api/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: debouncedCity }),
+      });
+      if (!response.ok || cancelled) return;
+      const data = await response.json();
+      if (!cancelled && typeof data.latitude === "number" && typeof data.longitude === "number") {
+        setFocusCenter({ latitude: data.latitude, longitude: data.longitude });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedCity]);
+
   // Both queries always run together, regardless of typeFilter — switching
   // the type toggle is then instant (a pure render-time filter, no fetch,
   // no loading flicker or race between the two lists), and each query is
-  // already cheap on its own. Neither filter is free text, so no debounce
-  // is needed (same reasoning the old Events discovery page used).
+  // already cheap on its own.
   useEffect(() => {
     let cancelled = false;
     const supabase = createClient();
@@ -80,8 +128,15 @@ export function DiscoverPageClient({
     (async () => {
       setLoading(true);
       const [eventRows, listingRows] = await Promise.all([
-        listEvents(supabase, { interestId: interestId ?? undefined, date: date || undefined }),
-        listPartnerListings(supabase, { interestId: interestId ?? undefined }),
+        listEvents(supabase, {
+          interestId: interestId ?? undefined,
+          date: date || undefined,
+          city: debouncedCity || undefined,
+        }),
+        listPartnerListings(supabase, {
+          interestId: interestId ?? undefined,
+          city: debouncedCity || undefined,
+        }),
       ]);
       const eventIds = eventRows.map((e) => e.id);
       const [counts, myRegistered, coverPhotos] = await Promise.all([
@@ -113,7 +168,7 @@ export function DiscoverPageClient({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interestId, date, userId]);
+  }, [interestId, date, debouncedCity, userId]);
 
   function interestFor(id: number) {
     return interests.find((i) => i.id === id);
@@ -126,16 +181,29 @@ export function DiscoverPageClient({
     typeFilter !== "partners"
       ? events
           .filter((event) => event.latitude != null && event.longitude != null)
-          .map((event) => ({
-            id: event.id,
-            kind: "event",
-            latitude: event.latitude!,
-            longitude: event.longitude!,
-            title: event.title,
-            subtitle: event.city,
-            imageUrl: event.coverPhotoUrl,
-            href: `/events/${event.id}`,
-          }))
+          .map((event) => {
+            const categoryLabel = event.interest
+              ? `${event.interest.emoji ? `${event.interest.emoji} ` : ""}${labelFor(event.interest)}`
+              : null;
+            return {
+              id: event.id,
+              kind: "event",
+              latitude: event.latitude!,
+              longitude: event.longitude!,
+              title: event.title,
+              categoryLabel,
+              whenLabel: format.dateTime(new Date(event.starts_at), {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }),
+              infoLine:
+                event.capacity != null
+                  ? tEvents("spotsLimited", { count: event.registrationCount, capacity: event.capacity })
+                  : tEvents("spotsUnlimited", { count: event.registrationCount }),
+              imageUrl: event.coverPhotoUrl,
+              href: `/events/${event.id}`,
+            };
+          })
       : [];
 
   const partnerPoints: MapPoint[] =
@@ -144,26 +212,20 @@ export function DiscoverPageClient({
           .filter((listing) => listing.latitude != null && listing.longitude != null)
           .map((listing) => {
             const interest = interestFor(listing.interest_id);
+            const categoryLabel = interest
+              ? `${interest.emoji ? `${interest.emoji} ` : ""}${labelFor(interest)}`
+              : null;
             return {
               id: listing.id,
               kind: "partner",
               latitude: listing.latitude!,
               longitude: listing.longitude!,
               title: listing.name,
-              subtitle: interest ? labelFor(interest) : listing.city,
+              categoryLabel,
+              description: listing.tagline,
               imageUrl: listing.photo_urls[0] ?? null,
-              // Activities don't have their own detail route — their
-              // "detail page" is really just their own card further down
-              // this same page. `/partners` used to be that page and still
-              // redirects here for old links/bookmarks, but by then the
-              // hash it carried is long gone and there's nothing to scroll
-              // to. Point straight at this page's own anchor instead (kept
-              // as a real href, not just handled in JS, so opening it in a
-              // new tab or reloading it still lands on the right card);
-              // `onSelectPoint` below additionally handles the same-page
-              // case, where switching to list view has to happen in JS
-              // first before that anchor's target even exists to scroll to.
-              href: `/discover#partner-${listing.id}`,
+              href: `/partners/${listing.id}`,
+              isOpenNow: isOpenNow(listing.opening_hours as OpeningHours | null),
             };
           })
       : [];
@@ -184,6 +246,9 @@ export function DiscoverPageClient({
             typeFilter={typeFilter}
             date={date}
             onDateChange={setDate}
+            city={city}
+            onCityChange={setCity}
+            userId={userId}
             t={t}
           />
 
@@ -252,21 +317,7 @@ export function DiscoverPageClient({
         height="100%"
         className={view === "map" ? "fixed inset-0 z-20 bg-bg" : "hidden"}
         avoidTopPx={view === "map" ? filterBarHeight : 0}
-        onSelectPoint={(point) => {
-          // Events have their own detail route — let the popup's Link
-          // navigate there normally. Activities don't: their "detail page"
-          // is their own card further down this same page, which only
-          // exists in the DOM in list view — switch to it here, then
-          // scroll once it's actually rendered.
-          if (point.kind !== "partner") return false;
-          setView("list");
-          requestAnimationFrame(() => {
-            document
-              .getElementById(`partner-${point.id}`)
-              ?.scrollIntoView({ behavior: "smooth", block: "center" });
-          });
-          return true;
-        }}
+        focusCenter={focusCenter}
       />
 
       {view === "map" && (
@@ -282,6 +333,9 @@ export function DiscoverPageClient({
             typeFilter={typeFilter}
             date={date}
             onDateChange={setDate}
+            city={city}
+            onCityChange={setCity}
+            userId={userId}
             t={t}
             compact
           />
@@ -335,6 +389,9 @@ function CategoryDateFilters({
   typeFilter,
   date,
   onDateChange,
+  city,
+  onCityChange,
+  userId,
   t,
   compact,
 }: {
@@ -344,6 +401,9 @@ function CategoryDateFilters({
   typeFilter: TypeFilter;
   date: string;
   onDateChange: (date: string) => void;
+  city: string;
+  onCityChange: (city: string) => void;
+  userId: string;
   t: ReturnType<typeof useTranslations<"Discover">>;
   compact?: boolean;
 }) {
@@ -361,9 +421,18 @@ function CategoryDateFilters({
           interests={interests}
           value={interestId}
           onChange={onInterestChange}
+          userId={userId}
           allowClear
           collapsible
         />
+      </div>
+      <div className="min-w-[220px] flex-1">
+        {!compact && (
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">
+            {t("cityLabel")}
+          </p>
+        )}
+        <CityAutocomplete value={city} onChange={onCityChange} placeholder={t("allCities")} />
       </div>
       {typeFilter !== "partners" && (
         <div className="min-w-[220px] flex-1">

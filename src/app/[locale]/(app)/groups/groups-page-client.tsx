@@ -188,6 +188,7 @@ export function GroupsPageClient({
                 interests={interests}
                 value={interestId}
                 onChange={setInterestId}
+                userId={userId}
                 allowClear
                 collapsible
               />

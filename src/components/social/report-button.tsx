@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { createReport } from "@/lib/reports/queries";
 import { Modal } from "@/components/ui/modal";
@@ -76,10 +77,16 @@ export function ReportButton({
         type="button"
         onClick={openModal}
         title={compact ? t("action") : undefined}
-        className="text-xs font-semibold"
+        aria-label={compact ? t("action") : undefined}
         style={{ color: "#e55" }}
+        className={
+          compact
+            ? "flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-[#e55] hover:bg-[#fdecec]"
+            : "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:border-[#e55] hover:bg-[#fdecec]"
+        }
       >
-        {compact ? "🚩" : `🚩 ${t("action")}`}
+        <Flag className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} strokeWidth={2} aria-hidden />
+        {!compact && t("action")}
       </button>
 
       <Modal

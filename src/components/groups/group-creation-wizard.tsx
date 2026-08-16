@@ -148,6 +148,7 @@ export function GroupCreationWizard({
             interests={interests}
             value={form.interestId}
             onChange={(id) => update("interestId", id)}
+            userId={userId}
           />
         )}
 

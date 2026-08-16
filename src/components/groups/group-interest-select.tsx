@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
 import { normalizeForSearch } from "@/lib/text";
+import { SuggestInterestPrompt } from "@/components/interests/suggest-interest-prompt";
 
 const CATEGORY_ORDER = [
   "sports",
@@ -17,6 +18,7 @@ const CATEGORY_ORDER = [
   "instruments_musique",
   "cuisine",
   "bien_etre",
+  "autre",
 ];
 
 // Forked from InterestsGrid rather than reusing it with maxSelected={1}:
@@ -27,12 +29,16 @@ export function GroupInterestSelect({
   interests,
   value,
   onChange,
+  userId,
   allowClear = false,
   collapsible = false,
 }: {
   interests: Interest[];
   value: number | null;
   onChange: (id: number | null) => void;
+  /** Who a "suggest this interest" submission (shown when a search yields
+   * nothing) is filed under. */
+  userId: string;
   allowClear?: boolean;
   // Closed-by-default, opens into a dropdown (desktop) / full-screen panel
   // (mobile) on click — same interaction as InterestPicker on /search.
@@ -182,9 +188,13 @@ export function GroupInterestSelect({
       )}
       <div className="flex flex-col gap-1">
         {visibleGroups.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted">
-            {tFields("interestsNoResults")}
-          </p>
+          isSearching ? (
+            <SuggestInterestPrompt query={query} userId={userId} />
+          ) : (
+            <p className="py-4 text-center text-sm text-muted">
+              {tFields("interestsNoResults")}
+            </p>
+          )
         ) : (
           visibleGroups.map(([category, items]) => {
             const isOpenCategory = isSearching || openCategories.has(category);

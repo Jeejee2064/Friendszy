@@ -12,11 +12,13 @@ export function InterestPicker({
   selectedIds,
   onChange,
   myInterestIds,
+  userId,
 }: {
   interests: Interest[];
   selectedIds: number[];
   onChange: (ids: number[]) => void;
   myInterestIds: number[];
+  userId: string;
 }) {
   const locale = useLocale();
   const t = useTranslations("Search");
@@ -120,6 +122,7 @@ export function InterestPicker({
                   interests={interests}
                   selectedIds={selectedIds}
                   onChange={onChange}
+                  userId={userId}
                   maxSelected={MAX_SEARCH_INTERESTS}
                   flatSearchResults
                   autoFocus
@@ -147,6 +150,7 @@ export function InterestPicker({
                   interests={interests}
                   selectedIds={selectedIds}
                   onChange={onChange}
+                  userId={userId}
                   maxSelected={MAX_SEARCH_INTERESTS}
                   flatSearchResults
                   autoFocus

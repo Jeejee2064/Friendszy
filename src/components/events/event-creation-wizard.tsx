@@ -186,6 +186,7 @@ export function EventCreationWizard({
                 interests={interests}
                 value={form.interestId}
                 onChange={(id) => update("interestId", id)}
+                userId={userId}
                 collapsible
               />
             </div>

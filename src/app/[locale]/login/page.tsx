@@ -53,10 +53,25 @@ export default function LoginPage() {
     // fire client-side. The "?recovery=1" marker (added by
     // requestPasswordReset's redirectTo) is what actually tells us to show
     // the new-password screen instead of bouncing to "/".
-    const isRecoveryLink =
-      new URLSearchParams(window.location.search).get("recovery") === "1";
+    const params = new URLSearchParams(window.location.search);
+    const isRecoveryLink = params.get("recovery") === "1";
+    const errorCode = params.get("error");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isRecoveryLink) setIsRecovery(true);
+    // The callback route redirects here with "?error=reset-expired" when the
+    // recovery link's code exchange failed (link already used/expired, or
+    // opened in a different browser than the one that requested it — see
+    // src/app/auth/callback/route.ts). Surface that instead of silently
+    // dropping the user on a plain sign-in screen.
+    if (errorCode === "reset-expired") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMode("forgot");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNotice({ kind: "error", message: t("resetPassword.linkExpired") });
+    } else if (errorCode === "auth") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNotice({ kind: "error", message: t("genericError") });
+    }
 
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);

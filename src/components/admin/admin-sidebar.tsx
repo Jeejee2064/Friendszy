@@ -8,15 +8,18 @@ const NAV_ITEMS = [
   { href: "/admin/moderation", key: "moderation", icon: "🛡️" },
   { href: "/admin/members", key: "members", icon: "👥" },
   { href: "/admin/partners", key: "partners", icon: "🤝" },
+  { href: "/admin/interest-suggestions", key: "interestSuggestions", icon: "💡" },
   { href: "/admin/logs", key: "logs", icon: "📋" },
 ] as const;
 
 export function AdminSidebar({
   pendingReportsCount,
   pendingPartnersCount,
+  pendingInterestSuggestionsCount,
 }: {
   pendingReportsCount: number;
   pendingPartnersCount: number;
+  pendingInterestSuggestionsCount: number;
 }) {
   const pathname = usePathname();
   const t = useTranslations("Admin.nav");
@@ -24,6 +27,7 @@ export function AdminSidebar({
   const badgeCountByKey: Partial<Record<(typeof NAV_ITEMS)[number]["key"], number>> = {
     moderation: pendingReportsCount,
     partners: pendingPartnersCount,
+    interestSuggestions: pendingInterestSuggestionsCount,
   };
 
   return (

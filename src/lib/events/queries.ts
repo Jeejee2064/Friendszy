@@ -66,11 +66,21 @@ export async function getEventsByIds(
 // CLAUDE.md) — includePast opts back into seeing events that already ended.
 export async function listEvents(
   supabase: Client,
-  filters: { interestId?: number; date?: string; includePast?: boolean }
+  filters: { interestId?: number; date?: string; includePast?: boolean; city?: string }
 ): Promise<EventRow[]> {
   let query = supabase.from("events").select("*").order("starts_at", { ascending: true });
 
   if (filters.interestId != null) query = query.eq("interest_id", filters.interestId);
+
+  if (filters.city?.trim()) {
+    const { data: cityMatches, error: cityError } = await supabase.rpc("match_event_city_ids", {
+      p_city: filters.city.trim(),
+    });
+    if (cityError) throw cityError;
+    const ids = (cityMatches ?? []).map((row) => row.id);
+    if (ids.length === 0) return [];
+    query = query.in("id", ids);
+  }
 
   if (filters.date) {
     // Show events that overlap the picked day at all, not just ones that

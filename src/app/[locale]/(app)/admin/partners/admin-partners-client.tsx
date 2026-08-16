@@ -260,19 +260,33 @@ export function AdminPartnersClient({
               </div>
             )}
 
-            <div>
-              <p className="text-lg font-extrabold text-text">{detailListing.name}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                {detailInterest && (
-                  <span className="w-fit rounded-full border border-blue px-2.5 py-0.5 text-xs font-semibold text-blue">
-                    {detailInterest.emoji ? `${detailInterest.emoji} ` : ""}
-                    {labelFor(detailInterest)}
-                  </span>
+            <div className="flex items-start gap-3">
+              {detailListing.logo_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={detailListing.logo_url}
+                  alt=""
+                  className="h-12 w-12 shrink-0 rounded-lg border border-border bg-white object-contain p-0.5"
+                />
+              )}
+              <div>
+                <p className="text-lg font-extrabold text-text">{detailListing.name}</p>
+                {detailListing.tagline && (
+                  <p className="text-sm font-semibold text-teal2">{detailListing.tagline}</p>
                 )}
-                <span className="text-xs font-semibold text-muted">
-                  {t(`statusBadge.${detailListing.status}`)}
-                </span>
               </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {detailInterest && (
+                <span className="w-fit rounded-full border border-blue px-2.5 py-0.5 text-xs font-semibold text-blue">
+                  {detailInterest.emoji ? `${detailInterest.emoji} ` : ""}
+                  {labelFor(detailInterest)}
+                </span>
+              )}
+              <span className="text-xs font-semibold text-muted">
+                {t(`statusBadge.${detailListing.status}`)}
+              </span>
             </div>
 
             {detailListing.description && (

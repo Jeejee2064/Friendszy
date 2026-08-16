@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Ban } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { blockUser } from "@/lib/blocks/queries";
@@ -57,10 +58,16 @@ export function BlockButton({
         type="button"
         onClick={() => setOpen(true)}
         title={compact ? t("blockAction") : undefined}
-        className="text-xs font-semibold"
+        aria-label={compact ? t("blockAction") : undefined}
         style={{ color: "#e55" }}
+        className={
+          compact
+            ? "flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-[#e55] hover:bg-[#fdecec]"
+            : "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:border-[#e55] hover:bg-[#fdecec]"
+        }
       >
-        {compact ? "🚫" : `🚫 ${t("blockAction")}`}
+        <Ban className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} strokeWidth={2} aria-hidden />
+        {!compact && t("blockAction")}
       </button>
 
       <Modal open={open} onClose={closeModal} title={t("confirmBlockTitle")}>

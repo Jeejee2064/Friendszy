@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
 import { normalizeForSearch } from "@/lib/text";
+import { SuggestInterestPrompt } from "@/components/interests/suggest-interest-prompt";
 
 const CATEGORY_ORDER = [
   "sports",
@@ -17,6 +18,7 @@ const CATEGORY_ORDER = [
   "instruments_musique",
   "cuisine",
   "bien_etre",
+  "autre",
 ];
 
 const MAX_FLAT_RESULTS = 8;
@@ -25,6 +27,7 @@ export function InterestsGrid({
   interests,
   selectedIds,
   onChange,
+  userId,
   maxSelected,
   flatSearchResults = false,
   autoFocus = false,
@@ -33,6 +36,9 @@ export function InterestsGrid({
   interests: Interest[];
   selectedIds: number[];
   onChange: (ids: number[]) => void;
+  /** Who a "suggest this interest" submission (shown when a search yields
+   * nothing) is filed under. */
+  userId: string;
   /** When set, further additions are blocked once selectedIds reaches this count. */
   maxSelected?: number;
   /** When true, a non-empty query renders a single flat list across all
@@ -115,17 +121,11 @@ export function InterestsGrid({
     });
   }, [interests]);
 
-  // Categories that already contain a selected interest start open (useful
-  // when editing an existing profile); computed once at mount only.
-  const [openCategories, setOpenCategories] = useState<Set<string>>(() => {
-    const withSelection = new Set<string>();
-    for (const interest of interests) {
-      if (interest.category && selectedIds.includes(interest.id)) {
-        withSelection.add(interest.category);
-      }
-    }
-    return withSelection;
-  });
+  // Categories always start closed — an existing profile can have
+  // interests spread across most/all categories, which used to open
+  // (nearly) every one of them on mount instead of the tidy collapsed list
+  // this is meant to be.
+  const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set());
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -181,18 +181,26 @@ export function InterestsGrid({
       <div className="flex flex-col gap-1">
         {flatMatches ? (
           flatMatches.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted">
-              {tFields("interestsNoResults")}
-            </p>
+            isSearching ? (
+              <SuggestInterestPrompt query={query} userId={userId} />
+            ) : (
+              <p className="py-4 text-center text-sm text-muted">
+                {tFields("interestsNoResults")}
+              </p>
+            )
           ) : (
             <div className="flex flex-wrap gap-2 py-2">
               {flatMatches.map(renderPill)}
             </div>
           )
         ) : visibleGroups.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted">
-            {tFields("interestsNoResults")}
-          </p>
+          isSearching ? (
+            <SuggestInterestPrompt query={query} userId={userId} />
+          ) : (
+            <p className="py-4 text-center text-sm text-muted">
+              {tFields("interestsNoResults")}
+            </p>
+          )
         ) : (
           visibleGroups.map(([category, items]) => {
             const open = isSearching || openCategories.has(category);

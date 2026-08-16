@@ -130,16 +130,29 @@ export function EventChatPane({
           // etc.) — without this, new/removed messages silently stop
           // arriving until the page is refreshed.
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            if (channel) {
-              supabase.removeChannel(channel);
-              channel = null;
-            }
             retryTimeout = setTimeout(() => {
               retryTimeout = null;
-              if (!cancelled) subscribe();
+              if (!cancelled) teardownAndSubscribe();
             }, 2000);
           }
         });
+    }
+
+    // supabase.channel(topic) reuses an already-registered channel instance
+    // for the same topic instead of creating a fresh one — and
+    // removeChannel() only deregisters the topic *after* its internal
+    // channel.unsubscribe() resolves (it's async). Calling subscribe()
+    // again before that resolves therefore hands back the old, already-
+    // `.subscribe()`'d channel object, and `.on()` on it throws "cannot add
+    // postgres_changes callbacks ... after subscribe()". Always await the
+    // removal first.
+    async function teardownAndSubscribe() {
+      if (channel) {
+        const toRemove = channel;
+        channel = null;
+        await supabase.removeChannel(toRemove);
+      }
+      if (!cancelled) subscribe();
     }
 
     subscribe();
@@ -152,11 +165,7 @@ export function EventChatPane({
         catchUp();
         return;
       }
-      if (channel) {
-        supabase.removeChannel(channel);
-        channel = null;
-      }
-      subscribe();
+      teardownAndSubscribe();
     }
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -202,19 +211,36 @@ export function EventChatPane({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
         {messages.length === 0 ? (
           <p className="text-center text-sm text-muted">{t("noMessagesYet")}</p>
         ) : (
           messages.map((message, i) => {
             const date = new Date(message.created_at);
-            const prevDate = i > 0 ? new Date(messages[i - 1].created_at) : null;
+            const prevMessage = i > 0 ? messages[i - 1] : null;
+            const nextMessage = i < messages.length - 1 ? messages[i + 1] : null;
+            const prevDate = prevMessage ? new Date(prevMessage.created_at) : null;
+            const nextDate = nextMessage ? new Date(nextMessage.created_at) : null;
             const showDivider = !prevDate || date.toDateString() !== prevDate.toDateString();
 
+            // Consecutive messages from the same person, same day, are
+            // rendered as one visual group (WhatsApp-style): avatar/name
+            // shown once, bubbles stuck together, timestamp only on the
+            // last one of the run.
+            const groupedWithPrev = !showDivider && prevMessage!.sender_id === message.sender_id;
+            const groupedWithNext =
+              !!nextMessage &&
+              !!nextDate &&
+              date.toDateString() === nextDate.toDateString() &&
+              nextMessage.sender_id === message.sender_id;
+
             return (
-              <div key={message.id} className="flex flex-col gap-3">
+              <div
+                key={message.id}
+                className={`flex flex-col ${i === 0 ? "" : groupedWithPrev ? "mt-0.5" : "mt-3"}`}
+              >
                 {showDivider && (
-                  <p className="text-center text-xs text-muted">
+                  <p className="mb-3 text-center text-xs text-muted">
                     {dayDividerLabel(date, format, t)}
                   </p>
                 )}
@@ -223,6 +249,8 @@ export function EventChatPane({
                   isMine={message.sender_id === userId}
                   sender={senderById.get(message.sender_id)}
                   time={format.dateTime(date, { hour: "2-digit", minute: "2-digit" })}
+                  showHeader={!groupedWithPrev}
+                  showTime={!groupedWithNext}
                   canRemove={isOrganizer}
                   onRemove={handleRemove}
                   removedLabel={t("messageRemovedPlaceholder")}

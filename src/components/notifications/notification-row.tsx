@@ -27,6 +27,12 @@ export function NotificationRow({
         .join(" ")
     : tCommon("deletedUser");
   const group = notification.otherGroup;
+  // interest_suggestion_approved/_rejected carry the interest's own label
+  // straight in the payload — no otherProfile/otherGroup join needed,
+  // unlike every other type above.
+  const suggestionPayload = notification.payload as Record<string, unknown> | null;
+  const suggestionLabel =
+    typeof suggestionPayload?.label === "string" ? suggestionPayload.label : "";
   const label =
     notification.type === "friend_added"
       ? t("friendAdded", { name })
@@ -38,9 +44,16 @@ export function NotificationRow({
             ? t("groupJoinRequest", { name, group: group.name })
             : notification.type === "group_join_approved" && group
               ? t("groupJoinApproved", { group: group.name })
-              : "";
+              : notification.type === "interest_suggestion_approved"
+                ? t("interestSuggestionApproved", { label: suggestionLabel })
+                : notification.type === "interest_suggestion_rejected"
+                  ? t("interestSuggestionRejected", { label: suggestionLabel })
+                  : "";
   const isUnread = !notification.read_at;
   const profile = notification.otherProfile;
+  const isInterestSuggestion =
+    notification.type === "interest_suggestion_approved" ||
+    notification.type === "interest_suggestion_rejected";
   const avatarUrl = group ? group.avatar_url : profile?.avatar_url;
   const avatarInitial = (group ? group.name : name).charAt(0).toUpperCase();
 
@@ -56,6 +69,11 @@ export function NotificationRow({
     }
     if (group) {
       router.push(`/groups/${group.id}`);
+    } else if (isInterestSuggestion) {
+      // No otherProfile/otherGroup for this type — the only sensible
+      // destination is the viewer's own interests, not /friends (the
+      // fallback below, meant for the friend-notification types).
+      router.push("/profile");
     } else {
       router.push(profile ? `/profile/${profile.id}` : "/friends");
     }
@@ -78,7 +96,9 @@ export function NotificationRow({
           <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
-            {avatarInitial}
+            {/* No otherProfile to take an initial from for this type — the
+                deletedUser fallback letter would be misleading here. */}
+            {isInterestSuggestion ? "💡" : avatarInitial}
           </div>
         )}
       </div>

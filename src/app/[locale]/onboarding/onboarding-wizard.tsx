@@ -204,6 +204,7 @@ export function OnboardingWizard({
               interests={interests}
               selectedIds={form.interestIds}
               onChange={(ids) => update("interestIds", ids)}
+              userId={userId}
             />
           </div>
         )}

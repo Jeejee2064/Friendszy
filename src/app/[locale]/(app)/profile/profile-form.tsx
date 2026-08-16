@@ -190,6 +190,7 @@ export function ProfileForm({
             interests={interests}
             selectedIds={form.interestIds}
             onChange={(ids) => update("interestIds", ids)}
+            userId={userId}
             collapseSignal={collapseSignal}
           />
         </div>

@@ -31,17 +31,55 @@
   --font-pacifico: var(--font-pacifico);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-nunito);
+  overflow-x: hidden;
+}
+
+/* Barres de scroll aux couleurs du design system (teal), pour tous les
+   conteneurs scrollables — pas seulement la page (ex. carrousel photos,
+   panneau de chat). Firefox via `scrollbar-color`, Chrome/Edge/Safari via
+   les pseudo-éléments `::-webkit-scrollbar-*`. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--teal1) var(--bg);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--teal1);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--teal2);
 }
 
 /* Map pin popups (MapView) — reskin Mapbox's default chrome so the popup
    reads as one of our own cards instead of the library's plain white box.
    The inner layout/content itself is built in map-view.tsx; this just
-   strips the default padding/radius/shadow so our markup can own them. */
-.mapboxgl-popup-content {
+   strips the default padding/radius/shadow so our markup can own them.
+   Scoped under `.mapboxgl-popup` (not just the bare `.mapboxgl-popup-content`
+   / `.mapboxgl-popup-close-button` classes) so our rules always outrank
+   mapbox-gl.css's own same-specificity ones regardless of which stylesheet
+   Next.js happens to inject later — without that, the close button was
+   falling back to the library's tiny unstyled "×" and losing padding/radius. */
+.mapboxgl-popup .mapboxgl-popup-content {
   padding: 0;
   border-radius: 1rem;
   overflow: hidden;
@@ -49,7 +87,7 @@ body {
     0 16px 32px -12px rgba(13, 36, 32, 0.28),
     0 2px 8px rgba(13, 36, 32, 0.12);
 }
-.mapboxgl-popup-close-button {
+.mapboxgl-popup .mapboxgl-popup-close-button {
   top: 0.5rem;
   right: 0.5rem;
   display: flex;
@@ -58,12 +96,13 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
+  border: none;
   background: rgba(13, 36, 32, 0.45);
   color: #fff;
   font-size: 15px;
   line-height: 1;
 }
-.mapboxgl-popup-close-button:hover {
+.mapboxgl-popup .mapboxgl-popup-close-button:hover {
   background: rgba(13, 36, 32, 0.7);
 }
 

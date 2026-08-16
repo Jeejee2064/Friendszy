@@ -50,7 +50,8 @@
       "updateTitle": "Nouveau mot de passe",
       "newPassword": "Nouveau mot de passe",
       "updateSubmit": "Mettre à jour le mot de passe",
-      "updateSuccess": "Mot de passe mis à jour."
+      "updateSuccess": "Mot de passe mis à jour.",
+      "linkExpired": "Ce lien de réinitialisation n'est plus valide ou a déjà été utilisé. Demande un nouveau lien ci-dessous."
     }
   },
   "Shell": {
@@ -86,7 +87,8 @@
       "profileTitle": "Mon profil",
       "profileSubtitle": "Modifier ma fiche"
     },
-    "recentActivity": "Activité récente"
+    "recentActivity": "Activité récente",
+    "viewAllNotifications": "Voir tout"
   },
   "Notifications": {
     "title": "Notifications",
@@ -97,7 +99,9 @@
     "newMessage": "{name} t'a envoyé un message",
     "groupInvitation": "Tu as été invité à rejoindre {group}",
     "groupJoinRequest": "{name} veut rejoindre {group}",
-    "groupJoinApproved": "Ta demande pour rejoindre {group} a été approuvée"
+    "groupJoinApproved": "Ta demande pour rejoindre {group} a été approuvée",
+    "interestSuggestionApproved": "Ton intérêt suggéré « {label} » a été approuvé !",
+    "interestSuggestionRejected": "Ton intérêt suggéré « {label} » n'a pas été retenu."
   },
   "ProfileFields": {
     "photoChoose": "Choisir une photo",
@@ -129,7 +133,19 @@
     "genres_musicaux": "Genres musicaux",
     "instruments_musique": "Instruments de musique",
     "cuisine": "Cuisine",
-    "bien_etre": "Bien-être"
+    "bien_etre": "Bien-être",
+    "autre": "Autre"
+  },
+  "InterestSuggestions": {
+    "noResultsPrompt": "Aucun résultat pour « {query} » — proposer cet intérêt ?",
+    "openForm": "Proposer cet intérêt",
+    "labelLabel": "Nom de l'intérêt",
+    "categoryLabel": "Catégorie",
+    "submit": "Proposer",
+    "submitting": "Envoi...",
+    "alreadyPending": "Tu as déjà une suggestion en attente de révision.",
+    "success": "Merci ! Ta suggestion est en révision.",
+    "error": "Une erreur est survenue. Réessaie."
   },
   "Gender": {
     "homme": "Homme",
@@ -356,9 +372,12 @@
     "loadError": "Impossible de charger la liste. Réessaie plus tard."
   },
   "Map": {
-    "viewDetails": "Voir la fiche",
+    "viewDetails": "Voir les détails",
+    "close": "Fermer",
     "kindEvent": "Événement",
-    "kindPartner": "Partenaire"
+    "kindPartner": "Partenaire",
+    "openNow": "Ouvert maintenant",
+    "closedNow": "Fermé"
   },
   "Discover": {
     "title": "Découvrir",
@@ -366,6 +385,8 @@
     "toggleEvents": "Événements",
     "togglePartners": "Activités",
     "categoryLabel": "Catégorie",
+    "cityLabel": "Ville",
+    "allCities": "Toutes les villes",
     "dateLabel": "Date",
     "clearDate": "Effacer",
     "loading": "Chargement...",
@@ -390,8 +411,10 @@
       "stepOf": "Étape {step} / {total}",
       "steps": {
         "basics": "Infos de base",
+        "identity": "Identité",
         "location": "Emplacement",
         "contact": "Contact",
+        "hours": "Horaires",
         "photos": "Photos"
       },
       "back": "Retour",
@@ -404,6 +427,12 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Quelques mots sur ce partenaire...",
       "categoryLabel": "Catégorie",
+      "logoLabel": "Logo",
+      "logoAdd": "Ajouter",
+      "logoError": "Le téléversement a échoué. Réessaie.",
+      "logoRemove": "Retirer le logo",
+      "taglineLabel": "Accroche",
+      "taglinePlaceholder": "Ex. Le café préféré des amateurs de jeux de société",
       "cityLabel": "Ville",
       "cityPlaceholder": "Ex. Montréal",
       "addressLabel": "Adresse",
@@ -416,6 +445,8 @@
       "photosAdd": "Ajouter",
       "photosError": "Le téléversement a échoué. Réessaie.",
       "photoRemove": "Retirer cette photo",
+      "hoursClosed": "Fermé",
+      "hoursCopyToAll": "Appliquer ces horaires à tous les jours",
       "errors": {
         "nameRequired": "Le nom du commerce est requis.",
         "categoryRequired": "Choisis une catégorie.",
@@ -423,11 +454,24 @@
         "saveFailed": "Une erreur est survenue. Réessaie."
       }
     },
+    "days": {
+      "mon": "Lundi",
+      "tue": "Mardi",
+      "wed": "Mercredi",
+      "thu": "Jeudi",
+      "fri": "Vendredi",
+      "sat": "Samedi",
+      "sun": "Dimanche"
+    },
     "discovery": {
-      "contactPhone": "📞 Appeler",
-      "contactWebsite": "🌐 Site web",
+      "contactPhone": "Appeler",
+      "contactWebsite": "Site web",
       "editLink": "Modifier mon activité",
-      "pendingBadge": "En attente d'activation"
+      "pendingBadge": "En attente d'activation",
+      "openNow": "Ouvert maintenant",
+      "closedNow": "Fermé",
+      "hoursTitle": "Horaires d'ouverture",
+      "hoursClosed": "Fermé"
     }
   },
   "Events": {
@@ -493,6 +537,15 @@
       "messaging": "…",
       "chatTitle": "Discussion",
       "chatLockedNotice": "Inscris-toi pour accéder à la discussion.",
+      "cancel": "Annuler",
+      "deleteEventTitle": "Supprimer l'événement",
+      "deleteEventBody": "Cette action est irréversible : l'événement, ses inscriptions et la discussion seront définitivement supprimés.",
+      "deleteEventButton": "Supprimer l'événement",
+      "deleteEventWarning": "Cette action est irréversible. Toutes les inscriptions et l'historique de discussion seront définitivement supprimés.",
+      "deleteConfirmPrompt": "Tape {word} pour confirmer.",
+      "deleteConfirmWord": "SUPPRIMER",
+      "deleteEventError": "Une erreur est survenue. Réessaie.",
+      "deleteEventConfirmButton": "Supprimer définitivement",
       "errors": {
         "fullError": "Cet événement est complet.",
         "endedError": "Cet événement est déjà terminé.",
@@ -644,11 +697,28 @@
       "addressLabel": "Adresse",
       "submittedByLabel": "Soumis par"
     },
+    "interestSuggestions": {
+      "title": "Intérêts suggérés",
+      "noSuggestions": "Aucune suggestion en attente.",
+      "suggestedByLabel": "Proposé par",
+      "labelLangBadgeFr": "FR",
+      "labelLangBadgeEn": "EN",
+      "categoryLabel": "Catégorie",
+      "similarHint": "Ressemble à : {label} ?",
+      "approve": "Approuver",
+      "reject": "Rejeter",
+      "approveModalTitle": "Approuver « {label} »",
+      "labelFrLabel": "Libellé (français)",
+      "labelEnLabel": "Libellé (anglais)",
+      "confirmApprove": "Approuver",
+      "cancel": "Annuler"
+    },
     "nav": {
       "dashboard": "Dashboard",
       "moderation": "Modération",
       "members": "Membres",
       "partners": "Partenaires",
+      "interestSuggestions": "Intérêts suggérés",
       "logs": "Journal",
       "events": "Events",
       "eventsSoon": "Bientôt disponible"
@@ -714,7 +784,11 @@
     "settingsCardLink": "Lire la politique de confidentialité"
   },
   "Common": {
-    "deletedUser": "Utilisateur supprimé"
+    "deletedUser": "Utilisateur supprimé",
+    "back": "Retour",
+    "lightboxClose": "Fermer",
+    "lightboxPrev": "Photo précédente",
+    "lightboxNext": "Photo suivante"
   },
   "Settings": {
     "title": "Paramètres",

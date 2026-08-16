@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Map, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useTranslations } from "next-intl";
+import { ArrowRight, Calendar, MapPin, X, type LucideIcon } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 // Swap this one constant to change the map's visual style later (e.g. a
@@ -33,10 +34,24 @@ export type MapPoint = {
   latitude: number;
   longitude: number;
   title: string;
-  subtitle?: string | null;
   imageUrl?: string | null;
   /** Route to the detail view this point's popup should link to. */
   href: string;
+  /**
+   * Open/closed right now, for a partner listing with opening hours set —
+   * same tri-state as `isOpenNow()` in @/lib/partners/opening-hours:
+   * null/undefined means "no hours data, don't show a badge" (also the
+   * only state events ever pass, since they have no opening hours).
+   */
+  isOpenNow?: boolean | null;
+  /** Interest/category pill, e.g. "🎲 Board games" — same badge shown on the cards. */
+  categoryLabel?: string | null;
+  /** Short blurb: a partner's tagline, or omitted for events (their card has no equivalent). */
+  description?: string | null;
+  /** Formatted date + time, events only — e.g. "Dec 3, 2:00 PM". */
+  whenLabel?: string | null;
+  /** One extra bold line of card-equivalent info — event spots left, mainly. */
+  infoLine?: string | null;
 };
 
 // Visual language for each point type — extend this map (not the component)
@@ -45,14 +60,15 @@ export type MapPoint = {
 // which can't render a gradient border on a circle cleanly.
 const MARKER_STYLE: Record<
   MapPointKind,
-  { emoji: string; style: CSSProperties; borderColor: string }
+  { icon: LucideIcon; style: CSSProperties; borderColor: string }
 > = {
-  event: { emoji: "📅", style: { backgroundImage: "var(--grad)" }, borderColor: "var(--teal1)" },
-  partner: { emoji: "📍", style: { backgroundColor: "var(--blue)" }, borderColor: "var(--blue)" },
+  event: { icon: Calendar, style: { backgroundImage: "var(--grad)" }, borderColor: "var(--teal1)" },
+  partner: { icon: MapPin, style: { backgroundColor: "var(--blue)" }, borderColor: "var(--blue)" },
 };
 
 function MarkerPin({ point, active }: { point: MapPoint; active: boolean }) {
   const style = MARKER_STYLE[point.kind];
+  const Icon = style.icon;
   const [imageFailed, setImageFailed] = useState(false);
   const showPhoto = point.imageUrl && !imageFailed;
 
@@ -81,7 +97,7 @@ function MarkerPin({ point, active }: { point: MapPoint; active: boolean }) {
           onError={() => setImageFailed(true)}
         />
       ) : (
-        style.emoji
+        <Icon className="h-4 w-4 text-white" strokeWidth={2} aria-hidden />
       )}
     </button>
   );
@@ -93,7 +109,7 @@ export function MapView({
   height = "24rem",
   className,
   avoidTopPx = 0,
-  onSelectPoint,
+  focusCenter = null,
 }: {
   points: MapPoint[];
   /**
@@ -122,16 +138,14 @@ export function MapView({
    */
   avoidTopPx?: number;
   /**
-   * Called when the popup's CTA is clicked, before falling back to
-   * navigating to `point.href` as a normal link. Return `true` to say "I
-   * handled it myself" (e.g. a point whose "detail page" is really just a
-   * spot further down the caller's own current page — switch to it and
-   * scroll there instead of a real navigation); return `false`/`undefined`
-   * to let the link navigate normally, which is the common case (e.g. a
-   * point with a real standalone detail route) and needs no callback at
-   * all.
+   * When set, overrides the usual "auto-fit to `points`' extent" behavior
+   * (see `initialCenter` above) — the map flies here instead, regardless of
+   * how many points are currently showing (including zero). Meant for an
+   * explicit "show me this place" pick the caller controls (e.g. a city
+   * filter), not for panning driven by `points` itself. Cleared back to
+   * `null` to go back to the normal fit-to-points behavior.
    */
-  onSelectPoint?: (point: MapPoint) => boolean;
+  focusCenter?: { latitude: number; longitude: number } | null;
 }) {
   const t = useTranslations("Map");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -140,10 +154,30 @@ export function MapView({
   const [loaded, setLoaded] = useState(false);
   const skippedInitialFitRef = useRef(false);
 
+  // mapbox-gl's own `trackResize` option (on by default) only listens for
+  // the browser *window*'s resize event — it has no idea when this
+  // component's own container changes size independently of the window
+  // (exactly our case: MapView stays permanently mounted and just toggles
+  // its wrapper between `hidden` and a full-viewport `fixed inset-0`, see
+  // the caller). Without this, the canvas stays stuck at whatever size it
+  // had the moment it was first mounted — collapsed, since it mounts while
+  // still hidden — and never grows to fill the container once it becomes
+  // visible. Watch the container ourselves and force a resize on any
+  // change; harmless to also have `trackResize`'s own window listener
+  // running alongside this, an extra resize() call is a cheap no-op.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => mapRef.current?.resize());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Drop the popup if its point disappears from the list underneath it
   // (e.g. a filter changes what's displayed) — derived at render time
   // rather than synced back into state via an effect.
   const activePopup = selected && points.some((p) => p.id === selected.id) ? selected : null;
+  const PopupIcon = activePopup ? MARKER_STYLE[activePopup.kind].icon : null;
 
   // Re-fit the view to the current point set's extent every time it
   // changes — except the very first time, when an initialCenter was
@@ -158,6 +192,19 @@ export function MapView({
       return;
     }
     skippedInitialFitRef.current = true;
+
+    // An explicit pick (e.g. a city filter) always wins over fitting to
+    // whatever points happen to be showing — including flying there even
+    // when that leaves zero points on screen, since the point is to show
+    // the place the caller asked for, not what's incidentally plotted.
+    if (focusCenter) {
+      map.flyTo({
+        center: [focusCenter.longitude, focusCenter.latitude],
+        zoom: CITY_ZOOM,
+        duration: 700,
+      });
+      return;
+    }
 
     if (points.length === 0) {
       const fallback = initialCenter
@@ -184,7 +231,7 @@ export function MapView({
       ],
       { padding: 48, maxZoom: 14, duration: 0 }
     );
-  }, [points, loaded, initialCenter]);
+  }, [points, loaded, initialCenter, focusCenter]);
 
   const initialLongitude = initialCenter ? initialCenter.longitude : DEFAULT_CENTER[0];
   const initialLatitude = initialCenter ? initialCenter.latitude : DEFAULT_CENTER[1];
@@ -202,7 +249,15 @@ export function MapView({
         }}
         mapStyle={MAP_STYLE}
         onLoad={() => setLoaded(true)}
-        style={{ width: "100%", height: "100%", borderRadius: "1rem" }}
+        // No radius here — this canvas is used both edge-to-edge (the
+        // full-screen Discover map) and inside a rounded card (event detail
+        // page). Whichever rounding is wanted belongs on the *outer*
+        // wrapper div (its own `className`, with `overflow-hidden` doing
+        // the actual clipping), never hardcoded on the canvas itself —
+        // rounding it here regardless of context used to show as small
+        // triangular gaps at each corner of the full-screen map, since that
+        // wrapper has no radius/clipping of its own to match it.
+        style={{ width: "100%", height: "100%" }}
       >
         <NavigationControl position="bottom-left" />
 
@@ -255,13 +310,11 @@ export function MapView({
             maxWidth="260px"
             onClose={() => setSelected(null)}
             closeOnClick={false}
+            closeButton={false}
           >
             <Link
               href={activePopup.href}
-              className="group block w-full overflow-hidden"
-              onClick={(e) => {
-                if (onSelectPoint?.(activePopup)) e.preventDefault();
-              }}
+              className="group block w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-teal2 focus-visible:ring-offset-2"
             >
               <div
                 className="relative h-28 w-full overflow-hidden"
@@ -277,30 +330,75 @@ export function MapView({
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-4xl">
-                    {MARKER_STYLE[activePopup.kind].emoji}
-                  </div>
+                  PopupIcon && (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <PopupIcon className="h-9 w-9 text-white" strokeWidth={1.75} aria-hidden />
+                    </div>
+                  )
                 )}
                 <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
                   {t(activePopup.kind === "event" ? "kindEvent" : "kindPartner")}
                 </span>
+                {activePopup.isOpenNow != null && (
+                  <span
+                    className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm"
+                    style={{
+                      backgroundColor: activePopup.isOpenNow
+                        ? "rgba(30,207,176,0.9)"
+                        : "rgba(0,0,0,0.55)",
+                    }}
+                  >
+                    {t(activePopup.isOpenNow ? "openNow" : "closedNow")}
+                  </span>
+                )}
               </div>
-              <div className="flex flex-col gap-1.5 p-3">
+              <div className="flex flex-col gap-1.5 p-3 pb-1.5">
                 <p className="truncate text-sm font-extrabold text-text group-hover:text-teal2">
                   {activePopup.title}
                 </p>
-                {activePopup.subtitle && (
-                  <p className="truncate text-xs text-muted">{activePopup.subtitle}</p>
+                {activePopup.whenLabel && (
+                  <p className="flex items-center gap-1 text-xs font-bold text-teal2">
+                    <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
+                    {activePopup.whenLabel}
+                  </p>
                 )}
-                <span
-                  className="mt-1.5 inline-flex w-fit items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm"
-                  style={{ backgroundImage: "var(--grad)" }}
-                >
-                  {t("viewDetails")}
-                  <span aria-hidden>→</span>
-                </span>
+                {activePopup.categoryLabel && (
+                  <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-[11px] font-semibold text-teal2">
+                    {activePopup.categoryLabel}
+                  </span>
+                )}
+                {activePopup.description && (
+                  <p className="line-clamp-2 text-xs text-muted">{activePopup.description}</p>
+                )}
+                {activePopup.infoLine && (
+                  <p className="text-xs font-semibold text-muted">{activePopup.infoLine}</p>
+                )}
               </div>
             </Link>
+
+            {/* Deliberately outside the Link above (nesting an <a> inside
+                another <a> is invalid HTML) — and, per feedback, no longer
+                Mapbox's own top-right close "×" sharing the same corner as
+                the open/closed badge on the photo. One clear choice at the
+                bottom instead: view details, or close. */}
+            <div className="flex items-center justify-between gap-2 px-3 pb-3">
+              <Link
+                href={activePopup.href}
+                className="inline-flex w-fit items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-opacity hover:opacity-90"
+                style={{ backgroundImage: "var(--grad)" }}
+              >
+                {t("viewDetails")}
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                aria-label={t("close")}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+              >
+                <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+              </button>
+            </div>
           </Popup>
         )}
       </Map>

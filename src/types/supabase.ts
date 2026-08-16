@@ -354,6 +354,9 @@ export type Database = {
           phone: string | null;
           website: string | null;
           photo_urls: string[];
+          logo_url: string | null;
+          tagline: string | null;
+          opening_hours: Json | null;
           status: string;
           created_at: string;
           updated_at: string;
@@ -371,6 +374,9 @@ export type Database = {
           phone?: string | null;
           website?: string | null;
           photo_urls?: string[];
+          logo_url?: string | null;
+          tagline?: string | null;
+          opening_hours?: Json | null;
           status?: string;
           created_at?: string;
           updated_at?: string;
@@ -471,6 +477,40 @@ export type Database = {
         };
         Update: Partial<
           Database["public"]["Tables"]["event_messages"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      interest_suggestions: {
+        Row: {
+          id: string;
+          suggested_by: string;
+          label: string;
+          locale: string;
+          category: string;
+          status: string;
+          created_at: string;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolved_label_fr: string | null;
+          resolved_label_en: string | null;
+          created_interest_id: number | null;
+        };
+        Insert: {
+          id?: string;
+          suggested_by: string;
+          label: string;
+          locale: string;
+          category: string;
+          status?: string;
+          created_at?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolved_label_fr?: string | null;
+          resolved_label_en?: string | null;
+          created_interest_id?: number | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["interest_suggestions"]["Insert"]
         >;
         Relationships: [];
       };

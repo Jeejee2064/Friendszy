@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { MapPin, Calendar } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { EventCardData } from "@/lib/events/types";
 
@@ -34,7 +35,9 @@ export function EventCard({ event }: { event: EventCardData }) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl">📅</div>
+          <div className="flex h-full w-full items-center justify-center">
+            <Calendar className="h-9 w-9 text-white" strokeWidth={1.75} aria-hidden />
+          </div>
         )}
         <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
           {format.dateTime(new Date(event.starts_at), { dateStyle: "medium", timeStyle: "short" })}
@@ -57,8 +60,8 @@ export function EventCard({ event }: { event: EventCardData }) {
             {interestLabel}
           </span>
         )}
-        <p className="text-xs text-muted">
-          <span aria-hidden>📍 </span>
+        <p className="flex items-center gap-1 text-xs text-muted">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
           {event.city}
           {event.address ? ` — ${event.address}` : ""}
         </p>

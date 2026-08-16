@@ -6,6 +6,8 @@ export function EventMessageBubble({
   isMine,
   sender,
   time,
+  showHeader,
+  showTime,
   canRemove,
   onRemove,
   removedLabel,
@@ -16,6 +18,8 @@ export function EventMessageBubble({
   isMine: boolean;
   sender: ProfileSummary | undefined;
   time: string;
+  showHeader: boolean;
+  showTime: boolean;
   canRemove: boolean;
   onRemove: (messageId: string) => void;
   removedLabel: string;
@@ -29,7 +33,7 @@ export function EventMessageBubble({
 
   return (
     <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
-      {!isMine && (
+      {!isMine && showHeader && (
         <div className="mb-1 flex items-center gap-1.5 px-1">
           <div
             className="h-5 w-5 shrink-0 overflow-hidden rounded-full"
@@ -73,7 +77,7 @@ export function EventMessageBubble({
           </button>
         )}
       </div>
-      <span className="mt-1 px-1 text-xs text-muted">{time}</span>
+      {showTime && <span className="mt-1 px-1 text-xs text-muted">{time}</span>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import type { OpeningHours } from "@/lib/partners/opening-hours";
 
 type Client = SupabaseClient<Database>;
 
@@ -30,6 +31,9 @@ export async function createPartnerListing(
     phone: string | null;
     website: string | null;
     photo_urls: string[];
+    logo_url: string | null;
+    tagline: string | null;
+    opening_hours: OpeningHours | null;
   },
   profileId: string
 ): Promise<PartnerListingRow> {
@@ -58,6 +62,9 @@ export async function updatePartnerListing(
     phone: string | null;
     website: string | null;
     photo_urls: string[];
+    logo_url: string | null;
+    tagline: string | null;
+    opening_hours: OpeningHours | null;
   }>
 ) {
   const { error } = await supabase

@@ -103,6 +103,12 @@ export default async function DashboardPage({
                 {notifications.map((n) => (
                   <NotificationRow key={n.id} notification={n} />
                 ))}
+                <Link
+                  href="/notifications"
+                  className="mt-1 block text-center text-xs font-bold text-teal2 hover:underline"
+                >
+                  {t("viewAllNotifications")}
+                </Link>
               </div>
             </div>
           )}

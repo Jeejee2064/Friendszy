@@ -5,7 +5,8 @@ import type { ProfileSummary } from "@/lib/profile/types";
 import { getMessagesByIds, type MessageRow } from "@/lib/messages/queries";
 import { listOpenReports, listAllReports, type ReportRow } from "@/lib/reports/queries";
 import { getPartnerListingsByIds, type PartnerListingRow } from "@/lib/partners/queries";
-import type { ModerationStatus, ReportWithTarget } from "./types";
+import { listPendingInterestSuggestions } from "@/lib/interest-suggestions/queries";
+import type { ModerationStatus, ReportWithTarget, InterestSuggestionWithProfile } from "./types";
 
 type Client = SupabaseClient<Database>;
 
@@ -164,6 +165,20 @@ export async function listAllReportsWithTargets(
 ): Promise<ReportWithTarget[]> {
   const reports = await listAllReports(supabase, limit);
   return hydrateReports(supabase, reports);
+}
+
+export async function listPendingInterestSuggestionsWithProfiles(
+  supabase: Client
+): Promise<InterestSuggestionWithProfile[]> {
+  const suggestions = await listPendingInterestSuggestions(supabase);
+  const suggesterIds = [...new Set(suggestions.map((s) => s.suggested_by))];
+  const suggesterProfiles = await getProfilesByIds(supabase, suggesterIds);
+  const suggesterById = new Map(suggesterProfiles.map((p) => [p.id, p]));
+
+  return suggestions.map((suggestion) => ({
+    ...suggestion,
+    suggesterProfile: suggesterById.get(suggestion.suggested_by) ?? null,
+  }));
 }
 
 export type AdminActionRow = Database["public"]["Tables"]["admin_actions"]["Row"];

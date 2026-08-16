@@ -50,7 +50,8 @@
       "updateTitle": "New password",
       "newPassword": "New password",
       "updateSubmit": "Update password",
-      "updateSuccess": "Password updated."
+      "updateSuccess": "Password updated.",
+      "linkExpired": "This reset link is no longer valid or has already been used. Request a new one below."
     }
   },
   "Shell": {
@@ -86,7 +87,8 @@
       "profileTitle": "My profile",
       "profileSubtitle": "Edit my profile"
     },
-    "recentActivity": "Recent activity"
+    "recentActivity": "Recent activity",
+    "viewAllNotifications": "View all"
   },
   "Notifications": {
     "title": "Notifications",
@@ -97,7 +99,9 @@
     "newMessage": "{name} sent you a message",
     "groupInvitation": "You've been invited to join {group}",
     "groupJoinRequest": "{name} wants to join {group}",
-    "groupJoinApproved": "Your request to join {group} was approved"
+    "groupJoinApproved": "Your request to join {group} was approved",
+    "interestSuggestionApproved": "Your suggested interest \"{label}\" was approved!",
+    "interestSuggestionRejected": "Your suggested interest \"{label}\" wasn't accepted."
   },
   "ProfileFields": {
     "photoChoose": "Choose a photo",
@@ -129,7 +133,19 @@
     "genres_musicaux": "Music genres",
     "instruments_musique": "Musical instruments",
     "cuisine": "Cooking",
-    "bien_etre": "Wellness"
+    "bien_etre": "Wellness",
+    "autre": "Other"
+  },
+  "InterestSuggestions": {
+    "noResultsPrompt": "No results for \"{query}\" — suggest this interest?",
+    "openForm": "Suggest this interest",
+    "labelLabel": "Interest name",
+    "categoryLabel": "Category",
+    "submit": "Suggest",
+    "submitting": "Sending...",
+    "alreadyPending": "You already have a suggestion pending review.",
+    "success": "Thanks! Your suggestion is under review.",
+    "error": "Something went wrong. Try again."
   },
   "Gender": {
     "homme": "Man",
@@ -356,9 +372,12 @@
     "loadError": "Couldn't load the list. Try again later."
   },
   "Map": {
-    "viewDetails": "View listing",
+    "viewDetails": "View details",
+    "close": "Close",
     "kindEvent": "Event",
-    "kindPartner": "Partner"
+    "kindPartner": "Partner",
+    "openNow": "Open now",
+    "closedNow": "Closed"
   },
   "Discover": {
     "title": "Discover",
@@ -366,6 +385,8 @@
     "toggleEvents": "Events",
     "togglePartners": "Activities",
     "categoryLabel": "Category",
+    "cityLabel": "City",
+    "allCities": "All cities",
     "dateLabel": "Date",
     "clearDate": "Clear",
     "loading": "Loading...",
@@ -390,8 +411,10 @@
       "stepOf": "Step {step} / {total}",
       "steps": {
         "basics": "Basics",
+        "identity": "Identity",
         "location": "Location",
         "contact": "Contact",
+        "hours": "Hours",
         "photos": "Photos"
       },
       "back": "Back",
@@ -404,6 +427,12 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "A few words about this partner...",
       "categoryLabel": "Category",
+      "logoLabel": "Logo",
+      "logoAdd": "Add",
+      "logoError": "Upload failed. Try again.",
+      "logoRemove": "Remove logo",
+      "taglineLabel": "Tagline",
+      "taglinePlaceholder": "E.g. The favorite spot for board game nights",
       "cityLabel": "City",
       "cityPlaceholder": "E.g. Montréal",
       "addressLabel": "Address",
@@ -416,6 +445,8 @@
       "photosAdd": "Add",
       "photosError": "Upload failed. Try again.",
       "photoRemove": "Remove this photo",
+      "hoursClosed": "Closed",
+      "hoursCopyToAll": "Apply these hours to every day",
       "errors": {
         "nameRequired": "Business name is required.",
         "categoryRequired": "Choose a category.",
@@ -423,11 +454,24 @@
         "saveFailed": "Something went wrong. Try again."
       }
     },
+    "days": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
     "discovery": {
-      "contactPhone": "📞 Call",
-      "contactWebsite": "🌐 Website",
+      "contactPhone": "Call",
+      "contactWebsite": "Website",
       "editLink": "Edit my activity",
-      "pendingBadge": "Pending activation"
+      "pendingBadge": "Pending activation",
+      "openNow": "Open now",
+      "closedNow": "Closed",
+      "hoursTitle": "Opening hours",
+      "hoursClosed": "Closed"
     }
   },
   "Events": {
@@ -493,6 +537,15 @@
       "messaging": "…",
       "chatTitle": "Chat",
       "chatLockedNotice": "Register to access the chat.",
+      "cancel": "Cancel",
+      "deleteEventTitle": "Delete event",
+      "deleteEventBody": "This action is irreversible: the event, its registrations, and the chat will be permanently deleted.",
+      "deleteEventButton": "Delete event",
+      "deleteEventWarning": "This action is irreversible. All registrations and the chat history will be permanently deleted.",
+      "deleteConfirmPrompt": "Type {word} to confirm.",
+      "deleteConfirmWord": "DELETE",
+      "deleteEventError": "Something went wrong. Try again.",
+      "deleteEventConfirmButton": "Delete permanently",
       "errors": {
         "fullError": "This event is full.",
         "endedError": "This event has already ended.",
@@ -644,11 +697,28 @@
       "addressLabel": "Address",
       "submittedByLabel": "Submitted by"
     },
+    "interestSuggestions": {
+      "title": "Suggested interests",
+      "noSuggestions": "No suggestions pending.",
+      "suggestedByLabel": "Suggested by",
+      "labelLangBadgeFr": "FR",
+      "labelLangBadgeEn": "EN",
+      "categoryLabel": "Category",
+      "similarHint": "Similar to: {label}?",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveModalTitle": "Approve \"{label}\"",
+      "labelFrLabel": "Label (French)",
+      "labelEnLabel": "Label (English)",
+      "confirmApprove": "Approve",
+      "cancel": "Cancel"
+    },
     "nav": {
       "dashboard": "Dashboard",
       "moderation": "Moderation",
       "members": "Members",
       "partners": "Partners",
+      "interestSuggestions": "Suggested interests",
       "logs": "Logs",
       "events": "Events",
       "eventsSoon": "Coming soon"
@@ -714,7 +784,11 @@
     "settingsCardLink": "Read the privacy policy"
   },
   "Common": {
-    "deletedUser": "Deleted user"
+    "deletedUser": "Deleted user",
+    "back": "Back",
+    "lightboxClose": "Close",
+    "lightboxPrev": "Previous photo",
+    "lightboxNext": "Next photo"
   },
   "Settings": {
     "title": "Settings",

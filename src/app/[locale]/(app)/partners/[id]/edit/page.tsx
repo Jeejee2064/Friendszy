@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getInterests } from "@/lib/profile/queries";
 import { getPartnerListingById } from "@/lib/partners/queries";
 import { PartnerListingWizard } from "@/components/partners/partner-listing-wizard";
+import type { OpeningHours } from "@/lib/partners/opening-hours";
 
 export default async function EditPartnerListingPage({
   params,
@@ -49,6 +50,9 @@ export default async function EditPartnerListingPage({
         phone: listing.phone ?? "",
         website: listing.website ?? "",
         photoUrls: listing.photo_urls,
+        logoUrl: listing.logo_url ?? "",
+        tagline: listing.tagline ?? "",
+        openingHours: (listing.opening_hours as OpeningHours) ?? {},
       }}
       initialCoordinates={{ latitude: listing.latitude, longitude: listing.longitude }}
     />
