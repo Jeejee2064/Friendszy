@@ -1,17 +1,18 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Home, Search, MessageCircle, Users, UsersRound, Compass, ShieldUser } from "lucide-react";
+import { Home, Search, MessageCircle, Users, Compass, ShieldUser } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
 import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
+import { GroupIcon } from "@/components/icons/group-icon";
 
 const NAV_ITEMS = [
   { href: "/", icon: Home, key: "home" },
   { href: "/search", icon: Search, key: "search" },
   { href: "/messages", icon: MessageCircle, key: "messages" },
   { href: "/friends", icon: Users, key: "friends" },
-  { href: "/groups", icon: UsersRound, key: "groups" },
+  { href: "/groups", icon: GroupIcon, key: "groups" },
   { href: "/discover", icon: Compass, key: "discover" },
 ] as const;
 
