@@ -34,7 +34,5 @@ export default async function PartnerListingPage({
   const interest = interests.find((i) => i.id === listing.interest_id) ?? null;
   const isOwn = listing.profile_id === user.id;
 
-  return (
-    <PartnerViewClient userId={user.id} listing={listing} interest={interest} isOwn={isOwn} />
-  );
+  return <PartnerViewClient listing={listing} interest={interest} isOwn={isOwn} />;
 }

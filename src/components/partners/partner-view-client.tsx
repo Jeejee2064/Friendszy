@@ -7,7 +7,6 @@ import { Link, useRouter } from "@/i18n/navigation";
 import type { PartnerListingRow } from "@/lib/partners/queries";
 import type { Interest } from "@/lib/profile/types";
 import { PageHeader } from "@/components/layout/page-header";
-import { ReportButton } from "@/components/social/report-button";
 import { MapView, type MapPoint } from "@/components/map/map-view";
 import { PhotoLightbox } from "@/components/media/photo-lightbox";
 import {
@@ -19,12 +18,10 @@ import {
 } from "@/lib/partners/opening-hours";
 
 export function PartnerViewClient({
-  userId,
   listing,
   interest,
   isOwn,
 }: {
-  userId: string;
   listing: PartnerListingRow;
   interest: Interest | null;
   isOwn: boolean;
@@ -67,18 +64,7 @@ export function PartnerViewClient({
 
   return (
     <div className="flex flex-col">
-      <PageHeader
-        title={listing.name}
-        onBack={() => router.back()}
-        backLabel={tCommon("back")}
-        actions={
-          <ReportButton
-            reporterId={userId}
-            targetType="partner_listing"
-            targetId={listing.id}
-          />
-        }
-      />
+      <PageHeader title={listing.name} onBack={() => router.back()} backLabel={tCommon("back")} />
 
       <div className="flex flex-col gap-5 p-6 md:p-10">
         {listing.photo_urls.length > 0 ? (

@@ -255,6 +255,7 @@ export function SearchPageClient({
                 >
                   <PersonCard
                     profile={result}
+                    href={`/profile/${result.id}`}
                     sharedInterests={
                       tab === "name"
                         ? resultInterestIds

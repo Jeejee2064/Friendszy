@@ -16,7 +16,6 @@ import {
 import type { EventRow, EventPhotoRow, EventMessageRow } from "@/lib/events/types";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
 import { PageHeader } from "@/components/layout/page-header";
-import { ReportButton } from "@/components/social/report-button";
 import { MapView, type MapPoint } from "@/components/map/map-view";
 import { EventChatPane } from "@/components/events/event-chat-pane";
 import { PhotoLightbox } from "@/components/media/photo-lightbox";
@@ -170,12 +169,7 @@ export function EventViewClient({
 
   return (
     <div className="flex flex-col">
-      <PageHeader
-        title={event.title}
-        onBack={() => router.back()}
-        backLabel={tCommon("back")}
-        actions={<ReportButton reporterId={userId} targetType="event" targetId={event.id} />}
-      />
+      <PageHeader title={event.title} onBack={() => router.back()} backLabel={tCommon("back")} />
 
       <div className="grid min-w-0 gap-6 p-6 md:grid-cols-[1.1fr_0.9fr] md:p-10">
         <div className="flex min-w-0 flex-col gap-5">
