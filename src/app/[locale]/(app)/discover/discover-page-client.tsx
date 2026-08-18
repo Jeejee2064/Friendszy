@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { ChevronUp, SlidersHorizontal } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -73,14 +74,22 @@ export function DiscoverPageClient({
   // map mode — before ResizeObserver's first callback has run — still
   // recenters clear of the bar rather than assuming there's no bar at all.
   const [filterBarHeight, setFilterBarHeight] = useState(150);
+  // Lets the filter bar be tucked away for a truly full-screen map — starts
+  // open, same as today.
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   useEffect(() => {
     const el = filterBarRef.current;
-    if (!el) return;
+    if (!el) {
+      // Collapsed (or not in map mode): the bar isn't rendered at all, so
+      // there's nothing left for a clicked pin's popup to avoid.
+      setFilterBarHeight(0);
+      return;
+    }
     const observer = new ResizeObserver(([entry]) => setFilterBarHeight(entry.contentRect.height));
     observer.observe(el);
     return () => observer.disconnect();
-  }, [view]);
+  }, [view, filtersOpen]);
 
   // city is free text now (CityAutocomplete) — debounce it before it
   // drives anything network-bound, so typing doesn't fire a query/geocode
@@ -334,12 +343,24 @@ export function DiscoverPageClient({
         focusCenter={focusCenter}
       />
 
-      {view === "map" && (
+      {view === "map" && filtersOpen && (
         <div
           ref={filterBarRef}
           className="fixed inset-x-0 top-0 z-30 flex flex-col gap-3 bg-card/95 p-4 shadow-md backdrop-blur-sm"
         >
-          <TypeFilterTabs typeFilter={typeFilter} onChange={setTypeFilter} t={t} compact />
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <TypeFilterTabs typeFilter={typeFilter} onChange={setTypeFilter} t={t} compact />
+            </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              aria-label={t("hideFilters")}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+            >
+              <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </button>
+          </div>
           <NameSearch name={name} onNameChange={setName} t={t} compact />
           <CategoryDateFilters
             interests={interests}
@@ -355,6 +376,21 @@ export function DiscoverPageClient({
             compact
           />
         </div>
+      )}
+
+      {/* Collapsed state: the map itself is then truly full-screen — this
+          small pill is the only thing left floating on top of it, top-right
+          so it never competes with the map/list toggle (bottom-center),
+          NavigationControl (bottom-left), or the create FAB (bottom-right). */}
+      {view === "map" && !filtersOpen && (
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="fixed right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-card/95 text-text shadow-md backdrop-blur-sm transition-transform hover:scale-105"
+          aria-label={t("showFilters")}
+        >
+          <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+        </button>
       )}
 
       <button

@@ -407,6 +407,8 @@
     "signUp": "S'inscrire",
     "discover": "Découvrir",
     "viewMore": "En savoir plus",
+    "detailGateTitle": "Crée ton compte pour continuer",
+    "detailGateBody": "Inscris-toi gratuitement pour voir tous les détails de « {title} » et t'inscrire.",
     "emptyState": "Sois parmi les premiers à organiser un événement ici !",
     "emptyStateCta": "S'inscrire"
   },
@@ -415,6 +417,8 @@
     "toggleBoth": "Les deux",
     "toggleEvents": "Événements",
     "togglePartners": "Activités",
+    "hideFilters": "Masquer les filtres",
+    "showFilters": "Afficher les filtres",
     "searchPlaceholder": "Rechercher un événement ou un commerce...",
     "categoryLabel": "Catégorie",
     "cityLabel": "Ville",

@@ -48,7 +48,14 @@ export function OpeningHoursEditor({
         const range = value[day]?.[0];
         const open = !!range;
         return (
-          <div key={day} className="flex items-center gap-2 text-sm">
+          // flex-wrap: a native <input type="time"> has its own intrinsic
+          // (locale-dependent) rendered width the browser picks, which on a
+          // narrow viewport (mobile wizard modal) can push the pair of
+          // inputs past the card's edge instead of shrinking — wrapping
+          // them onto their own line under the label is what actually
+          // fixes the overflow, a fixed input width alone isn't enough
+          // since browsers don't fully honor CSS width on this control.
+          <div key={day} className="flex flex-wrap items-center gap-2 text-sm">
             <label className="flex w-28 shrink-0 items-center gap-1.5 font-semibold text-text">
               <input
                 type="checkbox"
@@ -59,19 +66,19 @@ export function OpeningHoursEditor({
               {dayLabels[day]}
             </label>
             {open ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
                 <input
                   type="time"
                   value={range.open}
                   onChange={(e) => setRange(day, "open", e.target.value)}
-                  className="rounded-md border border-border px-2 py-1 text-xs"
+                  className="w-[7.5rem] min-w-0 shrink rounded-md border border-border px-2 py-1 text-xs"
                 />
                 <span className="text-muted">–</span>
                 <input
                   type="time"
                   value={range.close}
                   onChange={(e) => setRange(day, "close", e.target.value)}
-                  className="rounded-md border border-border px-2 py-1 text-xs"
+                  className="w-[7.5rem] min-w-0 shrink rounded-md border border-border px-2 py-1 text-xs"
                 />
               </div>
             ) : (

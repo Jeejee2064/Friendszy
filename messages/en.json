@@ -407,6 +407,8 @@
     "signUp": "Sign up",
     "discover": "Discover",
     "viewMore": "Learn more",
+    "detailGateTitle": "Create your account to continue",
+    "detailGateBody": "Sign up for free to see all the details for \"{title}\" and join in.",
     "emptyState": "Be one of the first to organize an event here!",
     "emptyStateCta": "Sign up"
   },
@@ -415,6 +417,8 @@
     "toggleBoth": "Both",
     "toggleEvents": "Events",
     "togglePartners": "Activities",
+    "hideFilters": "Hide filters",
+    "showFilters": "Show filters",
     "searchPlaceholder": "Search an event or a business...",
     "categoryLabel": "Category",
     "cityLabel": "City",
