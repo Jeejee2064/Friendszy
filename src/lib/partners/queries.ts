@@ -99,7 +99,7 @@ export async function getPartnerListingsByIds(
 
 export async function listPartnerListings(
   supabase: Client,
-  filters: { interestId?: number; city?: string }
+  filters: { interestId?: number; city?: string; name?: string }
 ): Promise<PartnerListingRow[]> {
   let query = supabase
     .from("partner_listings")
@@ -107,6 +107,7 @@ export async function listPartnerListings(
     .order("created_at", { ascending: false });
 
   if (filters.interestId != null) query = query.eq("interest_id", filters.interestId);
+  if (filters.name?.trim()) query = query.ilike("name", `%${filters.name.trim()}%`);
 
   if (filters.city?.trim()) {
     const { data: cityMatches, error: cityError } = await supabase.rpc(

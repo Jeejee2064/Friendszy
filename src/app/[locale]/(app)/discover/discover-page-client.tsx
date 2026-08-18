@@ -51,7 +51,13 @@ export function DiscoverPageClient({
   // currently in the data — "" means no city filter.
   const [city, setCity] = useState("");
   const [debouncedCity, setDebouncedCity] = useState("");
-  const [view, setView] = useState<"map" | "list">("list");
+  // Same idea as the groups discover tab's name search — matched against
+  // event titles and partner names.
+  const [name, setName] = useState("");
+  const [debouncedName, setDebouncedName] = useState("");
+  // Découvrir opens straight on the map — that's the point of this page;
+  // the list view is still one tap away via the toggle button below.
+  const [view, setView] = useState<"map" | "list">("map");
 
   const [events, setEvents] = useState<EventCardData[]>(initialEvents);
   const [listings, setListings] = useState<PartnerListingRow[]>(initialListings);
@@ -84,6 +90,11 @@ export function DiscoverPageClient({
     const timeout = setTimeout(() => setDebouncedCity(city.trim()), 400);
     return () => clearTimeout(timeout);
   }, [city]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedName(name.trim()), 400);
+    return () => clearTimeout(timeout);
+  }, [name]);
 
   // Where to recenter the map when a city filter is active — geocoded
   // independently of whatever events/listings currently match, so picking
@@ -132,10 +143,12 @@ export function DiscoverPageClient({
           interestId: interestId ?? undefined,
           date: date || undefined,
           city: debouncedCity || undefined,
+          name: debouncedName || undefined,
         }),
         listPartnerListings(supabase, {
           interestId: interestId ?? undefined,
           city: debouncedCity || undefined,
+          name: debouncedName || undefined,
         }),
       ]);
       const eventIds = eventRows.map((e) => e.id);
@@ -168,7 +181,7 @@ export function DiscoverPageClient({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interestId, date, debouncedCity, userId]);
+  }, [interestId, date, debouncedCity, debouncedName, userId]);
 
   function interestFor(id: number) {
     return interests.find((i) => i.id === id);
@@ -239,6 +252,7 @@ export function DiscoverPageClient({
           <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
           <TypeFilterTabs typeFilter={typeFilter} onChange={setTypeFilter} t={t} />
+          <NameSearch name={name} onNameChange={setName} t={t} />
           <CategoryDateFilters
             interests={interests}
             interestId={interestId}
@@ -326,6 +340,7 @@ export function DiscoverPageClient({
           className="fixed inset-x-0 top-0 z-30 flex flex-col gap-3 bg-card/95 p-4 shadow-md backdrop-blur-sm"
         >
           <TypeFilterTabs typeFilter={typeFilter} onChange={setTypeFilter} t={t} compact />
+          <NameSearch name={name} onNameChange={setName} t={t} compact />
           <CategoryDateFilters
             interests={interests}
             interestId={interestId}
@@ -378,6 +393,36 @@ function TypeFilterTabs({
       <TabButton active={typeFilter === "partners"} onClick={() => onChange("partners")}>
         {t("togglePartners")}
       </TabButton>
+    </div>
+  );
+}
+
+// Same search-box treatment as the groups discover tab's "by name" filter —
+// matched against event titles and partner names, applied together with
+// the category/city/date filters below rather than as a separate mode.
+function NameSearch({
+  name,
+  onNameChange,
+  t,
+  compact,
+}: {
+  name: string;
+  onNameChange: (name: string) => void;
+  t: ReturnType<typeof useTranslations<"Discover">>;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`relative ${compact ? "" : "mb-4"}`}>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">
+        🔍
+      </span>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => onNameChange(e.target.value)}
+        placeholder={t("searchPlaceholder")}
+        className="w-full rounded-full border border-border bg-card py-2.5 pl-9 pr-3 text-sm outline-none focus:border-teal2"
+      />
     </div>
   );
 }

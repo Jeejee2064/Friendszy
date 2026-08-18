@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -19,6 +20,12 @@ const signOutChipClass =
 const fieldLabelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted";
 const fieldInputClass =
   "w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2";
+
+function sameInterestSet(a: number[], b: number[]) {
+  if (a.length !== b.length) return false;
+  const set = new Set(a);
+  return b.every((id) => set.has(id));
+}
 
 type FormState = {
   fullName: string;
@@ -50,8 +57,35 @@ export function ProfileForm({
   >(null);
   const [collapseSignal, setCollapseSignal] = useState(0);
 
+  // Tracks what's actually persisted for interests specifically, so the
+  // floating "save interests" button only shows up once the selection
+  // diverges from the DB — and so the whole-form save (which also persists
+  // interests) can keep it in sync too.
+  const [savedInterestIds, setSavedInterestIds] = useState<number[]>(
+    initial.interestIds
+  );
+  const [interestsPending, setInterestsPending] = useState(false);
+  const [interestsSaved, setInterestsSaved] = useState(false);
+  const interestsDirty = !sameInterestSet(form.interestIds, savedInterestIds);
+
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleSaveInterests() {
+    setInterestsSaved(false);
+    setInterestsPending(true);
+    try {
+      const supabase = createClient();
+      await setMyInterests(supabase, userId, form.interestIds);
+      setSavedInterestIds(form.interestIds);
+      setCollapseSignal((v) => v + 1);
+      setInterestsSaved(true);
+    } catch {
+      setNotice({ kind: "error", message: t("saveError") });
+    } finally {
+      setInterestsPending(false);
+    }
   }
 
   async function handleSave(e: FormEvent) {
@@ -84,6 +118,7 @@ export function ProfileForm({
         bio: form.bio.trim() || null,
       });
       await setMyInterests(supabase, userId, form.interestIds);
+      setSavedInterestIds(form.interestIds);
       setNotice({ kind: "success", message: t("saveSuccess") });
       setCollapseSignal((v) => v + 1);
     } catch {
@@ -189,10 +224,41 @@ export function ProfileForm({
           <InterestsGrid
             interests={interests}
             selectedIds={form.interestIds}
-            onChange={(ids) => update("interestIds", ids)}
+            onChange={(ids) => {
+              setInterestsSaved(false);
+              update("interestIds", ids);
+            }}
             userId={userId}
             collapseSignal={collapseSignal}
           />
+
+          <AnimatePresence>
+            {interestsDirty && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="sticky bottom-3 z-10 mt-3 flex justify-center"
+              >
+                <button
+                  type="button"
+                  onClick={handleSaveInterests}
+                  disabled={interestsPending}
+                  className="rounded-full px-5 py-2 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+                  style={{ backgroundImage: "var(--grad)" }}
+                >
+                  {interestsPending ? "…" : t("saveInterests")}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {interestsSaved && !interestsDirty && (
+            <p className="mt-2 text-center text-xs font-semibold text-teal2">
+              {t("interestsSaved")}
+            </p>
+          )}
         </div>
 
         <textarea

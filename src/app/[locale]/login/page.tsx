@@ -13,6 +13,7 @@ import {
   requestPasswordReset,
   updatePassword,
 } from "@/lib/auth";
+import { useGoOffline } from "@/lib/presence/presence-context";
 
 type Mode = "signIn" | "signUp" | "forgot";
 
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const t = useTranslations("Auth");
   const router = useRouter();
   const locale = useLocale();
+  const goOffline = useGoOffline();
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -46,9 +48,9 @@ export default function LoginPage() {
   useEffect(() => {
     const supabase = createClient();
 
-    // The reset-password email link lands here via /auth/callback, which
-    // already exchanged the code for a real session server-side — by the
-    // time this effect runs, getUser() below resolves with a logged-in
+    // The reset-password email link lands here via /auth/callback/recovery,
+    // which already exchanged the code for a real session server-side — by
+    // the time this effect runs, getUser() below resolves with a logged-in
     // user just like a normal sign-in, and PASSWORD_RECOVERY may never
     // fire client-side. The "?recovery=1" marker (added by
     // requestPasswordReset's redirectTo) is what actually tells us to show
@@ -61,8 +63,8 @@ export default function LoginPage() {
     // The callback route redirects here with "?error=reset-expired" when the
     // recovery link's code exchange failed (link already used/expired, or
     // opened in a different browser than the one that requested it — see
-    // src/app/auth/callback/route.ts). Surface that instead of silently
-    // dropping the user on a plain sign-in screen.
+    // src/app/auth/callback/recovery/route.ts). Surface that instead of
+    // silently dropping the user on a plain sign-in screen.
     if (errorCode === "reset-expired") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode("forgot");
@@ -228,7 +230,14 @@ export default function LoginPage() {
             </div>
             <p className="mt-4 font-bold text-text">{user.email}</p>
             <button
-              onClick={() => signOutUser()}
+              onClick={async () => {
+                // Untrack presence while the session is still valid, same as
+                // SignOutButton — otherwise this races the SIGNED_OUT auth
+                // event's own realtime teardown and the online dot can get
+                // stuck on other clients until they refresh.
+                await goOffline();
+                await signOutUser();
+              }}
               className="mt-6 w-full rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90"
               style={{ backgroundImage: "var(--grad)" }}
             >

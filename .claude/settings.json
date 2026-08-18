@@ -125,7 +125,8 @@
       "Bash(python3 -c \"import json; json.load\\(open\\('messages/fr.json'\\)\\); json.load\\(open\\('messages/en.json'\\)\\); print\\('JSON OK'\\)\")",
       "Bash(sort -t: -k1,1 -u)",
       "Bash(awk -F: '{print $1}')",
-      "Bash(grep -v \"^node_modules/mapbox-gl$\\\\|^node_modules/react-map-gl$\")"
+      "Bash(grep -v \"^node_modules/mapbox-gl$\\\\|^node_modules/react-map-gl$\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts'\\), indent=2\\)\\)\")"
     ],
     "additionalDirectories": [
       "/home/yerom/Desktop/WEB/Friendszy/friendszy/src/app/[locale]",

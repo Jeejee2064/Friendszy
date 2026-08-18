@@ -7,11 +7,13 @@ import { deleteMyAccount } from "@/lib/account/actions";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 import { usePwaInstall } from "@/lib/pwa/install-context";
+import { useGoOffline } from "@/lib/presence/presence-context";
 
 export function SettingsPageClient({ locale }: { locale: string }) {
   const t = useTranslations("Settings");
   const tPwa = useTranslations("Pwa");
   const tPrivacy = useTranslations("Privacy");
+  const goOffline = useGoOffline();
   const { platform, alreadyInstalled, deferredPrompt, promptInstall } = usePwaInstall();
   const isMobile = platform === "ios" || platform === "android";
   const [iosInstructionsOpen, setIosInstructionsOpen] = useState(false);
@@ -57,6 +59,11 @@ export function SettingsPageClient({ locale }: { locale: string }) {
   function handleDelete() {
     setDeleteError(false);
     startTransition(async () => {
+      // Untrack presence while the session is still valid — deleteMyAccount
+      // signs out server-side, which races the client's own SIGNED_OUT
+      // teardown of the presence channel and can leave the account looking
+      // "online" to others until they refresh.
+      await goOffline();
       const result = await deleteMyAccount(locale);
       if (result?.error) setDeleteError(true);
     });

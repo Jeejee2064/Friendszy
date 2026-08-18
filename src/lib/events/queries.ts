@@ -66,11 +66,18 @@ export async function getEventsByIds(
 // CLAUDE.md) — includePast opts back into seeing events that already ended.
 export async function listEvents(
   supabase: Client,
-  filters: { interestId?: number; date?: string; includePast?: boolean; city?: string }
+  filters: {
+    interestId?: number;
+    date?: string;
+    includePast?: boolean;
+    city?: string;
+    name?: string;
+  }
 ): Promise<EventRow[]> {
   let query = supabase.from("events").select("*").order("starts_at", { ascending: true });
 
   if (filters.interestId != null) query = query.eq("interest_id", filters.interestId);
+  if (filters.name?.trim()) query = query.ilike("title", `%${filters.name.trim()}%`);
 
   if (filters.city?.trim()) {
     const { data: cityMatches, error: cityError } = await supabase.rpc("match_event_city_ids", {

@@ -80,6 +80,8 @@
     "cards": {
       "searchTitle": "Trouver des amis",
       "searchSubtitle": "Rechercher par intérêts",
+      "discoverTitle": "Découvrir",
+      "discoverSubtitle": "Événements et activités près de toi",
       "messagesTitle": "Mes messages",
       "messagesSubtitle": "{count} non lus",
       "friendsTitle": "Cercle d'amis",
@@ -184,6 +186,8 @@
     "save": "Enregistrer",
     "saveSuccess": "Profil mis à jour.",
     "saveError": "Une erreur est survenue. Réessaie.",
+    "saveInterests": "Sauvegarder mes intérêts",
+    "interestsSaved": "Intérêts enregistrés ✓",
     "errors": {
       "fullNameRequired": "Le prénom est requis.",
       "lastNameRequired": "Le nom de famille est requis.",
@@ -384,6 +388,7 @@
     "toggleBoth": "Les deux",
     "toggleEvents": "Événements",
     "togglePartners": "Activités",
+    "searchPlaceholder": "Rechercher un événement ou un commerce...",
     "categoryLabel": "Catégorie",
     "cityLabel": "Ville",
     "allCities": "Toutes les villes",

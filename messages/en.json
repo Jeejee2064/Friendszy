@@ -80,6 +80,8 @@
     "cards": {
       "searchTitle": "Find friends",
       "searchSubtitle": "Search by interests",
+      "discoverTitle": "Discover",
+      "discoverSubtitle": "Events and activities near you",
       "messagesTitle": "My messages",
       "messagesSubtitle": "{count} unread",
       "friendsTitle": "Friend circle",
@@ -184,6 +186,8 @@
     "save": "Save",
     "saveSuccess": "Profile updated.",
     "saveError": "Something went wrong. Try again.",
+    "saveInterests": "Save my interests",
+    "interestsSaved": "Interests saved ✓",
     "errors": {
       "fullNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
@@ -384,6 +388,7 @@
     "toggleBoth": "Both",
     "toggleEvents": "Events",
     "togglePartners": "Activities",
+    "searchPlaceholder": "Search an event or a business...",
     "categoryLabel": "Category",
     "cityLabel": "City",
     "allCities": "All cities",
