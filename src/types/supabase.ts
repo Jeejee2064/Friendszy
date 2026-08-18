@@ -36,6 +36,7 @@ export type Database = {
           last_seen_at: string | null;
           created_at: string;
           updated_at: string;
+          has_seen_nav_tour: boolean;
         };
         Insert: {
           id: string;
@@ -56,6 +57,7 @@ export type Database = {
           last_seen_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          has_seen_nav_tour?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
@@ -591,6 +593,27 @@ export type Database = {
       get_event_registration_counts: {
         Args: { p_event_ids: string[] };
         Returns: { event_id: string; registration_count: number }[];
+      };
+      // TEMPORARY manual addition for get_public_map_points (see
+      // supabase/migrations/20260818100000_public_map_points.sql) — CLAUDE.md
+      // says this file must only ever come from `supabase gen types`. This
+      // entry is written to match exactly what that command will produce;
+      // remove this comment once the migration has been applied and
+      // `npm run supabase:types` has been re-run for real.
+      get_public_map_points: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          kind: string;
+          id: string;
+          title: string;
+          city: string;
+          latitude: number | null;
+          longitude: number | null;
+          photo_url: string | null;
+          category_emoji: string | null;
+          category_label_fr: string | null;
+          category_label_en: string | null;
+        }[];
       };
     };
     Enums: Record<string, never>;

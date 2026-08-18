@@ -69,6 +69,25 @@
     "profile": "Mon profil",
     "admin": "Admin"
   },
+  "NavTour": {
+    "title": "Visite guidée de la navigation",
+    "welcomeTitle": "Bienvenue sur Friendszy !",
+    "welcomeBody": "On te fait faire un petit tour de la navigation pour que tu t'y retrouves rapidement ?",
+    "start": "Découvrir",
+    "stepOf": "Étape {step} / {total}",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "skip": "Passer",
+    "steps": {
+      "home": "Ton fil d'accueil : un résumé de tes amis, tes messages non lus et tes dernières notifications.",
+      "search": "Cherche de nouvelles personnes selon la ville et les centres d'intérêt en commun.",
+      "messages": "Toutes tes conversations avec tes amis, au même endroit.",
+      "friends": "La liste de tes amis et tes demandes d'amitié en attente.",
+      "groups": "Rejoins ou crée des groupes autour de tes passions.",
+      "discover": "Des partenaires et événements près de chez toi à découvrir.",
+      "admin": "Les outils de modération et d'administration de la plateforme."
+    }
+  },
   "Dashboard": {
     "welcomeBack": "Bon retour, {name} !",
     "stats": {
@@ -382,6 +401,14 @@
     "kindPartner": "Partenaire",
     "openNow": "Ouvert maintenant",
     "closedNow": "Fermé"
+  },
+  "PublicLanding": {
+    "tagline": "Rencontre des gens qui aiment les mêmes choses que toi — entre amis, pas pour du dating.",
+    "signUp": "S'inscrire",
+    "discover": "Découvrir",
+    "viewMore": "En savoir plus",
+    "emptyState": "Sois parmi les premiers à organiser un événement ici !",
+    "emptyStateCta": "S'inscrire"
   },
   "Discover": {
     "title": "Découvrir",

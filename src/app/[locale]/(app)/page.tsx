@@ -1,12 +1,17 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/lib/profile/queries";
 import { getDashboardStats } from "@/lib/dashboard/queries";
 import { getNotificationsWithProfiles } from "@/lib/notifications/queries";
+import { getPublicMapPoints } from "@/lib/publicMap/queries";
+import { HAS_CHOSEN_DISCOVER_COOKIE_NAME } from "@/lib/intent/cookie";
 import { PageHeader } from "@/components/layout/page-header";
 import { NotificationRow } from "@/components/notifications/notification-row";
+import { PublicLanding } from "@/components/landing/public-landing";
+import { IntentRedirect } from "@/components/landing/intent-redirect";
 
 export default async function DashboardPage({
   params,
@@ -15,14 +20,22 @@ export default async function DashboardPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("Dashboard");
-  const tNav = await getTranslations("Nav");
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+
+  // Signed-out visitor: public map landing page (see proxy.ts + (app)/layout.tsx
+  // for how "/" is the one guarded path that reaches here without a session).
+  if (!user) {
+    const [points, cookieStore] = await Promise.all([getPublicMapPoints(supabase), cookies()]);
+    const hasChosenDiscover = cookieStore.get(HAS_CHOSEN_DISCOVER_COOKIE_NAME)?.value === "1";
+    return <PublicLanding points={points} hasChosenDiscover={hasChosenDiscover} />;
+  }
+
+  const t = await getTranslations("Dashboard");
+  const tNav = await getTranslations("Nav");
 
   const [profile, stats, notifications] = await Promise.all([
     getMyProfile(supabase, user.id),
@@ -34,6 +47,11 @@ export default async function DashboardPage({
 
   return (
     <div className="flex flex-col">
+      {/* NavTour (mounted in AppShell) owns the same resolve-a-pending-intent
+          call when the tour is about to play; this only fires for an
+          account that has already seen it before, so nothing ever calls it
+          twice. See src/components/landing/intent-redirect.tsx. */}
+      {profile?.has_seen_nav_tour && <IntentRedirect />}
       <PageHeader title={tNav("home")} />
 
       <div className="p-6 md:p-10">
@@ -69,6 +87,13 @@ export default async function DashboardPage({
                 iconBg="var(--blue)"
                 title={t("cards.searchTitle")}
                 subtitle={t("cards.searchSubtitle")}
+              />
+              <QuickAccessCard
+                href="/discover"
+                icon="🧭"
+                iconBg="var(--dark)"
+                title={t("cards.discoverTitle")}
+                subtitle={t("cards.discoverSubtitle")}
               />
               <QuickAccessCard
                 href="/messages"
@@ -145,7 +170,7 @@ function QuickAccessCard({
   title,
   subtitle,
 }: {
-  href: "/search" | "/messages" | "/friends" | "/profile";
+  href: "/search" | "/discover" | "/messages" | "/friends" | "/profile";
   icon: ReactNode;
   iconBg: string;
   title: string;

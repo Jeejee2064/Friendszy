@@ -60,6 +60,13 @@ export default function LoginPage() {
     const errorCode = params.get("error");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isRecoveryLink) setIsRecovery(true);
+    // Public landing page's "S'inscrire" CTAs (src/components/landing/
+    // public-landing.tsx) and the intent-capture route (src/app/[locale]/i/
+    // [kind]/[id]/route.ts) both link here with ?mode=signUp so a visitor
+    // who came from "I want to sign up" doesn't land on the sign-in tab.
+    if (params.get("mode") === "signUp") {
+      setMode("signUp");
+    }
     // The callback route redirects here with "?error=reset-expired" when the
     // recovery link's code exchange failed (link already used/expired, or
     // opened in a different browser than the one that requested it — see

@@ -207,12 +207,14 @@ select has_column('public', 'profiles', 'is_online', 'profiles.is_online exists'
 select has_column('public', 'profiles', 'last_seen_at', 'profiles.last_seen_at exists');
 select has_column('public', 'profiles', 'created_at', 'profiles.created_at exists');
 select has_column('public', 'profiles', 'updated_at', 'profiles.updated_at exists');
+select has_column('public', 'profiles', 'has_seen_nav_tour', 'profiles.has_seen_nav_tour exists');
 select col_is_pk('public', 'profiles', array['id'], 'profiles PK is (id)');
 select col_is_unique('public', 'profiles', array['username'], 'profiles.username is unique');
 select col_default_is('public', 'profiles', 'locale', 'fr', 'profiles.locale defaults to fr');
 select col_default_is('public', 'profiles', 'plan', 'free', 'profiles.plan defaults to free');
 select col_default_is('public', 'profiles', 'moderation_status', 'active', 'profiles.moderation_status defaults to active');
 select col_default_is('public', 'profiles', 'is_admin', 'false', 'profiles.is_admin defaults to false');
+select col_default_is('public', 'profiles', 'has_seen_nav_tour', 'false', 'profiles.has_seen_nav_tour defaults to false');
 
 -- reports
 select has_column('public', 'reports', 'id', 'reports.id exists');
@@ -647,6 +649,7 @@ from unnest(array[
   'can_invite_to_group', 'enforce_event_photos_limit',
   'enforce_event_registration_capacity', 'get_blocked_profiles',
   'get_event_registration_counts', 'get_group_member_counts',
+  'get_public_map_points',
   'handle_creator_leaving', 'handle_interest_suggestion_resolution',
   'handle_group_join_request_approval', 'handle_new_user', 'is_active_user',
   'is_admin', 'is_banned_from_group', 'is_blocked_between',
@@ -724,6 +727,19 @@ select ok(
   'authenticated can execute get_event_registration_counts'
 );
 
+-- Public landing page map (visiteur non connecté) — SECURITY DEFINER, no
+-- anon RLS policy needed on events/partner_listings (see section 10 below,
+-- "anon has no explicit privileges on ... events/partner_listings").
+select is_definer('public', 'get_public_map_points', 'get_public_map_points() is SECURITY DEFINER (no anon RLS policy needed on events/partner_listings)');
+select ok(
+  has_function_privilege('anon', 'public.get_public_map_points()', 'EXECUTE'),
+  'anon can execute get_public_map_points'
+);
+select ok(
+  has_function_privilege('authenticated', 'public.get_public_map_points()', 'EXECUTE'),
+  'authenticated can execute get_public_map_points'
+);
+
 -- is_event_participant()/is_event_organizer() read auth.uid(), which is null
 -- outside of a real authenticated request — this pgTAP run has no JWT
 -- context, so both must resolve to false rather than erroring.
@@ -798,6 +814,74 @@ select throws_ok(
     values ('00000000-0000-0000-0000-0000000000e1', 'https://example.com/p6.jpg')$$,
   'An event cannot have more than 5 photos',
   'enforce_event_photos_limit blocks a 6th photo on the same event'
+);
+
+-- Functional test: get_public_map_points only surfaces content that's
+-- actually meant to be public, and only the whitelisted columns — no
+-- description, no registration counts, no partner contact info, no past
+-- events, no inactive listings.
+insert into events (id, title, interest_id, creator_id, city, latitude, longitude, starts_at, ends_at)
+values (
+  '00000000-0000-0000-0000-0000000000e3',
+  '__pgtap_test_event_public_map__',
+  (select id from interests limit 1),
+  null,
+  'Montréal',
+  45.5,
+  -73.6,
+  now() + interval '1 day',
+  now() + interval '1 day' + interval '2 hours'
+);
+-- Deliberately non-sequential position values, inserted out of order, to
+-- prove the RPC picks the lowest position rather than insertion order.
+insert into event_photos (event_id, url, position) values
+  ('00000000-0000-0000-0000-0000000000e3', 'https://example.com/second.jpg', 2),
+  ('00000000-0000-0000-0000-0000000000e3', 'https://example.com/first.jpg', 1);
+
+insert into partner_listings (id, profile_id, name, interest_id, city, latitude, longitude, photo_urls, status)
+values (
+  '00000000-0000-0000-0000-0000000000b1',
+  null,
+  '__pgtap_test_partner_active__',
+  (select id from interests limit 1),
+  'Montréal',
+  45.5,
+  -73.6,
+  array['https://example.com/partner.jpg'],
+  'active'
+);
+insert into partner_listings (id, profile_id, name, interest_id, city, latitude, longitude, photo_urls, status)
+values (
+  '00000000-0000-0000-0000-0000000000b2',
+  null,
+  '__pgtap_test_partner_inactive__',
+  (select id from interests limit 1),
+  'Montréal',
+  45.5,
+  -73.6,
+  array['https://example.com/partner2.jpg'],
+  'inactive'
+);
+
+select is(
+  (select array[kind, title, photo_url] from get_public_map_points() where id = '00000000-0000-0000-0000-0000000000e3'::uuid),
+  array['event', '__pgtap_test_event_public_map__', 'https://example.com/first.jpg'],
+  'get_public_map_points returns the lowest-position photo for a future event, not insertion order'
+);
+select is(
+  (select count(*)::int from get_public_map_points() where id = '00000000-0000-0000-0000-0000000000e2'::uuid),
+  0,
+  'get_public_map_points excludes an event that has already ended'
+);
+select is(
+  (select array[kind, title, photo_url] from get_public_map_points() where id = '00000000-0000-0000-0000-0000000000b1'::uuid),
+  array['partner', '__pgtap_test_partner_active__', 'https://example.com/partner.jpg'],
+  'get_public_map_points includes an active partner listing with its title/photo mapped correctly'
+);
+select is(
+  (select count(*)::int from get_public_map_points() where id = '00000000-0000-0000-0000-0000000000b2'::uuid),
+  0,
+  'get_public_map_points excludes an inactive partner listing'
 );
 
 select is_definer('public', 'handle_interest_suggestion_resolution', 'handle_interest_suggestion_resolution() is SECURITY DEFINER (writes interests + notifications as a side effect of an authenticated-user-privileged UPDATE)');

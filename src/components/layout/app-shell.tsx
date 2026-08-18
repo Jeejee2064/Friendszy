@@ -3,6 +3,8 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { SidebarNav } from "./sidebar-nav";
+import { NavTour } from "./nav-tour";
+import { getNavKeys } from "./nav-items";
 import { LocaleToggle } from "./locale-toggle";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { InstallPromptBanner } from "@/components/pwa/install-prompt-banner";
@@ -11,10 +13,12 @@ import type { ProfileSummary } from "@/lib/profile/types";
 export async function AppShell({
   profile,
   isAdmin = false,
+  hasSeenNavTour = true,
   children,
 }: {
   profile: ProfileSummary;
   isAdmin?: boolean;
+  hasSeenNavTour?: boolean;
   children: ReactNode;
 }) {
   const t = await getTranslations("Shell");
@@ -89,6 +93,12 @@ export async function AppShell({
         <InstallPromptBanner />
         {children}
       </main>
+
+      <NavTour
+        navKeys={getNavKeys(isAdmin)}
+        userId={profile.id}
+        initialSeen={hasSeenNavTour}
+      />
     </div>
   );
 }

@@ -161,6 +161,19 @@ export async function setProfileAvatar(profileId: string, avatarUrl: string) {
   if (error) throw error;
 }
 
+/**
+ * Force `has_seen_nav_tour` sur un profil de test, pour simuler "vient tout
+ * juste de finir l'onboarding" (false) ou "l'a déjà vue" (true) sans
+ * dépendre d'un vrai run d'onboarding — voir e2e/nav-tour.spec.ts.
+ */
+export async function setHasSeenNavTour(profileId: string, value: boolean) {
+  const { error } = await adminClient
+    .from("profiles")
+    .update({ has_seen_nav_tour: value })
+    .eq("id", profileId);
+  if (error) throw error;
+}
+
 /** Insère une notification directement (fixture de preuve — pas de flux réaliste requis pour ce cas). */
 export async function seedNotification(
   userId: string,

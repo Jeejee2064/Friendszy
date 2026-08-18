@@ -34,6 +34,15 @@ export async function proxy(request: NextRequest) {
 
   if (guarded) {
     if (!user) {
+      // "/" is the one guarded path with a public face: a signed-out
+      // visitor lands on the public map landing page rendered by
+      // (app)/layout.tsx + (app)/page.tsx, not /login. Every other
+      // guarded path still bounces to /login exactly as before — and an
+      // authenticated visitor on "/" still goes through every check below
+      // (suspended, onboarding, ...) unchanged.
+      if (path === "/") {
+        return response;
+      }
       return NextResponse.redirect(
         new URL(withLocalePrefix(pathname, "/login"), request.url)
       );

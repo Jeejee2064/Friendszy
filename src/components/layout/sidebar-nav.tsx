@@ -1,22 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Home, Search, MessageCircle, Users, Compass, ShieldUser } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
 import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
-import { GroupIcon } from "@/components/icons/group-icon";
-
-const NAV_ITEMS = [
-  { href: "/", icon: Home, key: "home" },
-  { href: "/search", icon: Search, key: "search" },
-  { href: "/messages", icon: MessageCircle, key: "messages" },
-  { href: "/friends", icon: Users, key: "friends" },
-  { href: "/groups", icon: GroupIcon, key: "groups" },
-  { href: "/discover", icon: Compass, key: "discover" },
-] as const;
-
-const ADMIN_NAV_ITEM = { href: "/admin", icon: ShieldUser, key: "admin" } as const;
+import { NAV_ITEMS, ADMIN_NAV_ITEM, navTourTargetId } from "./nav-items";
 
 export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
@@ -48,6 +36,7 @@ export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
         return (
           <Link
             key={item.href}
+            id={navTourTargetId(item.key)}
             href={item.href}
             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
               active ? "bg-bg text-teal2" : "text-muted hover:bg-bg"

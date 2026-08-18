@@ -69,6 +69,25 @@
     "profile": "My profile",
     "admin": "Admin"
   },
+  "NavTour": {
+    "title": "Guided tour of the navigation",
+    "welcomeTitle": "Welcome to Friendszy!",
+    "welcomeBody": "Want a quick tour of the navigation so you can find your way around?",
+    "start": "Discover",
+    "stepOf": "Step {step} / {total}",
+    "next": "Next",
+    "finish": "Finish",
+    "skip": "Skip",
+    "steps": {
+      "home": "Your home feed: a summary of your friends, unread messages, and latest notifications.",
+      "search": "Find new people based on city and shared interests.",
+      "messages": "All your conversations with friends, in one place.",
+      "friends": "Your friends list and pending friend requests.",
+      "groups": "Join or create groups around your passions.",
+      "discover": "Partners and events near you to discover.",
+      "admin": "The platform's moderation and administration tools."
+    }
+  },
   "Dashboard": {
     "welcomeBack": "Welcome back, {name}!",
     "stats": {
@@ -382,6 +401,14 @@
     "kindPartner": "Partner",
     "openNow": "Open now",
     "closedNow": "Closed"
+  },
+  "PublicLanding": {
+    "tagline": "Meet people who love the same things you do — just friends, not dating.",
+    "signUp": "Sign up",
+    "discover": "Discover",
+    "viewMore": "Learn more",
+    "emptyState": "Be one of the first to organize an event here!",
+    "emptyStateCta": "Sign up"
   },
   "Discover": {
     "title": "Discover",
