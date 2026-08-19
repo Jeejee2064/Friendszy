@@ -48,15 +48,15 @@ export function OpeningHoursEditor({
         const range = value[day]?.[0];
         const open = !!range;
         return (
-          // flex-wrap: a native <input type="time"> has its own intrinsic
-          // (locale-dependent) rendered width the browser picks, which on a
-          // narrow viewport (mobile wizard modal) can push the pair of
-          // inputs past the card's edge instead of shrinking — wrapping
-          // them onto their own line under the label is what actually
-          // fixes the overflow, a fixed input width alone isn't enough
-          // since browsers don't fully honor CSS width on this control.
-          <div key={day} className="flex flex-wrap items-center gap-2 text-sm">
-            <label className="flex w-28 shrink-0 items-center gap-1.5 font-semibold text-text">
+          // Stacked, not side-by-side with the label: a native
+          // <input type="time"> has its own intrinsic (locale-dependent)
+          // rendered width the browser picks, which on a narrow viewport
+          // (mobile wizard modal) doesn't leave room next to a day label on
+          // the same line without overflowing or looking cramped. Putting
+          // the open–close pair on its own line under the day it belongs to
+          // sidesteps that entirely instead of fighting the control's width.
+          <div key={day} className="flex flex-col gap-1.5 text-sm">
+            <label className="flex items-center gap-1.5 font-semibold text-text">
               <input
                 type="checkbox"
                 checked={open}
@@ -64,25 +64,27 @@ export function OpeningHoursEditor({
                 className="h-4 w-4 accent-[var(--teal2)]"
               />
               {dayLabels[day]}
+              {!open && <span className="text-xs font-normal text-muted">— {closedLabel}</span>}
             </label>
-            {open ? (
-              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+            {open && (
+              // 1.375rem = the checkbox's own width (1rem) + the gap next to
+              // it (0.375rem) — lines the time row up under the day's text,
+              // not under the checkbox.
+              <div className="ml-[1.375rem] flex items-center gap-1.5">
                 <input
                   type="time"
                   value={range.open}
                   onChange={(e) => setRange(day, "open", e.target.value)}
-                  className="w-[7.5rem] min-w-0 shrink rounded-md border border-border px-2 py-1 text-xs"
+                  className="w-[7.5rem] rounded-md border border-border px-2 py-1 text-xs"
                 />
                 <span className="text-muted">–</span>
                 <input
                   type="time"
                   value={range.close}
                   onChange={(e) => setRange(day, "close", e.target.value)}
-                  className="w-[7.5rem] min-w-0 shrink rounded-md border border-border px-2 py-1 text-xs"
+                  className="w-[7.5rem] rounded-md border border-border px-2 py-1 text-xs"
                 />
               </div>
-            ) : (
-              <span className="text-xs text-muted">{closedLabel}</span>
             )}
           </div>
         );

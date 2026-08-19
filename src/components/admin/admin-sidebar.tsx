@@ -57,14 +57,6 @@ export function AdminSidebar({
           </Link>
         );
       })}
-
-      <span className="mt-1 flex cursor-not-allowed items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted opacity-50">
-        <span className="text-base">📅</span>
-        {t("events")}
-        <span className="ml-auto rounded-full bg-bg px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
-          {t("eventsSoon")}
-        </span>
-      </span>
     </nav>
   );
 }

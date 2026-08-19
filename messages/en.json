@@ -755,9 +755,7 @@
       "members": "Members",
       "partners": "Partners",
       "interestSuggestions": "Suggested interests",
-      "logs": "Logs",
-      "events": "Events",
-      "eventsSoon": "Coming soon"
+      "logs": "Logs"
     },
     "logs": {
       "title": "Admin action log",

@@ -755,9 +755,7 @@
       "members": "Membres",
       "partners": "Partenaires",
       "interestSuggestions": "Intérêts suggérés",
-      "logs": "Journal",
-      "events": "Events",
-      "eventsSoon": "Bientôt disponible"
+      "logs": "Journal"
     },
     "logs": {
       "title": "Journal des actions admin",
