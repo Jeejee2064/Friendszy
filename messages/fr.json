@@ -109,7 +109,8 @@
       "profileSubtitle": "Modifier ma fiche"
     },
     "recentActivity": "Activité récente",
-    "viewAllNotifications": "Voir tout"
+    "viewAllNotifications": "Voir tout",
+    "noRecentActivity": "Aucune activité récente pour l'instant."
   },
   "Notifications": {
     "title": "Notifications",
@@ -849,6 +850,8 @@
     "installBody": "Accède à Friendszy plus rapidement depuis ton écran d'accueil.",
     "installButton": "Installer",
     "dismissButton": "Plus tard",
-    "iosInstructions": "Appuie sur Partager puis « Sur l'écran d'accueil »."
+    "iosStep1": "Appuie sur l'icône Partager (le carré avec la flèche vers le haut), en bas de l'écran (en haut sur iPad).",
+    "iosStep2": "Fais défiler le menu et appuie sur « Sur l'écran d'accueil ».",
+    "iosStep3": "Appuie sur « Ajouter » en haut à droite."
   }
 }

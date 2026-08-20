@@ -56,9 +56,9 @@ export function DiscoverPageClient({
   // event titles and partner names.
   const [name, setName] = useState("");
   const [debouncedName, setDebouncedName] = useState("");
-  // Découvrir opens straight on the map — that's the point of this page;
-  // the list view is still one tap away via the toggle button below.
-  const [view, setView] = useState<"map" | "list">("map");
+  // Découvrir opens on the list by default — the map is one tap away via
+  // the toggle button below.
+  const [view, setView] = useState<"map" | "list">("list");
 
   const [events, setEvents] = useState<EventCardData[]>(initialEvents);
   const [listings, setListings] = useState<PartnerListingRow[]>(initialListings);

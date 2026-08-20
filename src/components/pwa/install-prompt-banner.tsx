@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui/modal";
 import { usePwaInstall } from "@/lib/pwa/install-context";
+import { IosInstallSteps } from "@/components/pwa/ios-install-steps";
 
 // Shown at most once ever per browser — set the moment we decide to show
 // it, not on dismiss, so it can never come back on a later page load just
@@ -17,7 +18,8 @@ const OPEN_DELAY_MS = 3000;
 
 export function InstallPromptBanner() {
   const t = useTranslations("Pwa");
-  const { deferredPrompt, alreadyInstalled, platform, promptInstall } = usePwaInstall();
+  const { deferredPrompt, alreadyInstalled, platform, promptInstall, navTourActive } =
+    usePwaInstall();
   const [open, setOpen] = useState(false);
   const [delayElapsed, setDelayElapsed] = useState(false);
 
@@ -34,6 +36,10 @@ export function InstallPromptBanner() {
   useEffect(() => {
     if (!isMobile || alreadyInstalled || open || localStorage.getItem(SHOWN_STORAGE_KEY)) return;
     if (!delayElapsed) return;
+    // Don't compete with the nav tour (src/components/layout/nav-tour.tsx)
+    // for the screen — wait for it to finish/skip. Once it does, this
+    // effect re-runs via the navTourActive dependency and opens normally.
+    if (navTourActive) return;
     // iOS has no deferred prompt to wait for — the delay alone gates it.
     // Android needs the browser to have actually fired
     // `beforeinstallprompt` (captured globally by PwaInstallProvider) —
@@ -43,7 +49,7 @@ export function InstallPromptBanner() {
       setOpen(true);
     }
     if (ios || deferredPrompt) markShownAndOpen();
-  }, [isMobile, alreadyInstalled, open, delayElapsed, ios, deferredPrompt]);
+  }, [isMobile, alreadyInstalled, open, delayElapsed, ios, deferredPrompt, navTourActive]);
 
   function close() {
     setOpen(false);
@@ -64,9 +70,11 @@ export function InstallPromptBanner() {
           📲
         </span>
         <p className="mt-4 text-lg font-extrabold text-text">{t("installTitle")}</p>
-        <p className="mt-1 text-sm text-muted">
-          {ios ? t("iosInstructions") : t("installBody")}
-        </p>
+        {ios ? (
+          <IosInstallSteps className="mt-2 w-full" />
+        ) : (
+          <p className="mt-1 text-sm text-muted">{t("installBody")}</p>
+        )}
         <div className="mt-6 flex w-full items-center gap-2">
           {!ios && (
             <button

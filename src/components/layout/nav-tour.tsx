@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { usePwaInstall } from "@/lib/pwa/install-context";
 import { navTourTargetId } from "./nav-items";
 
 type Rect = { top: number; left: number; width: number; height: number };
@@ -33,6 +34,7 @@ export function NavTour({
   const router = useRouter();
   const t = useTranslations("Nav");
   const tTour = useTranslations("NavTour");
+  const { setNavTourActive } = usePwaInstall();
 
   const [dismissed, setDismissed] = useState(initialSeen);
   const [started, setStarted] = useState(false);
@@ -46,6 +48,12 @@ export function NavTour({
   // `initialSeen` alone after the first dismissal).
   const active = !dismissed && pathname === "/" && navKeys.length > 0;
   const key = navKeys[Math.min(step, navKeys.length - 1)];
+
+  // Let InstallPromptBanner know the tour is on screen so it can hold off
+  // opening on top of it (see install-context.tsx).
+  useEffect(() => {
+    setNavTourActive(active);
+  }, [active, setNavTourActive]);
 
   const measure = useCallback(() => {
     const el = document.getElementById(navTourTargetId(key));

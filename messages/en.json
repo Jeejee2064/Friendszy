@@ -109,7 +109,8 @@
       "profileSubtitle": "Edit my profile"
     },
     "recentActivity": "Recent activity",
-    "viewAllNotifications": "View all"
+    "viewAllNotifications": "View all",
+    "noRecentActivity": "No recent activity yet."
   },
   "Notifications": {
     "title": "Notifications",
@@ -849,6 +850,8 @@
     "installBody": "Get to Friendszy faster from your home screen.",
     "installButton": "Install",
     "dismissButton": "Later",
-    "iosInstructions": "Tap Share, then \"Add to Home Screen\"."
+    "iosStep1": "Tap the Share icon (the square with an arrow pointing up), at the bottom of the screen (top on iPad).",
+    "iosStep2": "Scroll down the menu and tap \"Add to Home Screen\".",
+    "iosStep3": "Tap \"Add\" in the top-right corner."
   }
 }

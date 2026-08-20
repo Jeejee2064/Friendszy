@@ -22,6 +22,11 @@ type PwaInstallContextValue = {
   alreadyInstalled: boolean;
   platform: Platform;
   promptInstall: () => Promise<void>;
+  // Not a PWA concept — shared here purely so InstallPromptBanner can defer
+  // to NavTour (src/components/layout/nav-tour.tsx) without a second
+  // context. Both already sit under this provider (root layout → AppShell).
+  navTourActive: boolean;
+  setNavTourActive: (active: boolean) => void;
 };
 
 const PwaInstallContext = createContext<PwaInstallContextValue | null>(null);
@@ -45,6 +50,7 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [platform, setPlatform] = useState<Platform>("other");
   const [alreadyInstalled, setAlreadyInstalled] = useState(false);
+  const [navTourActive, setNavTourActive] = useState(false);
 
   useEffect(() => {
     function initState() {
@@ -80,7 +86,16 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <PwaInstallContext.Provider value={{ deferredPrompt, alreadyInstalled, platform, promptInstall }}>
+    <PwaInstallContext.Provider
+      value={{
+        deferredPrompt,
+        alreadyInstalled,
+        platform,
+        promptInstall,
+        navTourActive,
+        setNavTourActive,
+      }}
+    >
       {children}
     </PwaInstallContext.Provider>
   );

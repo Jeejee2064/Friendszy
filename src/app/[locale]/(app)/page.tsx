@@ -119,24 +119,28 @@ export default async function DashboardPage({
             </div>
           </div>
 
-          {notifications.length > 0 && (
-            <div className="lg:col-span-1">
-              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
-                ⚡ {t("recentActivity")}
-              </p>
-              <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-3">
-                {notifications.map((n) => (
-                  <NotificationRow key={n.id} notification={n} />
-                ))}
-                <Link
-                  href="/notifications"
-                  className="mt-1 block text-center text-xs font-bold text-teal2 hover:underline"
-                >
-                  {t("viewAllNotifications")}
-                </Link>
-              </div>
+          <div className="lg:col-span-1">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
+              ⚡ {t("recentActivity")}
+            </p>
+            <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-3">
+              {notifications.length > 0 ? (
+                <>
+                  {notifications.map((n) => (
+                    <NotificationRow key={n.id} notification={n} />
+                  ))}
+                  <Link
+                    href="/notifications"
+                    className="mt-1 block text-center text-xs font-bold text-teal2 hover:underline"
+                  >
+                    {t("viewAllNotifications")}
+                  </Link>
+                </>
+              ) : (
+                <p className="p-3 text-center text-sm text-muted">{t("noRecentActivity")}</p>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

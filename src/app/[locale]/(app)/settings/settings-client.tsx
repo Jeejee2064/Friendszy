@@ -7,11 +7,11 @@ import { deleteMyAccount } from "@/lib/account/actions";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 import { usePwaInstall } from "@/lib/pwa/install-context";
+import { IosInstallSteps } from "@/components/pwa/ios-install-steps";
 import { useGoOffline } from "@/lib/presence/presence-context";
 
 export function SettingsPageClient({ locale }: { locale: string }) {
   const t = useTranslations("Settings");
-  const tPwa = useTranslations("Pwa");
   const tPrivacy = useTranslations("Privacy");
   const goOffline = useGoOffline();
   const { platform, alreadyInstalled, deferredPrompt, promptInstall } = usePwaInstall();
@@ -147,7 +147,7 @@ export function SettingsPageClient({ locale }: { locale: string }) {
       </div>
 
       <Modal open={iosInstructionsOpen} onClose={() => setIosInstructionsOpen(false)} title={t("pwaTitle")}>
-        <p className="text-sm text-muted">{tPwa("iosInstructions")}</p>
+        <IosInstallSteps />
       </Modal>
 
       <Modal open={confirmOpen} onClose={closeConfirm} title={t("deleteTitle")}>
