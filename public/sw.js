@@ -84,8 +84,11 @@ self.addEventListener("fetch", (event) => {
 });
 
 // Web Push: the push-new-message Edge Function sends a small generic JSON
-// payload — { title, url } — never the message content itself (privacy:
-// this is shown even on a locked phone). See supabase/functions/push-new-message.
+// payload — { title, url, icon } — never the message content itself
+// (privacy: this is shown even on a locked phone). `icon` is the sender's
+// avatar (falls back to the app icon if they don't have one); `badge` stays
+// the app icon always — that's the small monochrome status-bar glyph, not
+// an identity marker. See supabase/functions/push-new-message.
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -96,10 +99,11 @@ self.addEventListener("push", (event) => {
 
   const title = data.title || "Friendszy";
   const url = data.url || "/";
+  const icon = data.icon || "/icons/icon-192.png";
 
   event.waitUntil(
     self.registration.showNotification(title, {
-      icon: "/icons/icon-192.png",
+      icon,
       badge: "/icons/icon-192.png",
       data: { url },
     })

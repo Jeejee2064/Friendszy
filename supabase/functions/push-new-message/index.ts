@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
   }
 
   const [{ data: sender }, { data: subscriptions }] = await Promise.all([
-    admin.from("profiles").select("full_name").eq("id", senderId).maybeSingle(),
+    admin.from("profiles").select("full_name, avatar_url").eq("id", senderId).maybeSingle(),
     admin
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth, locale")
@@ -100,6 +100,10 @@ Deno.serve(async (req) => {
   }
 
   const name = (sender?.full_name as string | null) ?? "";
+  // Public Storage URL (same one <img src> uses elsewhere in the app) —
+  // no signing needed. Falls back to the app icon when the sender has no
+  // avatar; sw.js does the same if this key is absent entirely.
+  const icon = (sender?.avatar_url as string | null) ?? undefined;
 
   await Promise.all(
     (subscriptions as PushSubscriptionRow[]).map(async (sub) => {
@@ -110,7 +114,7 @@ Deno.serve(async (req) => {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify({ title, url })
+          JSON.stringify({ title, url, icon })
         );
         await admin
           .from("push_subscriptions")
