@@ -1,4 +1,4 @@
-const CACHE_NAME = "friendszy-shell-v6";
+const CACHE_NAME = "friendszy-shell-v7";
 const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 // Paths safe to runtime-cache: build assets (immutable, hashed filenames)
@@ -85,10 +85,20 @@ self.addEventListener("fetch", (event) => {
 
 // Web Push: the push-new-message Edge Function sends a small generic JSON
 // payload — { title, url } — never the message content itself (privacy:
-// this is shown even on a locked phone). icon/badge both stay the app icon
-// — tried the sender's avatar here briefly, but full-resolution uploaded
-// photos (500KB+) were too slow/large for the OS to decode into a
-// notification icon and rendered blank. See supabase/functions/push-new-message.
+// this is shown even on a locked phone). Tried the sender's avatar as icon
+// briefly, but full-resolution uploaded photos (500KB+) were too slow/large
+// for the OS to decode and rendered blank — reverted to the app icon.
+//
+// icon vs badge: `icon` is the full-color image shown in the notification
+// body — icon-192.png works fine there. `badge` is different: Android
+// FORCES it into a monochrome silhouette derived from the image's own
+// alpha channel, for the status-bar glyph and the small icon next to the
+// notification title. Reusing icon-192.png (a solid, opaque gradient
+// background) for badge gave Android nothing to derive a shape from, so it
+// rendered as a plain white square/circle. icon-badge.png is a real
+// transparent, white-on-transparent asset (generated from the "F" mark in
+// icon-512.png) built specifically for this. See
+// supabase/functions/push-new-message.
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -103,7 +113,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
+      badge: "/icons/icon-badge.png",
       data: { url },
     })
   );
