@@ -1,5 +1,17 @@
-const CACHE_NAME = "friendszy-shell-v5";
+const CACHE_NAME = "friendszy-shell-v6";
 const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+
+// Paths safe to runtime-cache: build assets (immutable, hashed filenames)
+// and the same small app-shell set precached above. Anything else —
+// including Next.js's client-side "soft navigation" RSC fetches for pages
+// like /messages?c=<id>, which are auth-gated and rendered per-request —
+// must always hit the network. Caching one of those risks replaying a
+// stale auth/redirect response on a later click, which is exactly the
+// kind of bug the navigate-mode exclusion below already guards against
+// for full page loads.
+function isCacheableStaticAsset(pathname) {
+  return pathname.startsWith("/_next/static/") || APP_SHELL.includes(pathname);
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -38,6 +50,10 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") return;
 
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
+    return;
+  }
+
+  if (!isCacheableStaticAsset(new URL(request.url).pathname)) {
     return;
   }
 
