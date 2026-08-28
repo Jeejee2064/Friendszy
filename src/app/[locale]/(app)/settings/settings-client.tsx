@@ -1,22 +1,31 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { deleteMyAccount } from "@/lib/account/actions";
+import { resetCookieConsent } from "@/lib/consent/cookie-consent";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 import { usePwaInstall } from "@/lib/pwa/install-context";
 import { IosInstallSteps } from "@/components/pwa/ios-install-steps";
 import { useGoOffline } from "@/lib/presence/presence-context";
+import { createClient } from "@/lib/supabase/client";
+import { isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
 
 export function SettingsPageClient({ locale }: { locale: string }) {
   const t = useTranslations("Settings");
   const tPrivacy = useTranslations("Privacy");
+  const tCookies = useTranslations("CookieConsent");
   const goOffline = useGoOffline();
+  const localeForPush = useLocale();
   const { platform, alreadyInstalled, deferredPrompt, promptInstall } = usePwaInstall();
   const isMobile = platform === "ios" || platform === "android";
   const [iosInstructionsOpen, setIosInstructionsOpen] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | null>(null);
+  const [pushEnabling, setPushEnabling] = useState(false);
+  const iosNeedsInstallForPush = platform === "ios" && !alreadyInstalled;
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -77,6 +86,28 @@ export function SettingsPageClient({ locale }: { locale: string }) {
     promptInstall();
   }
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPushSupported(isPushSupported());
+    if (typeof Notification !== "undefined") setPushPermission(Notification.permission);
+  }, []);
+
+  async function handleEnablePush() {
+    if (platform === "ios" && !alreadyInstalled) {
+      setIosInstructionsOpen(true);
+      return;
+    }
+    setPushEnabling(true);
+    try {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data.user) await subscribeToPush(supabase, data.user.id, localeForPush);
+      if (typeof Notification !== "undefined") setPushPermission(Notification.permission);
+    } finally {
+      setPushEnabling(false);
+    }
+  }
+
   return (
     <div className="p-6 md:p-10">
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
@@ -98,6 +129,41 @@ export function SettingsPageClient({ locale }: { locale: string }) {
                   style={{ backgroundImage: "var(--grad)" }}
                 >
                   {t("pwaButton")}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {pushSupported && (
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="mb-2 font-bold text-text">{t("pushTitle")}</h2>
+            {pushPermission === "granted" ? (
+              <p className="text-sm font-semibold text-teal2">{t("pushEnabledLabel")}</p>
+            ) : pushPermission === "denied" ? (
+              <p className="text-sm text-muted">{t("pushBlockedLabel")}</p>
+            ) : iosNeedsInstallForPush ? (
+              <>
+                <p className="mb-4 text-sm text-muted">{t("pushIosNeedsInstallBody")}</p>
+                <button
+                  type="button"
+                  onClick={() => setIosInstructionsOpen(true)}
+                  className="rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+                >
+                  {t("pwaTitle")}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-muted">{t("pushBody")}</p>
+                <button
+                  type="button"
+                  onClick={handleEnablePush}
+                  disabled={pushEnabling}
+                  className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+                  style={{ backgroundImage: "var(--grad)" }}
+                >
+                  {pushEnabling ? "…" : t("pushButton")}
                 </button>
               </>
             )}
@@ -130,6 +196,21 @@ export function SettingsPageClient({ locale }: { locale: string }) {
           >
             {tPrivacy("settingsCardLink")}
           </Link>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-2 font-bold text-text">{tCookies("settingsCardTitle")}</h2>
+          <p className="mb-4 text-sm text-muted">{tCookies("settingsCardBody")}</p>
+          <button
+            type="button"
+            onClick={() => {
+              resetCookieConsent();
+              window.location.reload();
+            }}
+            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+          >
+            {tCookies("settingsCardButton")}
+          </button>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">

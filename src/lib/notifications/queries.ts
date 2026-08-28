@@ -147,6 +147,16 @@ export async function markNotificationRead(supabase: Client, notificationId: str
   if (error) throw error;
 }
 
+export async function markNotificationsRead(supabase: Client, notificationIds: string[]) {
+  if (notificationIds.length === 0) return;
+  const { error } = await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .in("id", notificationIds)
+    .is("read_at", null);
+  if (error) throw error;
+}
+
 export async function markAllNotificationsRead(supabase: Client, userId: string) {
   const { error } = await supabase
     .from("notifications")

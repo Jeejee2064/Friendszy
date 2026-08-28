@@ -1,4 +1,4 @@
-const CACHE_NAME = "friendszy-shell-v4";
+const CACHE_NAME = "friendszy-shell-v5";
 const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -63,6 +63,50 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
       });
+    })
+  );
+});
+
+// Web Push: the push-new-message Edge Function sends a small generic JSON
+// payload — { title, url } — never the message content itself (privacy:
+// this is shown even on a locked phone). See supabase/functions/push-new-message.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    return;
+  }
+
+  const title = data.title || "Friendszy";
+  const url = data.url || "/";
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url },
+    })
+  );
+});
+
+// Click → focus an already-open tab and navigate it to the conversation,
+// or open a new one. Falling back to clients.openWindow() covers browsers
+// without WindowClient.navigate() and the "no tab open" case.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      const target = windowClients.find(
+        (client) => new URL(client.url).origin === self.location.origin
+      );
+      if (!target) return clients.openWindow(url);
+
+      return (target.navigate ? target.navigate(url) : Promise.resolve(target))
+        .then((client) => (client || target).focus())
+        .catch(() => clients.openWindow(url));
     })
   );
 });

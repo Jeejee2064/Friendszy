@@ -818,6 +818,15 @@
     "settingsCardBody": "Consulte la politique de confidentialité de Friendszy à tout moment.",
     "settingsCardLink": "Lire la politique de confidentialité"
   },
+  "CookieConsent": {
+    "body": "Nous utilisons des témoins essentiels au fonctionnement de Friendszy. Avec ton accord, nous pourrions aussi utiliser des témoins de mesure d'audience pour améliorer l'application — jamais à des fins publicitaires.",
+    "privacyLink": "En savoir plus",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "settingsCardTitle": "Témoins (cookies)",
+    "settingsCardBody": "Change ton choix concernant les témoins de mesure d'audience à tout moment.",
+    "settingsCardButton": "Changer mon choix"
+  },
   "Common": {
     "deletedUser": "Utilisateur supprimé",
     "back": "Retour",
@@ -831,6 +840,12 @@
     "pwaBody": "Ajoute Friendszy à ton écran d'accueil pour y accéder plus rapidement.",
     "pwaButton": "Installer",
     "pwaInstalledLabel": "✓ Application installée",
+    "pushTitle": "Notifications de messages",
+    "pushBody": "Sois averti·e dès que quelqu'un t'envoie un message, même quand Friendszy est fermé.",
+    "pushButton": "Activer les notifications",
+    "pushEnabledLabel": "✓ Notifications activées",
+    "pushBlockedLabel": "Notifications bloquées par ton navigateur. Active-les dans les réglages du navigateur pour ce site.",
+    "pushIosNeedsInstallBody": "Sur iPhone/iPad, les notifications ne fonctionnent que si Friendszy est ajouté à ton écran d'accueil.",
     "exportTitle": "Télécharger mes données",
     "exportBody": "Reçois une copie de tes données Friendszy (profil, intérêts, amis, messages envoyés) au format JSON.",
     "exportButton": "Télécharger mes données",
@@ -853,5 +868,11 @@
     "iosStep1": "Appuie sur l'icône Partager (le carré avec la flèche vers le haut), en bas de l'écran (en haut sur iPad).",
     "iosStep2": "Fais défiler le menu et appuie sur « Sur l'écran d'accueil ».",
     "iosStep3": "Appuie sur « Ajouter » en haut à droite."
+  },
+  "Push": {
+    "bannerTitle": "Active les notifications",
+    "bannerBody": "Sois averti·e dès que quelqu'un t'envoie un message, même quand Friendszy est fermé.",
+    "enableButton": "Activer",
+    "dismissButton": "Plus tard"
   }
 }

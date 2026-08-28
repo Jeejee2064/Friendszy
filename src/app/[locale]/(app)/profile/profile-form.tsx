@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { upsertMyProfile, setMyInterests, uploadAvatar } from "@/lib/profile/queries";
@@ -49,6 +49,7 @@ export function ProfileForm({
 }) {
   const t = useTranslations("Profile");
   const tFields = useTranslations("ProfileFields");
+  const locale = useLocale();
 
   const [form, setForm] = useState<FormState>(initial);
   const [pending, setPending] = useState(false);
@@ -221,6 +222,21 @@ export function ProfileForm({
           <p className={fieldLabelClass}>
             {tFields("interests")} ({form.interestIds.length})
           </p>
+          {form.interestIds.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {interests
+                .filter((interest) => form.interestIds.includes(interest.id))
+                .map((interest) => (
+                  <span
+                    key={interest.id}
+                    className="rounded-full border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-muted"
+                  >
+                    {interest.emoji ? `${interest.emoji} ` : ""}
+                    {locale === "en" ? interest.label_en : interest.label_fr}
+                  </span>
+                ))}
+            </div>
+          )}
           <InterestsGrid
             interests={interests}
             selectedIds={form.interestIds}

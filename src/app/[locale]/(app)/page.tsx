@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/lib/profile/queries";
 import { getDashboardStats } from "@/lib/dashboard/queries";
-import { getNotificationsWithProfiles } from "@/lib/notifications/queries";
+import { getNotificationsWithProfiles, markNotificationsRead } from "@/lib/notifications/queries";
 import { getPublicMapPoints } from "@/lib/publicMap/queries";
 import { HAS_CHOSEN_DISCOVER_COOKIE_NAME } from "@/lib/intent/cookie";
 import { PageHeader } from "@/components/layout/page-header";
@@ -42,6 +42,20 @@ export default async function DashboardPage({
     getDashboardStats(supabase, user.id),
     getNotificationsWithProfiles(supabase, user.id, 5),
   ]);
+
+  // The "recent activity" widget below is the notification itself — seeing
+  // it here already counts as having seen it, so it shouldn't keep showing
+  // as unread elsewhere (nav badge, /notifications) just because the user
+  // never clicked it. Mark whatever's displayed as read up front instead of
+  // waiting on a click.
+  const unreadIds = notifications.filter((n) => !n.read_at).map((n) => n.id);
+  if (unreadIds.length > 0) {
+    await markNotificationsRead(supabase, unreadIds);
+  }
+  const seenAt = new Date().toISOString();
+  const recentActivity = notifications.map((n) =>
+    unreadIds.includes(n.id) ? { ...n, read_at: seenAt } : n
+  );
 
   const firstName = profile?.full_name ?? "";
 
@@ -124,9 +138,9 @@ export default async function DashboardPage({
               ⚡ {t("recentActivity")}
             </p>
             <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-3">
-              {notifications.length > 0 ? (
+              {recentActivity.length > 0 ? (
                 <>
-                  {notifications.map((n) => (
+                  {recentActivity.map((n) => (
                     <NotificationRow key={n.id} notification={n} />
                   ))}
                   <Link

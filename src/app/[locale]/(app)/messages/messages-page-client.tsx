@@ -23,6 +23,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Modal } from "@/components/ui/modal";
 import { usePresence } from "@/lib/presence/presence-context";
 import { useToast } from "@/components/ui/toast-context";
+import { PushPermissionBanner } from "@/components/push/push-permission-banner";
 
 type ConversationSummary = {
   id: string;
@@ -219,6 +220,7 @@ export function MessagesPageClient({
   return (
     <div className="flex h-screen flex-col">
       <PageHeader title={t("title")} />
+      <PushPermissionBanner />
 
       <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:p-6">
         <div
@@ -508,7 +510,9 @@ function ConversationPane({
       } catch {
         // ignore transient errors, next reconnect/visibility change retries
       }
-      markConversationRead(supabase, conversationId, userId).catch(() => {});
+      markConversationRead(supabase, conversationId, userId).catch((err) =>
+        console.error("markConversationRead failed", err)
+      );
     }
 
     function subscribe() {
@@ -528,7 +532,9 @@ function ConversationPane({
               prev.some((m) => m.id === newMessage.id) ? prev : [...prev, newMessage]
             );
             if (newMessage.sender_id !== userId) {
-              markConversationRead(supabase, conversationId, userId).catch(() => {});
+              markConversationRead(supabase, conversationId, userId).catch((err) =>
+        console.error("markConversationRead failed", err)
+      );
             }
           }
         )
@@ -569,7 +575,9 @@ function ConversationPane({
         });
     }
 
-    markConversationRead(supabase, conversationId, userId).catch(() => {});
+    markConversationRead(supabase, conversationId, userId).catch((err) =>
+      console.error("markConversationRead failed", err)
+    );
     subscribe();
 
     // Background tabs get their sockets throttled by the browser; make sure

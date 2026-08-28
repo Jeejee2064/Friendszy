@@ -818,6 +818,15 @@
     "settingsCardBody": "Review Friendszy's privacy policy at any time.",
     "settingsCardLink": "Read the privacy policy"
   },
+  "CookieConsent": {
+    "body": "We use cookies that are essential to how Friendszy works. With your consent, we may also use audience-measurement cookies to improve the app — never for advertising.",
+    "privacyLink": "Learn more",
+    "accept": "Accept",
+    "decline": "Decline",
+    "settingsCardTitle": "Cookies",
+    "settingsCardBody": "Change your choice about audience-measurement cookies at any time.",
+    "settingsCardButton": "Change my choice"
+  },
   "Common": {
     "deletedUser": "Deleted user",
     "back": "Back",
@@ -831,6 +840,12 @@
     "pwaBody": "Add Friendszy to your home screen for faster access.",
     "pwaButton": "Install",
     "pwaInstalledLabel": "✓ App installed",
+    "pushTitle": "Message notifications",
+    "pushBody": "Get notified as soon as someone sends you a message, even when Friendszy is closed.",
+    "pushButton": "Enable notifications",
+    "pushEnabledLabel": "✓ Notifications enabled",
+    "pushBlockedLabel": "Notifications are blocked by your browser. Enable them in your browser's site settings.",
+    "pushIosNeedsInstallBody": "On iPhone/iPad, notifications only work if Friendszy is added to your home screen.",
     "exportTitle": "Download my data",
     "exportBody": "Get a copy of your Friendszy data (profile, interests, friends, sent messages) as JSON.",
     "exportButton": "Download my data",
@@ -853,5 +868,11 @@
     "iosStep1": "Tap the Share icon (the square with an arrow pointing up), at the bottom of the screen (top on iPad).",
     "iosStep2": "Scroll down the menu and tap \"Add to Home Screen\".",
     "iosStep3": "Tap \"Add\" in the top-right corner."
+  },
+  "Push": {
+    "bannerTitle": "Turn on notifications",
+    "bannerBody": "Get notified as soon as someone sends you a message, even when Friendszy is closed.",
+    "enableButton": "Enable",
+    "dismissButton": "Later"
   }
 }
