@@ -99,9 +99,12 @@ export function SettingsPageClient({ locale }: { locale: string }) {
     }
     setPushEnabling(true);
     try {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      if (data.user) await subscribeToPush(supabase, data.user.id, localeForPush);
+      // No `await` before this call — some Android Chrome builds silently
+      // drop the permission request (no prompt, permission stays
+      // "default" forever) if it isn't the first async step after the
+      // click. subscribeToPush fetches the user id itself, after the
+      // permission prompt, for exactly this reason.
+      await subscribeToPush(createClient(), localeForPush);
       if (typeof Notification !== "undefined") setPushPermission(Notification.permission);
     } finally {
       setPushEnabling(false);

@@ -57,17 +57,15 @@ export function PushPermissionBanner() {
   useEffect(() => {
     if (!supported) return;
     if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) subscribeToPush(supabase, data.user.id, locale).catch(() => {});
-    });
+    subscribeToPush(createClient(), locale).catch(() => {});
   }, [supported, locale]);
 
-  async function handleEnable() {
+  function handleEnable() {
     setOpen(false);
-    const supabase = createClient();
-    const { data } = await supabase.auth.getUser();
-    if (data.user) await subscribeToPush(supabase, data.user.id, locale).catch(() => {});
+    // No `await` before this — see subscribeToPush's own comment. Fetching
+    // the user id is now subscribeToPush's job, done after the permission
+    // prompt, precisely so this call stays the first async step here.
+    subscribeToPush(createClient(), locale).catch(() => {});
   }
 
   if (!supported || iosNeedsInstall) return null;

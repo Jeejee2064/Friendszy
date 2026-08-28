@@ -32,11 +32,15 @@ function urlBase64ToUint8Array(base64String: string): BufferSource {
 // upserts on (user_id, endpoint), so re-subscribing an already-known
 // device is a no-op write. Never throws: push is an enhancement, never a
 // hard requirement to use the app, so callers can fire-and-forget.
-export async function subscribeToPush(
-  supabase: Client,
-  userId: string,
-  locale: string
-): Promise<boolean> {
+//
+// IMPORTANT: call this as the very first thing in a click handler, with no
+// `await` before it (not even `supabase.auth.getUser()`) — some Android
+// Chrome builds silently drop the permission request (no prompt, no
+// error, permission just stays "default" forever) if it isn't tied
+// closely enough to the user gesture that triggered it. That's why the
+// user id is fetched in here, AFTER the permission call, instead of being
+// a parameter callers would have to await first.
+export async function subscribeToPush(supabase: Client, locale: string): Promise<boolean> {
   if (!isPushSupported()) return false;
 
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -48,6 +52,10 @@ export async function subscribeToPush(
         ? await Notification.requestPermission()
         : Notification.permission;
     if (permission !== "granted") return false;
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return false;
 
     const registration = await navigator.serviceWorker.ready;
     const existing = await registration.pushManager.getSubscription();
