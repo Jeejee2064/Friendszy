@@ -4,16 +4,25 @@ import { useState, type CSSProperties } from "react";
 import Map, { Marker, NavigationControl, Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useLocale, useTranslations } from "next-intl";
-import { Calendar, MapPin, X, type LucideIcon } from "lucide-react";
+import { Calendar, MapPin, UserRound, X, type LucideIcon } from "lucide-react";
 import { Link, getPathname } from "@/i18n/navigation";
 import { MAP_STYLE } from "@/components/map/map-view";
 import type { PublicMapPoint } from "@/lib/publicMap/types";
+import { PREVIEW_PROFILES, type PreviewProfile } from "@/lib/landing/preview-profiles";
 
 // Montréal — "le plus de contenu s'y trouvera au départ" (spec). Unlike the
 // authenticated /discover map, this one is never centered on a viewer's own
 // city: there's no profile to read one from yet.
 const MONTREAL_CENTER: [number, number] = [-73.6, 45.5];
 const DEFAULT_ZOOM = 10.3;
+// Montreal is the only market at launch, so this map — unlike the
+// authenticated app's maps — is locked there: [[west, south], [east,
+// north]], Mapbox's own LngLatBoundsLike order, covering the island plus
+// Laval, the South Shore, and the West Island.
+const MONTREAL_BOUNDS: [[number, number], [number, number]] = [
+  [-74.05, 45.3],
+  [-73.3, 45.75],
+];
 
 // Deliberately not MapView (src/components/map/map-view.tsx) — that one's
 // popups/cards assume the full authenticated data shape (description,
@@ -32,6 +41,12 @@ const MARKER_STYLE: Record<
   event: { icon: Calendar, style: { backgroundImage: "var(--grad)" }, borderColor: "var(--teal1)" },
   partner: { icon: MapPin, style: { backgroundColor: "var(--blue)" }, borderColor: "var(--blue)" },
 };
+
+// Amber, not teal1/blue — those two are already taken by event/partner
+// pins above, so the illustrative people pins (see preview-profiles.ts)
+// need their own color to read as a third, distinct kind of pin at a
+// glance rather than blending into one of the two real kinds.
+const PREVIEW_PERSON_BORDER_COLOR = "#f59e0b";
 
 function MarkerPin({ point }: { point: PublicMapPoint }) {
   const style = MARKER_STYLE[point.kind];
@@ -65,6 +80,38 @@ function MarkerPin({ point }: { point: PublicMapPoint }) {
   );
 }
 
+// Same photo-pin visual language as MarkerPin above, for the illustrative
+// "aperçu" people (see preview-profiles.ts) — always has a photo (a local
+// static asset, never a broken/missing URL), but still falls back to a
+// plain icon on a load failure, matching MarkerPin's own defensiveness.
+function PersonMarkerPin({ profile }: { profile: PreviewProfile }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  return (
+    <button
+      type="button"
+      aria-label={profile.firstName}
+      className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-base shadow-md transition-transform hover:scale-110"
+      style={
+        !imageFailed
+          ? { border: `3px solid ${PREVIEW_PERSON_BORDER_COLOR}` }
+          : { backgroundColor: PREVIEW_PERSON_BORDER_COLOR, border: "3px solid white" }
+      }
+    >
+      {!imageFailed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={profile.photo}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <UserRound className="h-4 w-4 text-white" strokeWidth={2} aria-hidden />
+      )}
+    </button>
+  );
+}
+
 export function PublicLanding({
   points,
   hasChosenDiscover,
@@ -84,6 +131,12 @@ export function PublicLanding({
   // the intent cookie and redirects to /login), rather than sending an
   // anonymous visitor straight there with no warning.
   const [detailGate, setDetailGate] = useState<PublicMapPoint | null>(null);
+  // Separate from `selected` above (real points) so a real pin's popup and
+  // a preview person's popup never fight over the same piece of state —
+  // there's nothing at /i/person/[id] to hand off to for these (they're
+  // not real), so their popup goes straight to sign-up instead of through
+  // the detailGate flow.
+  const [selectedProfile, setSelectedProfile] = useState<PreviewProfile | null>(null);
 
   async function handleDiscover() {
     setDiscovering(true);
@@ -124,6 +177,7 @@ export function PublicLanding({
             zoom: DEFAULT_ZOOM,
           }}
           mapStyle={MAP_STYLE}
+          maxBounds={MONTREAL_BOUNDS}
           style={{ width: "100%", height: "100%" }}
         >
           <NavigationControl position="bottom-left" />
@@ -136,12 +190,85 @@ export function PublicLanding({
               anchor="bottom"
               onClick={(e) => {
                 e.originalEvent.stopPropagation();
+                setSelectedProfile(null);
                 setSelected(point);
               }}
             >
               <MarkerPin point={point} />
             </Marker>
           ))}
+
+          {/* Illustrative "there are people here too" pins — see
+              preview-profiles.ts. Rendered inside the same blurred/gated
+              wrapper as the real pins above, so they reveal at the same
+              "Découvrir" moment instead of needing their own gating logic. */}
+          {PREVIEW_PROFILES.map((profile) => (
+            <Marker
+              key={profile.id}
+              longitude={profile.longitude}
+              latitude={profile.latitude}
+              anchor="bottom"
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setSelected(null);
+                setSelectedProfile(profile);
+              }}
+            >
+              <PersonMarkerPin profile={profile} />
+            </Marker>
+          ))}
+
+          {selectedProfile && (
+            <Popup
+              longitude={selectedProfile.longitude}
+              latitude={selectedProfile.latitude}
+              anchor="bottom"
+              offset={24}
+              maxWidth="260px"
+              onClose={() => setSelectedProfile(null)}
+              closeOnClick={false}
+              closeButton={false}
+            >
+              <div className="relative h-24 w-full overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={selectedProfile.photo} alt="" className="h-full w-full object-cover" />
+                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                  {t("previewBadge")}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5 p-3">
+                <p className="truncate text-sm font-extrabold text-text">
+                  {selectedProfile.firstName} {selectedProfile.lastInitial}, {selectedProfile.age}
+                </p>
+                <p className="flex items-center gap-1 text-xs text-muted">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+                  {selectedProfile.neighbourhood}
+                </p>
+                <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-[11px] font-semibold text-teal2">
+                  {selectedProfile.interest.emoji}{" "}
+                  {locale === "en" ? selectedProfile.interest.en : selectedProfile.interest.fr}
+                </span>
+                <p className="text-[11px] text-muted">{t("previewNote")}</p>
+              </div>
+              <div className="flex items-center justify-between gap-2 px-3 pb-3">
+                <Link
+                  href="/login?mode=signUp"
+                  className="inline-flex w-fit items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-opacity hover:opacity-90"
+                  style={{ backgroundImage: "var(--grad)" }}
+                >
+                  {t("signUp")}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProfile(null)}
+                  aria-label={tMap("close")}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+                >
+                  <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+                </button>
+              </div>
+            </Popup>
+          )}
 
           {selected && (
             <Popup

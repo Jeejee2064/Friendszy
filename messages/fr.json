@@ -411,7 +411,9 @@
     "detailGateTitle": "Crée ton compte pour continuer",
     "detailGateBody": "Inscris-toi gratuitement pour voir tous les détails de « {title} » et t'inscrire.",
     "emptyState": "Sois parmi les premiers à organiser un événement ici !",
-    "emptyStateCta": "S'inscrire"
+    "emptyStateCta": "S'inscrire",
+    "previewBadge": "Aperçu",
+    "previewNote": "Profil fictif à titre d'exemple — pas un vrai membre."
   },
   "Discover": {
     "title": "Découvrir",

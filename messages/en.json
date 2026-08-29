@@ -411,7 +411,9 @@
     "detailGateTitle": "Create your account to continue",
     "detailGateBody": "Sign up for free to see all the details for \"{title}\" and join in.",
     "emptyState": "Be one of the first to organize an event here!",
-    "emptyStateCta": "Sign up"
+    "emptyStateCta": "Sign up",
+    "previewBadge": "Preview",
+    "previewNote": "Example profile — not a real member."
   },
   "Discover": {
     "title": "Discover",
