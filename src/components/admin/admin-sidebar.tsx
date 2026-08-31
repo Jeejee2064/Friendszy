@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 
 const NAV_ITEMS = [
   { href: "/admin", key: "dashboard", icon: "📊" },
+  { href: "/admin/analytics", key: "analytics", icon: "📈" },
   { href: "/admin/moderation", key: "moderation", icon: "🛡️" },
   { href: "/admin/members", key: "members", icon: "👥" },
   { href: "/admin/partners", key: "partners", icon: "🤝" },

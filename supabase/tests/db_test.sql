@@ -33,7 +33,7 @@ select has_extension('unaccent', 'extension unaccent is installed (city search)'
 
 select has_table('public', t, 'table public.' || t || ' exists')
 from unnest(array[
-  'blocks', 'conversations', 'event_messages', 'event_photos',
+  'analytics_events', 'blocks', 'conversations', 'event_messages', 'event_photos',
   'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
@@ -46,7 +46,7 @@ select ok(
   'RLS is enabled on public.' || t
 )
 from unnest(array[
-  'blocks', 'conversations', 'event_messages', 'event_photos',
+  'analytics_events', 'blocks', 'conversations', 'event_messages', 'event_photos',
   'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
@@ -287,6 +287,14 @@ select has_column('public', 'event_messages', 'removed_by', 'event_messages.remo
 select has_column('public', 'event_messages', 'created_at', 'event_messages.created_at exists');
 select col_is_pk('public', 'event_messages', array['id'], 'event_messages PK is (id)');
 
+-- analytics_events
+select has_column('public', 'analytics_events', 'id', 'analytics_events.id exists');
+select has_column('public', 'analytics_events', 'user_id', 'analytics_events.user_id exists');
+select has_column('public', 'analytics_events', 'event_name', 'analytics_events.event_name exists');
+select has_column('public', 'analytics_events', 'properties', 'analytics_events.properties exists');
+select has_column('public', 'analytics_events', 'created_at', 'analytics_events.created_at exists');
+select col_is_pk('public', 'analytics_events', array['id'], 'analytics_events PK is (id)');
+
 -- ============================================================
 -- 4. Foreign keys
 -- ============================================================
@@ -318,6 +326,8 @@ select col_is_fk('public', 'profile_interests', 'interest_id', 'profile_interest
 select col_is_fk('public', 'profiles', 'id', 'profiles.id is a FK (references auth.users)');
 select col_is_fk('public', 'reports', 'reporter_id', 'reports.reporter_id is a FK');
 select col_is_fk('public', 'reports', 'resolved_by', 'reports.resolved_by is a FK');
+
+select col_is_fk('public', 'analytics_events', 'user_id', 'analytics_events.user_id is a FK');
 
 select col_is_fk('public', 'interest_suggestions', 'suggested_by', 'interest_suggestions.suggested_by is a FK');
 select col_is_fk('public', 'interest_suggestions', 'resolved_by', 'interest_suggestions.resolved_by is a FK');
@@ -393,6 +403,10 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'interest_suggestions_created_interest_id_fkey') = 'n',
   'interest_suggestions.created_interest_id -> interests(id) is ON DELETE SET NULL'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'analytics_events_user_id_fkey') = 'c',
+  'analytics_events.user_id -> profiles(id) is ON DELETE CASCADE (a deleted user''s tracking events go with them, Loi 25 erasure)'
 );
 
 -- ============================================================
@@ -592,6 +606,8 @@ select has_index('public', 'events', 'idx_events_ends_at', 'index idx_events_end
 select has_index('public', 'event_photos', 'idx_event_photos_event', 'index idx_event_photos_event exists');
 select has_index('public', 'event_registrations', 'idx_event_registrations_profile', 'index idx_event_registrations_profile exists');
 select has_index('public', 'event_messages', 'idx_event_messages_event', 'index idx_event_messages_event exists');
+select has_index('public', 'analytics_events', 'idx_analytics_events_event_name_created_at', 'index idx_analytics_events_event_name_created_at exists');
+select has_index('public', 'analytics_events', 'idx_analytics_events_user_id', 'index idx_analytics_events_user_id exists');
 
 -- Exact definitions of the two data-integrity safety nets — these are the
 -- last line of defense against bugs like the "duplicate active creator"
@@ -1140,6 +1156,20 @@ select ok(
   'event_registrations_select: any registered participant can see who else is registered, like group_members'
 );
 
+select policies_are('public', 'analytics_events', array[
+  'analytics_events_insert_own', 'analytics_events_select_admin'
+], 'analytics_events has exactly the expected policies (no update/delete for anyone — immutable, like messages)');
+select ok(
+  (select with_check from pg_policies where schemaname = 'public' and tablename = 'analytics_events' and policyname = 'analytics_events_insert_own')
+    = '(user_id = auth.uid())',
+  'analytics_events_insert_own: a user can only log events as themselves'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'analytics_events' and policyname = 'analytics_events_select_admin')
+    = 'is_admin()',
+  'analytics_events_select_admin: only admins can read tracking events, never the user who logged them'
+);
+
 -- ============================================================
 -- 10. Grants — every RLS policy is moot without the base GRANT
 --     (see CLAUDE.md: raw-SQL-created tables don't get this automatically)
@@ -1202,6 +1232,9 @@ select table_privs_are('public', 'event_registrations', 'authenticated',
 select table_privs_are('public', 'event_messages', 'authenticated',
   array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on event_messages');
+select table_privs_are('public', 'analytics_events', 'authenticated',
+  array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
+  'authenticated has expected privileges on analytics_events (no UPDATE/DELETE — immutable, like messages)');
 
 -- anon gets nothing beyond the implicit PUBLIC grants on every table —
 -- there is no unauthenticated read access anywhere in this schema.
@@ -1209,7 +1242,7 @@ select table_privs_are('public', t, 'anon',
   array['REFERENCES', 'TRIGGER', 'TRUNCATE'],
   'anon has no explicit privileges on ' || t || ' (unauthenticated users see nothing)')
 from unnest(array[
-  'blocks', 'conversations', 'event_messages', 'event_photos',
+  'analytics_events', 'blocks', 'conversations', 'event_messages', 'event_photos',
   'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',

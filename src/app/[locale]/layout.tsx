@@ -11,6 +11,7 @@ import { NotificationsProvider } from "@/lib/notifications/notifications-context
 import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
 import { ToastProvider } from "@/components/ui/toast-context";
 import { PwaInstallProvider } from "@/lib/pwa/install-context";
+import { AnalyticsSessionPing } from "@/components/analytics/session-ping";
 import "../globals.css";
 
 const nunito = Nunito({
@@ -84,6 +85,7 @@ export default async function LocaleLayout({
                     {children}
                     <ServiceWorkerRegister />
                     <CookieConsentBanner />
+                    <AnalyticsSessionPing />
                   </UnreadMessagesProvider>
                 </NotificationsProvider>
               </PresenceProvider>

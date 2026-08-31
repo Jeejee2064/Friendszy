@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { track } from "@/lib/analytics/track";
 
 // Set the moment `appinstalled` fires — this plus `isStandalone()` is the
 // best "already installed" signal we can get client-side. There is no
@@ -68,6 +69,7 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(INSTALLED_STORAGE_KEY, "1");
       setAlreadyInstalled(true);
       setDeferredPrompt(null);
+      track("pwa_installed");
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -81,7 +83,8 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   async function promptInstall() {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const choice = await deferredPrompt.userChoice;
+    track("pwa_install_prompt_responded", { outcome: choice.outcome });
     setDeferredPrompt(null);
   }
 

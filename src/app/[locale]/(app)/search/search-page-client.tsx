@@ -23,6 +23,7 @@ import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { AgeBracketPicker, type AgeBracket } from "@/components/search/age-bracket-picker";
 import { Modal } from "@/components/ui/modal";
 import { PersonCard } from "@/components/social/person-card";
+import { track } from "@/lib/analytics/track";
 
 type Tab = "name" | "discover";
 type DiscoverStep = "city" | "interests" | "ageGender" | "results";
@@ -76,9 +77,14 @@ export function SearchPageClient({
     return locale === "en" ? interest.label_en : interest.label_fr;
   };
 
-  async function applyResults(searchResults: SearchResult[]) {
+  async function applyResults(mode: Tab, searchResults: SearchResult[]) {
     const supabase = createClient();
     setResults(searchResults);
+    track(
+      "search_performed",
+      { mode, resultCount: searchResults.length, city: mode === "discover" ? city || null : null },
+      userId
+    );
     const [shared, fMap] = await Promise.all([
       getInterestsForProfiles(
         supabase,
@@ -95,7 +101,7 @@ export function SearchPageClient({
     try {
       const supabase = createClient();
       const searchResults = await searchProfiles(supabase, { name: query }, userId);
-      await applyResults(searchResults);
+      await applyResults("name", searchResults);
     } finally {
       setLoading(false);
     }
@@ -115,7 +121,7 @@ export function SearchPageClient({
         },
         userId
       );
-      await applyResults(searchResults);
+      await applyResults("discover", searchResults);
     } finally {
       setLoading(false);
     }
@@ -156,6 +162,7 @@ export function SearchPageClient({
     try {
       const supabase = createClient();
       await addFriend(supabase, userId, targetId);
+      track("search_action", { mode: tab, actionType: "add_friend" }, userId);
       setFriendshipMap((prev) => {
         const next = new Map(prev);
         next.set(targetId, { friendshipId: "" });
@@ -181,6 +188,7 @@ export function SearchPageClient({
     try {
       const supabase = createClient();
       const conversationId = await getOrCreateConversation(supabase, userId, targetId);
+      track("search_action", { mode: tab, actionType: "message" }, userId);
       router.push(`/messages?c=${conversationId}`);
     } finally {
       setMessagingId(null);

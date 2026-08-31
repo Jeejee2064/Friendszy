@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -10,6 +11,7 @@ import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
+import { track } from "@/lib/analytics/track";
 
 type FormState = {
   fullName: string;
@@ -37,11 +39,25 @@ export function OnboardingWizard({
   const t = useTranslations("Onboarding");
   const tFields = useTranslations("ProfileFields");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  // Marqueur posé par auth/callback/route.ts juste après confirmation du
+  // courriel (jamais pour un lien de réinitialisation) — c'est le seul
+  // endroit où on sait, côté client, que l'inscription vient de se
+  // terminer. Consommé une seule fois puis retiré de l'URL.
+  useEffect(() => {
+    if (searchParams.get("confirmed") !== "1") return;
+    track("signup_completed", undefined, userId);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("confirmed");
+    window.history.replaceState({}, "", url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -72,6 +88,7 @@ export function OnboardingWizard({
       return;
     }
     setError(null);
+    track("onboarding_step_completed", { step: step + 1, stepName: stepTitles[step] }, userId);
     setStep((s) => Math.min(s + 1, STEP_COUNT - 1));
   }
 
@@ -95,6 +112,11 @@ export function OnboardingWizard({
         bio: form.bio.trim() || null,
       });
       await setMyInterests(supabase, userId, form.interestIds);
+      track(
+        "onboarding_completed",
+        { bioProvided: form.bio.trim().length > 0, interestCount: form.interestIds.length },
+        userId
+      );
       router.push("/");
       router.refresh();
     } catch {

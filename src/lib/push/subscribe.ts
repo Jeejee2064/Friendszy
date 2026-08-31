@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { track } from "@/lib/analytics/track";
 
 type Client = SupabaseClient<Database>;
 
@@ -51,6 +52,11 @@ export async function subscribeToPush(supabase: Client, locale: string): Promise
       Notification.permission === "default"
         ? await Notification.requestPermission()
         : Notification.permission;
+    // Fire-and-forget, and deliberately *after* requestPermission() above —
+    // never add an await before it (see the function comment: some Android
+    // Chrome builds silently drop the permission request if it isn't the
+    // very first await tied to the user gesture).
+    void track("push_permission_requested", { result: permission });
     if (permission !== "granted") return false;
 
     const { data: userData } = await supabase.auth.getUser();

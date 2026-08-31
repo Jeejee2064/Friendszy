@@ -11,7 +11,13 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      // Marqueur consommé une fois par onboarding-wizard.tsx pour logger
+      // signup_completed — jamais pour un lien de réinitialisation, et
+      // seulement à la toute première confirmation réussie.
+      const redirectTo = isRecovery
+        ? `${origin}${next}`
+        : `${origin}${next}${next.includes("?") ? "&" : "?"}confirmed=1`;
+      return NextResponse.redirect(redirectTo);
     }
     // Le code PKCE peut échouer pour plusieurs raisons courantes : lien déjà
     // utilisé, expiré, "pré-cliqué" par un scanner anti-hameçonnage côté
