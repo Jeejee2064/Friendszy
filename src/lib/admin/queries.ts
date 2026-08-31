@@ -6,6 +6,7 @@ import { getMessagesByIds, type MessageRow } from "@/lib/messages/queries";
 import { listOpenReports, listAllReports, type ReportRow } from "@/lib/reports/queries";
 import { getPartnerListingsByIds, type PartnerListingRow } from "@/lib/partners/queries";
 import { listPendingInterestSuggestions } from "@/lib/interest-suggestions/queries";
+import type { Interest } from "@/lib/profile/types";
 import type { ModerationStatus, ReportWithTarget, InterestSuggestionWithProfile } from "./types";
 
 type Client = SupabaseClient<Database>;
@@ -264,5 +265,58 @@ export async function removeMessageAsAdmin(
     .from("messages")
     .update({ removed_at: new Date().toISOString(), removed_by: adminId })
     .eq("id", messageId);
+  if (error) throw error;
+}
+
+// Manual catalogue management (create/edit/delete interests directly, not
+// via a suggestion) — allowed for admins only by RLS
+// (interests_insert_admin/interests_update_admin/interests_delete_admin).
+export async function createInterest(
+  supabase: Client,
+  interest: { slug: string; labelFr: string; labelEn: string; category: string; emoji: string | null }
+): Promise<Interest> {
+  const { data, error } = await supabase
+    .from("interests")
+    .insert({
+      slug: interest.slug,
+      label_fr: interest.labelFr,
+      label_en: interest.labelEn,
+      category: interest.category,
+      emoji: interest.emoji,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateInterest(
+  supabase: Client,
+  interestId: number,
+  interest: { slug: string; labelFr: string; labelEn: string; category: string; emoji: string | null }
+): Promise<Interest> {
+  const { data, error } = await supabase
+    .from("interests")
+    .update({
+      slug: interest.slug,
+      label_fr: interest.labelFr,
+      label_en: interest.labelEn,
+      category: interest.category,
+      emoji: interest.emoji,
+    })
+    .eq("id", interestId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Throws with a Postgres error code of "23503" (foreign_key_violation) if the
+ * interest is still referenced (profile_interests, groups, events,
+ * partner_listings) — those FKs have no ON DELETE cascade on purpose.
+ */
+export async function deleteInterest(supabase: Client, interestId: number) {
+  const { error } = await supabase.from("interests").delete().eq("id", interestId);
   if (error) throw error;
 }

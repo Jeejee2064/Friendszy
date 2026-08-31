@@ -1029,8 +1029,8 @@ select policies_are('public', 'groups', array[
 ], 'groups has exactly the expected policies');
 
 select policies_are('public', 'interests', array[
-  'interests_select'
-], 'interests has exactly the expected policies (read-only reference table)');
+  'interests_delete_admin', 'interests_insert_admin', 'interests_select', 'interests_update_admin'
+], 'interests has exactly the expected policies (read for everyone, write for admins only)');
 
 select policies_are('public', 'messages', array[
   'messages_insert', 'messages_select', 'messages_select_admin',
@@ -1104,6 +1104,23 @@ select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'interest_suggestions' and policyname = 'interest_suggestions_update_admin')
     = 'is_admin()',
   'interest_suggestions_update_admin: only an admin can approve/reject'
+);
+select ok(
+  (select with_check from pg_policies where schemaname = 'public' and tablename = 'interests' and policyname = 'interests_insert_admin')
+    = 'is_admin()',
+  'interests_insert_admin: only an admin can add a new interest'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'interests' and policyname = 'interests_update_admin')
+    = 'is_admin()'
+  and (select with_check from pg_policies where schemaname = 'public' and tablename = 'interests' and policyname = 'interests_update_admin')
+    = 'is_admin()',
+  'interests_update_admin: only an admin can edit an interest'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'interests' and policyname = 'interests_delete_admin')
+    = 'is_admin()',
+  'interests_delete_admin: only an admin can delete an interest'
 );
 select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'group_messages' and policyname = 'group_messages_update_admin')
@@ -1197,8 +1214,8 @@ select table_privs_are('public', 'groups', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on groups');
 select table_privs_are('public', 'interests', 'authenticated',
-  array['REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
-  'authenticated has expected (read-only) privileges on interests');
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
+  'authenticated has expected privileges on interests (write restricted to admins by RLS)');
 select table_privs_are('public', 'messages', 'authenticated',
   array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on messages');
