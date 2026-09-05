@@ -90,57 +90,7 @@ export function PrivacyPolicyContentFr() {
         être désactivée en tout temps.
       </p>
 
-      <h2>4. Protection des personnes mineures</h2>
-      <p>
-        Friendszy est accessible aux personnes âgées de 13 ans et plus. La protection des
-        mineurs est au cœur de nos priorités et nous appliquons les règles suivantes, conformément
-        à la Loi 25 et aux lignes directrices du Commissariat à la protection de la vie privée du
-        Canada :
-      </p>
-      <ul>
-        <li>
-          Le consentement d&rsquo;un mineur de moins de 14 ans est donné par le titulaire de
-          l&rsquo;autorité parentale ou par le tuteur. Aucun renseignement personnel d&rsquo;un
-          mineur de moins de 14 ans n&rsquo;est recueilli sans ce consentement, sauf lorsque la
-          collecte est manifestement au bénéfice du mineur, comme le permet la loi.
-          L&rsquo;inscription d&rsquo;une personne de moins de 14 ans requiert donc un
-          consentement parental vérifiable.
-        </li>
-        <li>
-          Le mineur de 14 ans et plus peut consentir seul à la collecte de ses renseignements
-          personnels ; le consentement peut également être donné par le titulaire de
-          l&rsquo;autorité parentale ou par le tuteur.
-        </li>
-        <li>
-          Les profils des membres mineurs bénéficient de paramètres de confidentialité renforcés
-          et activés par défaut : visibilité restreinte du profil, absence de géolocalisation, et
-          limitation des interactions avec des personnes majeures inconnues.
-        </li>
-        <li>
-          Aucun profilage à des fins publicitaires n&rsquo;est effectué à l&rsquo;égard des
-          membres mineurs et aucun renseignement personnel d&rsquo;un mineur n&rsquo;est utilisé
-          à des fins de marketing.
-        </li>
-        <li>
-          Nos équipes de modération portent une attention particulière aux signalements impliquant
-          des mineurs. Tout comportement inapproprié à l&rsquo;égard d&rsquo;un mineur entraîne la
-          suspension immédiate du compte fautif et, le cas échéant, un signalement aux autorités
-          compétentes.
-        </li>
-        <li>
-          Le titulaire de l&rsquo;autorité parentale ou le tuteur peut, en tout temps, exercer les
-          droits d&rsquo;accès, de rectification et de retrait au nom du mineur de moins de 14
-          ans, en écrivant à vieprivee@friendszy.ca.
-        </li>
-      </ul>
-      <p>
-        Si nous constatons qu&rsquo;un compte a été créé en contravention de ces règles,
-        notamment par une personne de moins de 13 ans ou par un mineur de moins de 14 ans sans
-        consentement parental, ce compte est supprimé et les renseignements associés sont
-        détruits.
-      </p>
-
-      <h2>5. Fins d&rsquo;utilisation de vos renseignements</h2>
+      <h2>4. Fins d&rsquo;utilisation de vos renseignements</h2>
       <p>Vos renseignements personnels sont utilisés uniquement aux fins suivantes :</p>
       <ul>
         <li>Créer et gérer votre compte, et vérifier votre âge et votre admissibilité.</li>
@@ -165,7 +115,7 @@ export function PrivacyPolicyContentFr() {
         l&rsquo;objet d&rsquo;un nouveau consentement de votre part.
       </p>
 
-      <h2>6. Consentement</h2>
+      <h2>5. Consentement</h2>
       <p>
         Nous recueillons votre consentement de manière manifeste, libre et éclairée, pour des
         fins spécifiques, et il est demandé pour chacune de ces fins, en termes simples et
@@ -176,7 +126,7 @@ export function PrivacyPolicyContentFr() {
         consentement peut toutefois limiter notre capacité à vous fournir certains services.
       </p>
 
-      <h2>7. Jumelage et paramètres par défaut</h2>
+      <h2>6. Jumelage et paramètres par défaut</h2>
       <p>
         Les suggestions de jumelage reposent sur un traitement automatisé des centres
         d&rsquo;intérêt et des préférences que vous déclarez. Conformément à la Loi 25, nous vous
@@ -192,7 +142,7 @@ export function PrivacyPolicyContentFr() {
         vous le décidez, après avoir été informé clairement de sa nature et de sa portée.
       </p>
 
-      <h2>8. Communication de vos renseignements</h2>
+      <h2>7. Communication de vos renseignements</h2>
       <p>
         Friendszy ne vend pas, ne loue pas et n&rsquo;échange pas vos renseignements personnels.
         Vos renseignements ne sont communiqués qu&rsquo;aux destinataires suivants :
@@ -211,7 +161,7 @@ export function PrivacyPolicyContentFr() {
         <li>
           Les autorités publiques, lorsqu&rsquo;une loi, une ordonnance ou un tribunal
           l&rsquo;exige, ou lorsque la communication est nécessaire à la protection d&rsquo;une
-          personne, notamment d&rsquo;un mineur.
+          personne.
         </li>
       </ul>
       <p>
@@ -220,7 +170,7 @@ export function PrivacyPolicyContentFr() {
         transaction, conformément aux conditions et protections prévues par la loi.
       </p>
 
-      <h2>9. Hébergement des données au Canada</h2>
+      <h2>8. Hébergement des données au Canada</h2>
       <p>
         L&rsquo;ensemble de vos renseignements personnels est hébergé sur des serveurs situés au
         Canada. Nous privilégions des fournisseurs de services établis au Canada. Si un
@@ -231,7 +181,7 @@ export function PrivacyPolicyContentFr() {
         d&rsquo;une entente écrite.
       </p>
 
-      <h2>10. Conservation et destruction</h2>
+      <h2>9. Conservation et destruction</h2>
       <p>
         Vos renseignements personnels sont conservés uniquement pendant la durée nécessaire aux
         fins pour lesquelles ils ont été recueillis, puis pendant toute période additionnelle
@@ -242,7 +192,7 @@ export function PrivacyPolicyContentFr() {
         les exigences réglementaires applicables.
       </p>
 
-      <h2>11. Témoins (cookies) et technologies similaires</h2>
+      <h2>10. Témoins (cookies) et technologies similaires</h2>
       <p>
         Notre site utilise des témoins strictement nécessaires au fonctionnement du service,
         notamment pour maintenir votre session ouverte et assurer la sécurité. Des témoins de
@@ -252,7 +202,7 @@ export function PrivacyPolicyContentFr() {
         certaines fonctions du site pourraient alors être limitées.
       </p>
 
-      <h2>12. Mesures de sécurité</h2>
+      <h2>11. Mesures de sécurité</h2>
       <p>
         Nous mettons en œuvre des mesures de sécurité physiques, techniques et organisationnelles
         raisonnables et proportionnées à la sensibilité des renseignements, notamment : le
@@ -263,7 +213,7 @@ export function PrivacyPolicyContentFr() {
         communication, la modification ou la destruction non autorisés.
       </p>
 
-      <h2>13. Incidents de confidentialité</h2>
+      <h2>12. Incidents de confidentialité</h2>
       <p>
         Conformément à la Loi 25 et à la LPRPDE, nous tenons un registre des incidents de
         confidentialité. Si un incident présente un risque de préjudice sérieux pour les
@@ -273,7 +223,7 @@ export function PrivacyPolicyContentFr() {
         raisonnables pour diminuer les risques et éviter que de nouveaux incidents se produisent.
       </p>
 
-      <h2>14. Vos droits</h2>
+      <h2>13. Vos droits</h2>
       <p>Vous disposez des droits suivants à l&rsquo;égard de vos renseignements personnels :</p>
       <ul>
         <li>
@@ -308,11 +258,10 @@ export function PrivacyPolicyContentFr() {
         Pour exercer ces droits, écrivez à vieprivee@friendszy.ca. Nous répondrons à votre
         demande avec diligence, au plus tard dans les 30 jours de sa réception, comme le prévoit
         la loi. Une preuve d&rsquo;identité pourra être demandée afin de protéger vos
-        renseignements. Pour un mineur de moins de 14 ans, la demande est présentée par le
-        titulaire de l&rsquo;autorité parentale ou par le tuteur.
+        renseignements.
       </p>
 
-      <h2>15. Modifications de la présente politique</h2>
+      <h2>14. Modifications de la présente politique</h2>
       <p>
         Nous pouvons modifier la présente politique afin de refléter l&rsquo;évolution de nos
         services ou du cadre légal. En cas de modification importante, nous vous en informerons
@@ -324,7 +273,7 @@ export function PrivacyPolicyContentFr() {
         expressément.
       </p>
 
-      <h2>16. Nous joindre</h2>
+      <h2>15. Nous joindre</h2>
       <p>
         Pour toute question relative à la présente politique ou à la gestion de vos
         renseignements personnels :

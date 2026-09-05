@@ -83,52 +83,7 @@ export function PrivacyPolicyContentEn() {
         consent and can be disabled at any time.
       </p>
 
-      <h2>4. Protection of minors</h2>
-      <p>
-        Friendszy is accessible to people aged 13 and older. Protecting minors is a core priority,
-        and we apply the following rules in accordance with Law 25 and the guidelines of the
-        Office of the Privacy Commissioner of Canada:
-      </p>
-      <ul>
-        <li>
-          Consent for a minor under 14 years of age is given by the holder of parental authority
-          or by the guardian. No personal information of a minor under 14 is collected without
-          this consent, except where the collection is clearly for the benefit of the minor, as
-          permitted by law. Registration by a person under 14 therefore requires verifiable
-          parental consent.
-        </li>
-        <li>
-          A minor aged 14 or older may consent alone to the collection of their personal
-          information; consent may also be given by the holder of parental authority or by the
-          guardian.
-        </li>
-        <li>
-          Profiles of minor members benefit from enhanced privacy settings enabled by default:
-          restricted profile visibility, no geolocation, and limited interactions with unknown
-          adult users.
-        </li>
-        <li>
-          No profiling for advertising purposes is carried out with respect to minor members, and
-          no minor&rsquo;s personal information is used for marketing purposes.
-        </li>
-        <li>
-          Our moderation teams pay particular attention to reports involving minors. Any
-          inappropriate conduct toward a minor results in the immediate suspension of the
-          offending account and, where applicable, a report to the relevant authorities.
-        </li>
-        <li>
-          The holder of parental authority or the guardian may, at any time, exercise the rights
-          of access, rectification, and withdrawal on behalf of a minor under 14 by writing to
-          vieprivee@friendszy.ca.
-        </li>
-      </ul>
-      <p>
-        If we discover that an account was created in violation of these rules, particularly by a
-        person under 13 or by a minor under 14 without parental consent, that account is deleted
-        and the associated information is destroyed.
-      </p>
-
-      <h2>5. Purposes for which we use your information</h2>
+      <h2>4. Purposes for which we use your information</h2>
       <p>Your personal information is used solely for the following purposes:</p>
       <ul>
         <li>Creating and managing your account, and verifying your age and eligibility.</li>
@@ -146,7 +101,7 @@ export function PrivacyPolicyContentEn() {
         renewed consent.
       </p>
 
-      <h2>6. Consent</h2>
+      <h2>5. Consent</h2>
       <p>
         We obtain your consent in a manifest, free, and informed manner, for specific purposes,
         and it is requested for each of these purposes, in simple and clear terms. Where the law
@@ -157,7 +112,7 @@ export function PrivacyPolicyContentEn() {
         certain services.
       </p>
 
-      <h2>7. Matching and default settings</h2>
+      <h2>6. Matching and default settings</h2>
       <p>
         Match suggestions rely on automated processing of the interests and preferences you
         declare. In accordance with Law 25, we inform you of how this works, and you may, on
@@ -171,7 +126,7 @@ export function PrivacyPolicyContentEn() {
         of its nature and scope.
       </p>
 
-      <h2>8. Disclosure of your information</h2>
+      <h2>7. Disclosure of your information</h2>
       <p>
         Friendszy does not sell, rent, or trade your personal information. Your information is
         only disclosed to the following recipients:
@@ -188,7 +143,7 @@ export function PrivacyPolicyContentEn() {
         </li>
         <li>
           Public authorities, where required by law, an order, or a court, or where disclosure is
-          necessary to protect a person, in particular a minor.
+          necessary to protect a person.
         </li>
       </ul>
       <p>
@@ -197,7 +152,7 @@ export function PrivacyPolicyContentEn() {
         the conditions and protections provided by law.
       </p>
 
-      <h2>9. Data hosted in Canada</h2>
+      <h2>8. Data hosted in Canada</h2>
       <p>
         All of your personal information is hosted on servers located in Canada. We favour service
         providers established in Canada. Should any personal information need to be disclosed
@@ -206,7 +161,7 @@ export function PrivacyPolicyContentEn() {
         disclosure would be governed by a written agreement.
       </p>
 
-      <h2>10. Retention and destruction</h2>
+      <h2>9. Retention and destruction</h2>
       <p>
         Your personal information is retained only for as long as necessary for the purposes for
         which it was collected, plus any additional period required by law. When you delete your
@@ -216,7 +171,7 @@ export function PrivacyPolicyContentEn() {
         and applicable regulatory requirements.
       </p>
 
-      <h2>11. Cookies and similar technologies</h2>
+      <h2>10. Cookies and similar technologies</h2>
       <p>
         Our site uses cookies that are strictly necessary for the service to function, in
         particular to keep you signed in and to ensure security. Analytics cookies may be used to
@@ -225,7 +180,7 @@ export function PrivacyPolicyContentEn() {
         may then be limited.
       </p>
 
-      <h2>12. Security measures</h2>
+      <h2>11. Security measures</h2>
       <p>
         We implement physical, technical, and organizational security measures that are reasonable
         and proportionate to the sensitivity of the information, including: encryption of data in
@@ -235,7 +190,7 @@ export function PrivacyPolicyContentEn() {
         destruction.
       </p>
 
-      <h2>13. Confidentiality incidents</h2>
+      <h2>12. Confidentiality incidents</h2>
       <p>
         In accordance with Law 25 and PIPEDA, we maintain a register of confidentiality incidents.
         If an incident presents a risk of serious harm to the persons concerned, we will diligently
@@ -244,7 +199,7 @@ export function PrivacyPolicyContentEn() {
         reasonable measures to reduce the risks and prevent further incidents.
       </p>
 
-      <h2>14. Your rights</h2>
+      <h2>13. Your rights</h2>
       <p>You have the following rights with respect to your personal information:</p>
       <ul>
         <li><strong>Right of access</strong>: obtain confirmation that we hold information about you and receive a copy of it.</li>
@@ -265,11 +220,10 @@ export function PrivacyPolicyContentEn() {
       <p>
         To exercise these rights, write to vieprivee@friendszy.ca. We will respond to your request
         diligently, no later than 30 days after receiving it, as required by law. Proof of identity
-        may be requested to protect your information. For a minor under 14, the request is
-        submitted by the holder of parental authority or by the guardian.
+        may be requested to protect your information.
       </p>
 
-      <h2>15. Changes to this policy</h2>
+      <h2>14. Changes to this policy</h2>
       <p>
         We may amend this policy to reflect changes in our services or in the legal framework. In
         the event of a material change, we will notify you through a notice on the platform or by
@@ -279,7 +233,7 @@ export function PrivacyPolicyContentEn() {
         renewed consent, it will be expressly requested from you.
       </p>
 
-      <h2>16. Contact us</h2>
+      <h2>15. Contact us</h2>
       <p>For any question regarding this policy or the management of your personal information:</p>
       <ul>
         <li>Friendszy inc., attention: person in charge of the protection of personal information</li>
