@@ -300,6 +300,11 @@ export default function LoginPage() {
                 ? t("signIn.welcomeSubtitle")
                 : t("signUp.welcomeSubtitle")}
             </p>
+            {mode === "signUp" && (
+              <p className="mt-1 text-sm font-extrabold text-text">
+                {t("signUp.welcomeTagline")}
+              </p>
+            )}
 
             <form
               onSubmit={mode === "signIn" ? handleSignIn : handleSignUp}

@@ -13,7 +13,8 @@
       "success": "Account created. Check your email to confirm your address.",
       "error": "Something went wrong during sign up.",
       "welcomeTitle": "Welcome! 👋",
-      "welcomeSubtitle": "Join Friendszy and make new friends"
+      "welcomeSubtitle": "Join Friendszy and make new friends",
+      "welcomeTagline": "The site dedicated exclusively to finding friends"
     },
     "signIn": {
       "title": "Sign in",
@@ -213,6 +214,26 @@
       "lastNameRequired": "Last name is required.",
       "ageInvalid": "Enter a valid age (18 or older)."
     }
+  },
+  "TemporaryCity": {
+    "cardTitle": "Temporary city",
+    "premiumBadge": "Premium",
+    "premiumLockedBody": "Get seen by people in another city while you're there (trip, upcoming move...). Premium feature — coming soon.",
+    "cardBodyInactive": "Get seen by people in another city while you're there — handy if you're traveling or about to move.",
+    "cityLabel": "Temporary city",
+    "cityPlaceholder": "City you're visiting",
+    "durationLabel": "Duration",
+    "duration24h": "24 hours",
+    "duration3d": "3 days",
+    "duration7d": "7 days",
+    "duration14d": "14 days",
+    "activate": "Activate",
+    "activeBody": "You're currently visible in {city} until {date}.",
+    "returnNow": "Return to {city} now",
+    "cityFieldLockedHint": "Your city can't be edited while a temporary city trip is active — return to your city first.",
+    "errorPremiumRequired": "Temporary city is a Premium feature.",
+    "errorGeneric": "Something went wrong. Try again.",
+    "visitingBadge": "Visiting"
   },
   "Search": {
     "title": "Search",

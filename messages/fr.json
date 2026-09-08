@@ -13,7 +13,8 @@
       "success": "Compte créé. Vérifie ton courriel pour confirmer ton adresse.",
       "error": "Une erreur est survenue lors de l'inscription.",
       "welcomeTitle": "Bienvenue ! 👋",
-      "welcomeSubtitle": "Rejoins Friendszy et fais de nouveaux amis"
+      "welcomeSubtitle": "Rejoins Friendszy et fais de nouveaux amis",
+      "welcomeTagline": "Le site dédié exclusivement à la recherche d'amis"
     },
     "signIn": {
       "title": "Connexion",
@@ -213,6 +214,26 @@
       "lastNameRequired": "Le nom de famille est requis.",
       "ageInvalid": "Indique un âge valide (18 ans ou plus)."
     }
+  },
+  "TemporaryCity": {
+    "cardTitle": "Ville temporaire",
+    "premiumBadge": "Premium",
+    "premiumLockedBody": "Sois vu par les gens d'une autre ville pendant un séjour (voyage, déménagement à venir...). Fonctionnalité Premium — bientôt disponible.",
+    "cardBodyInactive": "Sois vu par les gens d'une autre ville pendant un séjour — utile si tu voyages ou déménages bientôt.",
+    "cityLabel": "Ville temporaire",
+    "cityPlaceholder": "Ville où tu es de passage",
+    "durationLabel": "Durée",
+    "duration24h": "24 heures",
+    "duration3d": "3 jours",
+    "duration7d": "7 jours",
+    "duration14d": "14 jours",
+    "activate": "Activer",
+    "activeBody": "Tu es actuellement visible à {city} jusqu'au {date}.",
+    "returnNow": "Revenir à {city} maintenant",
+    "cityFieldLockedHint": "Ta ville ne peut pas être modifiée pendant un séjour temporaire actif — reviens d'abord à ta ville.",
+    "errorPremiumRequired": "La ville temporaire est réservée aux comptes Premium.",
+    "errorGeneric": "Une erreur est survenue. Réessaie.",
+    "visitingBadge": "De passage"
   },
   "Search": {
     "title": "Rechercher",

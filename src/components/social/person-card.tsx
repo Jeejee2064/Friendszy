@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { Link } from "@/i18n/navigation";
 import { OnlineDot } from "./online-dot";
@@ -18,9 +21,14 @@ export function PersonCard({
   href?: string;
   deletedUserLabel?: string;
 }) {
+  const t = useTranslations("TemporaryCity");
   const displayName = profile.full_name
     ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
     : deletedUserLabel;
+  // Non-null means city is a temporary override rather than the person's
+  // real city (see set_temporary_city()) — pg_cron reverts it within ~15min
+  // of expiry, so treating "set" as "still active" here is close enough.
+  const isVisiting = Boolean(profile.temporary_city_until);
 
   const infoBlock = (
     <>
@@ -52,6 +60,14 @@ export function PersonCard({
         <p className="truncate font-bold text-text">{displayName}</p>
         <p className="truncate text-sm text-muted">
           {[profile.city, profile.age].filter(Boolean).join(" · ")}
+          {isVisiting && (
+            <span
+              className="ml-1.5 inline-block rounded-full px-2 py-0.5 align-middle text-[10px] font-bold text-white"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              {t("visitingBadge")}
+            </span>
+          )}
         </p>
         {sharedInterests && sharedInterests.length > 0 && (
           <p className="mt-1 truncate text-xs text-teal2">

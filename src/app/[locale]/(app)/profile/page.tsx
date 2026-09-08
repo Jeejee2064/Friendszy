@@ -26,15 +26,31 @@ export default async function ProfilePage({
     getMyInterestIds(supabase, user.id),
   ]);
 
+  // A temporary city trip (Premium) puts the *travel* destination in
+  // profiles.city and stashes the real one in profiles.home_city — see
+  // supabase/migrations/20260908180000_profiles_temporary_city.sql. pg_cron
+  // reverts it within ~15min of expiry, but this page can still catch a
+  // just-expired row a beat early by checking the timestamp itself, so the
+  // editable city field never shows a stale destination as "home".
+  const tripActive = Boolean(
+    profile?.temporary_city_until && new Date(profile.temporary_city_until) > new Date()
+  );
+
   return (
     <ProfileForm
       userId={user.id}
       interests={interests}
+      plan={profile?.plan ?? "free"}
+      temporaryCity={{
+        homeCity: (tripActive ? profile?.home_city : profile?.city) ?? null,
+        activeCity: tripActive ? profile?.city ?? null : null,
+        activeUntil: tripActive ? profile?.temporary_city_until ?? null : null,
+      }}
       initial={{
         fullName: profile?.full_name ?? "",
         lastName: profile?.last_name ?? "",
         avatarUrl: profile?.avatar_url ?? null,
-        city: profile?.city ?? "",
+        city: (tripActive ? profile?.home_city : profile?.city) ?? "",
         age: profile?.age ?? null,
         gender: (profile?.gender as Gender | null) ?? null,
         interestIds,

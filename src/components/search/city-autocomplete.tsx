@@ -10,10 +10,12 @@ export function CityAutocomplete({
   value,
   onChange,
   placeholder,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -37,9 +39,10 @@ export function CityAutocomplete({
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2"
+        disabled={disabled}
+        className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2 disabled:opacity-60"
       />
-      {open && suggestions.length > 0 && (
+      {open && !disabled && suggestions.length > 0 && (
         <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
           {suggestions.map((city) => (
             <button

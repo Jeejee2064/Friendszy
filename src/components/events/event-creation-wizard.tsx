@@ -12,6 +12,7 @@ import {
 } from "@/lib/events/queries";
 import type { Interest } from "@/lib/profile/types";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
+import { AddressAutocomplete } from "@/components/search/address-autocomplete";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
 import { PhotoPicker } from "@/components/media/photo-picker";
 import { LocationPickerMap } from "@/components/map/location-picker-map";
@@ -261,13 +262,12 @@ export function EventCreationWizard({
               <label htmlFor="event-address" className={fieldLabelClass}>
                 {t("addressLabel")}
               </label>
-              <input
+              <AddressAutocomplete
                 id="event-address"
-                type="text"
-                placeholder={t("addressPlaceholder")}
                 value={form.address}
-                onChange={(e) => update("address", e.target.value)}
-                className={fieldInputClass}
+                onChange={(v) => update("address", v)}
+                city={form.city}
+                placeholder={t("addressPlaceholder")}
               />
             </div>
             <LocationPickerMap

@@ -12,6 +12,7 @@ import { GenderSelect } from "@/components/profile/gender-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
+import { TemporaryCityCard } from "@/components/profile/temporary-city-card";
 
 const chipButtonClass =
   "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal2";
@@ -42,16 +43,30 @@ export function ProfileForm({
   userId,
   interests,
   initial,
+  plan,
+  temporaryCity,
 }: {
   userId: string;
   interests: Interest[];
   initial: FormState;
+  plan: string;
+  temporaryCity: {
+    homeCity: string | null;
+    activeCity: string | null;
+    activeUntil: string | null;
+  };
 }) {
   const t = useTranslations("Profile");
   const tFields = useTranslations("ProfileFields");
+  const tTemporaryCity = useTranslations("TemporaryCity");
   const locale = useLocale();
 
   const [form, setForm] = useState<FormState>(initial);
+  // Mirrors TemporaryCityCard's own active/inactive state (lifted up via
+  // onActiveChange) so the city field below can be disabled while a trip is
+  // active — editing it directly would otherwise silently get clobbered by
+  // save (see handleSave) or fight with set_temporary_city()/pg_cron.
+  const [tripActive, setTripActive] = useState(Boolean(temporaryCity.activeUntil));
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<
     { kind: "success" | "error"; message: string } | null
@@ -113,7 +128,12 @@ export function ProfileForm({
         full_name: form.fullName.trim(),
         last_name: form.lastName.trim(),
         avatar_url: form.avatarUrl,
-        city: form.city.trim() || null,
+        // Omitted while a temporary city trip is active: the field is
+        // disabled below and profiles.city currently holds the travel
+        // destination, not what's in form.city (the home city) — sending
+        // it here would silently end the trip as a side effect of an
+        // unrelated save (name/age/bio).
+        ...(tripActive ? {} : { city: form.city.trim() || null }),
         age: form.age,
         gender: form.gender,
         bio: form.bio.trim() || null,
@@ -190,7 +210,11 @@ export function ProfileForm({
               value={form.city}
               onChange={(v) => update("city", v)}
               placeholder={tFields("cityPlaceholder")}
+              disabled={tripActive}
             />
+            {tripActive && (
+              <p className="mt-1.5 text-xs text-muted">{tTemporaryCity("cityFieldLockedHint")}</p>
+            )}
           </div>
           <div>
             <label htmlFor="profile-age" className={fieldLabelClass}>
@@ -315,6 +339,16 @@ export function ProfileForm({
           {pending ? "…" : t("save")}
         </button>
       </form>
+
+      <div className="mt-4 w-full max-w-sm">
+        <TemporaryCityCard
+          plan={plan}
+          homeCity={temporaryCity.homeCity}
+          activeCity={temporaryCity.activeCity}
+          activeUntil={temporaryCity.activeUntil}
+          onActiveChange={setTripActive}
+        />
+      </div>
     </div>
   );
 }

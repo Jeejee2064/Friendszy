@@ -278,7 +278,7 @@ export function DiscoverPageClient({
           <div className="flex flex-col gap-8">
             {(typeFilter === "both" || typeFilter === "events") && (
               <section>
-                <h2 className="mb-3 text-lg font-extrabold text-text">{t("sectionEvents")}</h2>
+                <SectionHeader title={t("sectionEvents")} ctaHref="/events/new" ctaLabel={t("fab.organizeEvent")} />
                 {loading ? (
                   <p className="text-center text-sm text-muted">{t("loading")}</p>
                 ) : events.length === 0 ? (
@@ -299,7 +299,7 @@ export function DiscoverPageClient({
 
             {(typeFilter === "both" || typeFilter === "partners") && (
               <section>
-                <h2 className="mb-3 text-lg font-extrabold text-text">{t("sectionPartners")}</h2>
+                <SectionHeader title={t("sectionPartners")} ctaHref="/partners/new" ctaLabel={t("fab.addBusiness")} />
                 {loading ? (
                   <p className="text-center text-sm text-muted">{t("loading")}</p>
                 ) : listings.length === 0 ? (
@@ -403,6 +403,38 @@ export function DiscoverPageClient({
       </button>
 
       <DiscoverFab />
+    </div>
+  );
+}
+
+// Explicit, always-visible creation entry point per section — the FAB
+// alone (bottom-right, easy to miss / read as a generic "+") wasn't clear
+// enough that "Organiser un événement" and "Ajouter mon commerce" were
+// available; this puts the same actions directly under the section title
+// they create into, same pill-CTA treatment as the Groupes page header.
+// Unlike that header's CTA, the label is never collapsed down to a bare
+// "+" on narrow screens — two unlabeled "+" buttons (one per section)
+// would be indistinguishable from each other. `flex-wrap` lets the button
+// drop to its own line instead if the title doesn't leave it room.
+function SectionHeader({
+  title,
+  ctaHref,
+  ctaLabel,
+}: {
+  title: string;
+  ctaHref: string;
+  ctaLabel: string;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <h2 className="text-lg font-extrabold text-text">{title}</h2>
+      <Link
+        href={ctaHref}
+        className="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold text-white sm:px-4 sm:py-2 sm:text-sm"
+        style={{ backgroundImage: "var(--grad)" }}
+      >
+        + {ctaLabel}
+      </Link>
     </div>
   );
 }

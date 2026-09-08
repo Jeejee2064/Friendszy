@@ -1,5 +1,7 @@
 export type GeocodedPoint = { latitude: number; longitude: number };
 
+export type AddressSuggestion = { label: string; latitude: number; longitude: number };
+
 /**
  * Wraps the Mapbox geocoding API — shared by the client-facing /api/geocode
  * route (used by LocationPickerMap during creation wizards) and any server
@@ -52,6 +54,70 @@ export async function geocodeAddress(
   } catch (err) {
     console.error("Mapbox geocoding failed", err);
     return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/**
+ * Typeahead suggestions for a street address, backing AddressAutocomplete.
+ * Same Mapbox endpoint as geocodeAddress() (autocomplete=true is its
+ * default), restricted to `types=address` so we don't surface POIs/cities
+ * while someone is typing a civic number + street. Never throws — any
+ * failure (missing token, network error, timeout, no match) resolves to
+ * `[]` so callers never need a try/catch.
+ */
+export async function suggestAddresses(
+  query: string,
+  { city, language }: { city?: string; language?: "fr" | "en" } = {}
+): Promise<AddressSuggestion[]> {
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) return [];
+
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (!token) return [];
+
+  const trimmedCity = city?.trim() ?? "";
+  const searchText = trimmedCity ? `${trimmedQuery}, ${trimmedCity}` : trimmedQuery;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const params = new URLSearchParams({
+      access_token: token,
+      country: "ca",
+      types: "address",
+      autocomplete: "true",
+      limit: "5",
+    });
+    if (language) params.set("language", language);
+
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchText)}.json?${params}`;
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return [];
+
+    const body = await response.json();
+    const features = Array.isArray(body?.features) ? body.features : [];
+
+    return features
+      .map((feature: { address?: string; text?: string; center?: unknown }) => {
+        const coordinates = feature.center;
+        if (!Array.isArray(coordinates) || coordinates.length !== 2) return null;
+        const [longitude, latitude] = coordinates;
+        if (typeof latitude !== "number" || typeof longitude !== "number") return null;
+        // Civic number + street only (e.g. "123 rue Principale") — the
+        // `address` field already holds just the street elsewhere in the
+        // app, city is a separate field, so we don't want the full
+        // "123 rue Principale, Laval, Québec, Canada" place_name here.
+        const label = feature.address ? `${feature.address} ${feature.text}` : feature.text;
+        if (!label) return null;
+        return { label, latitude, longitude };
+      })
+      .filter((s: AddressSuggestion | null): s is AddressSuggestion => s !== null);
+  } catch (err) {
+    console.error("Mapbox address suggestions failed", err);
+    return [];
   } finally {
     clearTimeout(timeout);
   }

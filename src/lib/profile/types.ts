@@ -24,4 +24,9 @@ export type ProfileSummary = {
   city: string | null;
   age: number | null;
   gender: string | null;
+  // Non-null while `city` is a temporary (Premium) override rather than the
+  // profile's real city — see set_temporary_city()/clear_temporary_city()
+  // in supabase/migrations/20260908180000_profiles_temporary_city.sql.
+  // Optional: only present when the caller's select actually asked for it.
+  temporary_city_until?: string | null;
 };

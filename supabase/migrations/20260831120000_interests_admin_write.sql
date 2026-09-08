@@ -19,3 +19,8 @@ create policy interests_delete_admin on public.interests
 -- GRANT is separate from RLS (see CLAUDE.md) — without it, RLS is never even
 -- evaluated and every write fails with 42501 regardless of the policies above.
 grant insert, update, delete on public.interests to authenticated;
+
+-- interests.id is a serial/identity column: inserting without an explicit id
+-- calls nextval() on its backing sequence, which needs its own grant —
+-- separate from the table grant above and easy to miss the same way.
+grant usage, select on sequence public.interests_id_seq to authenticated;
