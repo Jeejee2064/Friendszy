@@ -22,6 +22,7 @@ export function PublicProfileClient({
   profileInterestIds,
   myInterestIds,
   friendshipInfo,
+  photos,
 }: {
   userId: string;
   profile: ProfileRow;
@@ -29,6 +30,7 @@ export function PublicProfileClient({
   profileInterestIds: number[];
   myInterestIds: number[];
   friendshipInfo: FriendshipInfo | null;
+  photos: string[];
 }) {
   const t = useTranslations("Friends");
   const tCommon = useTranslations("Common");
@@ -150,6 +152,20 @@ export function PublicProfileClient({
                   {expanded ? tFields("showLess") : tFields("showMore", { count: hiddenCount })}
                 </button>
               )}
+            </div>
+          )}
+
+          {photos.length > 0 && (
+            <div className="flex w-full flex-wrap justify-center gap-2">
+              {photos.map((url) => (
+                <div
+                  key={url}
+                  className="h-24 w-24 overflow-hidden rounded-lg border border-border"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                </div>
+              ))}
             </div>
           )}
 

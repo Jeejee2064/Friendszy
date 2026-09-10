@@ -5,9 +5,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { upsertMyProfile, setMyInterests, uploadAvatar } from "@/lib/profile/queries";
+import {
+  upsertMyProfile,
+  setMyInterests,
+  uploadAvatar,
+  uploadProfilePhoto,
+  removeProfilePhoto,
+} from "@/lib/profile/queries";
 import type { Gender, Interest } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
+import { PhotoPicker } from "@/components/media/photo-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -21,6 +28,8 @@ const signOutChipClass =
 const fieldLabelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted";
 const fieldInputClass =
   "w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-teal2";
+
+const MAX_PROFILE_PHOTOS = 3; // mirrors the DB-level cap (enforce_profile_photos_limit)
 
 function sameInterestSet(a: number[], b: number[]) {
   if (a.length !== b.length) return false;
@@ -45,6 +54,7 @@ export function ProfileForm({
   initial,
   plan,
   temporaryCity,
+  photos: initialPhotos,
 }: {
   userId: string;
   interests: Interest[];
@@ -55,6 +65,7 @@ export function ProfileForm({
     activeCity: string | null;
     activeUntil: string | null;
   };
+  photos: string[];
 }) {
   const t = useTranslations("Profile");
   const tFields = useTranslations("ProfileFields");
@@ -62,6 +73,10 @@ export function ProfileForm({
   const locale = useLocale();
 
   const [form, setForm] = useState<FormState>(initial);
+  // Contrairement aux autres champs, les photos supplémentaires vivent dans
+  // leur propre table (profile_photos) et sont persistées tout de suite à
+  // l'ajout/au retrait (via PhotoPicker) plutôt qu'au clic sur "Enregistrer".
+  const [photos, setPhotos] = useState<string[]>(initialPhotos);
   // Mirrors TemporaryCityCard's own active/inactive state (lifted up via
   // onActiveChange) so the city field below can be disabled while a trip is
   // active — editing it directly would otherwise silently get clobbered by
@@ -201,6 +216,21 @@ export function ProfileForm({
               className={fieldInputClass}
             />
           </div>
+        </div>
+
+        <div className="mt-4">
+          <p className={fieldLabelClass}>{tFields("photosLabel")}</p>
+          <p className="mb-2 text-xs text-muted">{tFields("photosHint")}</p>
+          <PhotoPicker
+            value={photos}
+            onChange={setPhotos}
+            maxPhotos={MAX_PROFILE_PHOTOS}
+            upload={(blob) => uploadProfilePhoto(createClient(), userId, blob)}
+            remove={(url) => removeProfilePhoto(createClient(), userId, url)}
+            addLabel={tFields("photosAdd")}
+            errorLabel={tFields("photosError")}
+            removeLabel={tFields("photoRemove")}
+          />
         </div>
 
         <div className="mt-4 flex flex-col gap-3">

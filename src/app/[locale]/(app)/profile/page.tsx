@@ -1,6 +1,11 @@
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getInterests, getMyProfile, getMyInterestIds } from "@/lib/profile/queries";
+import {
+  getInterests,
+  getMyProfile,
+  getMyInterestIds,
+  getProfilePhotos,
+} from "@/lib/profile/queries";
 import type { Gender } from "@/lib/profile/types";
 import { ProfileForm } from "./profile-form";
 
@@ -20,10 +25,11 @@ export default async function ProfilePage({
     return null;
   }
 
-  const [profile, interests, interestIds] = await Promise.all([
+  const [profile, interests, interestIds, photos] = await Promise.all([
     getMyProfile(supabase, user.id),
     getInterests(supabase),
     getMyInterestIds(supabase, user.id),
+    getProfilePhotos(supabase, user.id),
   ]);
 
   // A temporary city trip (Premium) puts the *travel* destination in
@@ -41,6 +47,7 @@ export default async function ProfilePage({
       userId={user.id}
       interests={interests}
       plan={profile?.plan ?? "free"}
+      photos={photos.map((photo) => photo.url)}
       temporaryCity={{
         homeCity: (tripActive ? profile?.home_city : profile?.city) ?? null,
         activeCity: tripActive ? profile?.city ?? null : null,

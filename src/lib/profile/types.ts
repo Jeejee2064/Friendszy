@@ -2,6 +2,8 @@ import type { Database } from "@/types/supabase";
 
 export type Interest = Database["public"]["Tables"]["interests"]["Row"];
 
+export type ProfilePhoto = Database["public"]["Tables"]["profile_photos"]["Row"];
+
 export type Gender = "homme" | "femme" | "non-binaire" | "autre";
 
 export const GENDERS: Gender[] = ["homme", "femme", "non-binaire", "autre"];

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { Interest, ProfileFormData, ProfileSummary } from "./types";
+import type { Interest, ProfileFormData, ProfilePhoto, ProfileSummary } from "./types";
 
 type Client = SupabaseClient<Database>;
 
@@ -63,6 +63,68 @@ export async function uploadAvatar(
 
   const { data } = supabase.storage.from("avatars").getPublicUrl(path);
   return `${data.publicUrl}?v=${Date.now()}`;
+}
+
+export async function getProfilePhotos(
+  supabase: Client,
+  profileId: string
+): Promise<ProfilePhoto[]> {
+  const { data, error } = await supabase
+    .from("profile_photos")
+    .select("*")
+    .eq("profile_id", profileId)
+    .order("position");
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Photos supplémentaires du profil (jusqu'à 3, plafond appliqué aussi côté DB
+// par enforce_profile_photos_limit). Réutilise le bucket "avatars" — dossier
+// avatars/{userId}/..., déjà couvert par les policies storage.objects
+// scoped au premier segment du chemin = auth.uid() — voir
+// supabase/migrations/20260909120000_profile_photos.sql. Contrairement à
+// uploadAvatar (nom de fichier fixe), chaque photo a un nom unique.
+export async function uploadProfilePhoto(
+  supabase: Client,
+  userId: string,
+  blob: Blob
+): Promise<string> {
+  const path = `${userId}/extra-${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage.from("avatars").upload(path, blob, {
+    contentType: "image/jpeg",
+  });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+  const url = data.publicUrl;
+
+  const { count } = await supabase
+    .from("profile_photos")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", userId);
+
+  const { error: insertError } = await supabase
+    .from("profile_photos")
+    .insert({ profile_id: userId, url, position: count ?? 0 });
+  if (insertError) throw insertError;
+
+  return url;
+}
+
+export async function removeProfilePhoto(supabase: Client, userId: string, url: string) {
+  const { error: deleteRowError } = await supabase
+    .from("profile_photos")
+    .delete()
+    .eq("profile_id", userId)
+    .eq("url", url);
+  if (deleteRowError) throw deleteRowError;
+
+  const marker = "/avatars/";
+  const index = url.indexOf(marker);
+  if (index === -1) return;
+  const path = decodeURIComponent(url.slice(index + marker.length));
+  const { error } = await supabase.storage.from("avatars").remove([path]);
+  if (error) throw error;
 }
 
 export async function upsertMyProfile(

@@ -37,7 +37,7 @@ from unnest(array[
   'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
-  'profile_interests', 'profiles', 'reports'
+  'profile_interests', 'profile_photos', 'profiles', 'reports'
 ]) as t;
 
 select ok(
@@ -50,7 +50,7 @@ from unnest(array[
   'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
-  'profile_interests', 'profiles', 'reports'
+  'profile_interests', 'profile_photos', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================
@@ -188,6 +188,15 @@ select has_column('public', 'profile_interests', 'profile_id', 'profile_interest
 select has_column('public', 'profile_interests', 'interest_id', 'profile_interests.interest_id exists');
 select col_is_pk('public', 'profile_interests', array['profile_id', 'interest_id'], 'profile_interests PK is (profile_id, interest_id)');
 
+-- profile_photos
+select has_column('public', 'profile_photos', 'id', 'profile_photos.id exists');
+select has_column('public', 'profile_photos', 'profile_id', 'profile_photos.profile_id exists');
+select has_column('public', 'profile_photos', 'url', 'profile_photos.url exists');
+select has_column('public', 'profile_photos', 'position', 'profile_photos.position exists');
+select has_column('public', 'profile_photos', 'created_at', 'profile_photos.created_at exists');
+select col_is_pk('public', 'profile_photos', array['id'], 'profile_photos PK is (id)');
+select col_default_is('public', 'profile_photos', 'position', '0', 'profile_photos.position defaults to 0');
+
 -- profiles
 select has_column('public', 'profiles', 'id', 'profiles.id exists');
 select has_column('public', 'profiles', 'username', 'profiles.username exists');
@@ -323,6 +332,7 @@ select col_is_fk('public', 'partner_listings', 'profile_id', 'partner_listings.p
 select col_is_fk('public', 'partner_listings', 'interest_id', 'partner_listings.interest_id is a FK');
 select col_is_fk('public', 'profile_interests', 'profile_id', 'profile_interests.profile_id is a FK');
 select col_is_fk('public', 'profile_interests', 'interest_id', 'profile_interests.interest_id is a FK');
+select col_is_fk('public', 'profile_photos', 'profile_id', 'profile_photos.profile_id is a FK');
 select col_is_fk('public', 'profiles', 'id', 'profiles.id is a FK (references auth.users)');
 select col_is_fk('public', 'reports', 'reporter_id', 'reports.reporter_id is a FK');
 select col_is_fk('public', 'reports', 'resolved_by', 'reports.resolved_by is a FK');
@@ -355,6 +365,10 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'group_members_profile_id_fkey') = 'c',
   'group_members.profile_id -> profiles(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'profile_photos_profile_id_fkey') = 'c',
+  'profile_photos.profile_id -> profiles(id) is ON DELETE CASCADE'
 );
 select ok(
   (select confdeltype from pg_constraint where conname = 'groups_creator_id_fkey') = 'n',
@@ -604,6 +618,7 @@ select has_index('public', 'events', 'idx_events_city', 'index idx_events_city e
 select has_index('public', 'events', 'idx_events_starts_at', 'index idx_events_starts_at exists');
 select has_index('public', 'events', 'idx_events_ends_at', 'index idx_events_ends_at exists (powers the "archive by end date" filter)');
 select has_index('public', 'event_photos', 'idx_event_photos_event', 'index idx_event_photos_event exists');
+select has_index('public', 'profile_photos', 'idx_profile_photos_profile', 'index idx_profile_photos_profile exists');
 select has_index('public', 'event_registrations', 'idx_event_registrations_profile', 'index idx_event_registrations_profile exists');
 select has_index('public', 'event_messages', 'idx_event_messages_event', 'index idx_event_messages_event exists');
 select has_index('public', 'analytics_events', 'idx_analytics_events_event_name_created_at', 'index idx_analytics_events_event_name_created_at exists');
@@ -655,6 +670,7 @@ select has_trigger('public', 'event_photos', 'enforce_event_photos_limit', 'trig
 select has_trigger('public', 'event_registrations', 'enforce_event_registration_capacity', 'trigger enforce_event_registration_capacity exists on event_registrations');
 select has_trigger('public', 'event_messages', 'enforce_event_message_immutability', 'trigger enforce_event_message_immutability exists on event_messages');
 select has_trigger('public', 'interest_suggestions', 'on_interest_suggestion_resolved', 'trigger on_interest_suggestion_resolved exists on interest_suggestions');
+select has_trigger('public', 'profile_photos', 'enforce_profile_photos_limit', 'trigger enforce_profile_photos_limit exists on profile_photos (caps at 3 per profile)');
 
 -- ============================================================
 -- 8. Functions
@@ -663,7 +679,7 @@ select has_trigger('public', 'interest_suggestions', 'on_interest_suggestion_res
 select has_function('public', f, 'function public.' || f || ' exists')
 from unnest(array[
   'can_invite_to_group', 'enforce_event_photos_limit',
-  'enforce_event_registration_capacity', 'get_blocked_profiles',
+  'enforce_event_registration_capacity', 'enforce_profile_photos_limit', 'get_blocked_profiles',
   'get_event_registration_counts', 'get_group_member_counts',
   'get_public_map_points',
   'handle_creator_leaving', 'handle_interest_suggestion_resolution',
@@ -735,6 +751,7 @@ select is_definer('public', 'is_event_organizer', 'is_event_organizer() is SECUR
 select is_definer('public', 'get_event_registration_counts', 'get_event_registration_counts() is SECURITY DEFINER (counts are public even though event_registrations rows are not)');
 select is_definer('public', 'protect_event_sensitive_columns', 'protect_event_sensitive_columns() is SECURITY DEFINER');
 select is_definer('public', 'enforce_event_photos_limit', 'enforce_event_photos_limit() is SECURITY DEFINER');
+select is_definer('public', 'enforce_profile_photos_limit', 'enforce_profile_photos_limit() is SECURITY DEFINER');
 select is_definer('public', 'enforce_event_registration_capacity', 'enforce_event_registration_capacity() is SECURITY DEFINER');
 select is_definer('public', 'protect_event_message_immutability', 'protect_event_message_immutability() is SECURITY DEFINER');
 
@@ -830,6 +847,22 @@ select throws_ok(
     values ('00000000-0000-0000-0000-0000000000e1', 'https://example.com/p6.jpg')$$,
   'An event cannot have more than 5 photos',
   'enforce_event_photos_limit blocks a 6th photo on the same event'
+);
+
+-- Functional test: a profile cannot have more than 3 extra photos. Clears
+-- out any pre-existing rows for the picked profile first so the count the
+-- trigger sees is deterministic regardless of real production data.
+delete from profile_photos where profile_id = (select id from profiles limit 1);
+
+insert into profile_photos (profile_id, url)
+select (select id from profiles limit 1), 'https://example.com/pp' || g || '.jpg'
+from generate_series(1, 3) as g;
+
+select throws_ok(
+  $$insert into profile_photos (profile_id, url)
+    values ((select id from profiles limit 1), 'https://example.com/pp4.jpg')$$,
+  'A profile cannot have more than 3 extra photos',
+  'enforce_profile_photos_limit blocks a 4th photo on the same profile'
 );
 
 -- Functional test: get_public_map_points only surfaces content that's
@@ -1049,6 +1082,10 @@ select policies_are('public', 'profile_interests', array[
   'profile_interests_delete_own', 'profile_interests_insert_own', 'profile_interests_select'
 ], 'profile_interests has exactly the expected policies');
 
+select policies_are('public', 'profile_photos', array[
+  'profile_photos_delete', 'profile_photos_insert', 'profile_photos_select', 'profile_photos_select_admin'
+], 'profile_photos has exactly the expected policies');
+
 select policies_are('public', 'profiles', array[
   'profiles_select', 'profiles_select_admin', 'profiles_update_admin', 'profiles_update_own'
 ], 'profiles has exactly the expected policies (no delete policy — no self-serve account deletion yet)');
@@ -1228,6 +1265,9 @@ select table_privs_are('public', 'partner_listings', 'authenticated',
 select table_privs_are('public', 'profile_interests', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
   'authenticated has expected privileges on profile_interests');
+select table_privs_are('public', 'profile_photos', 'authenticated',
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
+  'authenticated has expected privileges on profile_photos');
 select table_privs_are('public', 'profiles', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on profiles');
@@ -1263,7 +1303,7 @@ from unnest(array[
   'event_registrations', 'events', 'friendships', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
-  'profile_interests', 'profiles', 'reports'
+  'profile_interests', 'profile_photos', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================

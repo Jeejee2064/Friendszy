@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getMyProfile, getMyInterestIds, getInterests } from "@/lib/profile/queries";
+import {
+  getMyProfile,
+  getMyInterestIds,
+  getInterests,
+  getProfilePhotos,
+} from "@/lib/profile/queries";
 import { getInterestsForProfiles } from "@/lib/search/queries";
 import { getFriendshipMap } from "@/lib/friends/queries";
 import { PublicProfileClient } from "./public-profile-client";
@@ -30,12 +35,14 @@ export default async function PublicProfilePage({
   const profile = await getMyProfile(supabase, id);
   if (!profile) notFound();
 
-  const [interests, myInterestIds, interestsByProfile, friendshipMap] = await Promise.all([
-    getInterests(supabase),
-    getMyInterestIds(supabase, user.id),
-    getInterestsForProfiles(supabase, [id]),
-    getFriendshipMap(supabase, user.id),
-  ]);
+  const [interests, myInterestIds, interestsByProfile, friendshipMap, photos] =
+    await Promise.all([
+      getInterests(supabase),
+      getMyInterestIds(supabase, user.id),
+      getInterestsForProfiles(supabase, [id]),
+      getFriendshipMap(supabase, user.id),
+      getProfilePhotos(supabase, id),
+    ]);
 
   return (
     <PublicProfileClient
@@ -45,6 +52,7 @@ export default async function PublicProfilePage({
       profileInterestIds={interestsByProfile.get(id) ?? []}
       myInterestIds={myInterestIds}
       friendshipInfo={friendshipMap.get(id) ?? null}
+      photos={photos.map((photo) => photo.url)}
     />
   );
 }
