@@ -30,5 +30,6 @@ export async function getPublicMapPoints(supabase: Client): Promise<PublicMapPoi
       categoryEmoji: row.category_emoji,
       categoryLabelFr: row.category_label_fr,
       categoryLabelEn: row.category_label_en,
+      categoryLabelEs: row.category_label_es,
     }));
 }

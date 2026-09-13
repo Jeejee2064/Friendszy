@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { GroupCardData } from "@/lib/groups/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { Modal } from "@/components/ui/modal";
 
 export function GroupCard({
@@ -29,7 +30,7 @@ export function GroupCard({
   const isBanned = group.myStatus === "banned";
   const interestLabel = group.interest
     ? `${group.interest.emoji ? `${group.interest.emoji} ` : ""}${
-        locale === "en" ? group.interest.label_en : group.interest.label_fr
+        localizedInterestLabel(group.interest, locale)
       }`
     : null;
 

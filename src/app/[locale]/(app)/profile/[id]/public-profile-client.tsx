@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { addFriend, type FriendshipInfo } from "@/lib/friends/queries";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import type { Database } from "@/types/supabase";
 import { PageHeader } from "@/components/layout/page-header";
 import { OnlineDot } from "@/components/social/online-dot";
@@ -52,7 +53,7 @@ export function PublicProfileClient({
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
     if (!interest) return "";
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   };
 
   const sortedInterestIds = [...profileInterestIds].sort((a, b) => {

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 
 export const MAX_SEARCH_INTERESTS = 3; // change here only
@@ -29,7 +30,7 @@ export function InterestPicker({
   const atMax = selectedIds.length >= MAX_SEARCH_INTERESTS;
 
   function labelFor(interest: Interest) {
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   }
 
   function removeInterest(id: number) {

@@ -18,4 +18,5 @@ export type PublicMapPoint = {
   categoryEmoji: string | null;
   categoryLabelFr: string | null;
   categoryLabelEn: string | null;
+  categoryLabelEs: string | null;
 };

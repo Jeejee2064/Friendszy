@@ -8,6 +8,10 @@ import {
   PrivacyPolicyContentEn,
   PRIVACY_POLICY_LAST_UPDATED_EN,
 } from "@/content/privacy-policy.en";
+import {
+  PrivacyPolicyContentEs,
+  PRIVACY_POLICY_LAST_UPDATED_ES,
+} from "@/content/privacy-policy.es";
 
 export default async function PrivacyPolicyPage({
   params,
@@ -16,7 +20,12 @@ export default async function PrivacyPolicyPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Privacy");
-  const isEnglish = locale === "en";
+  const lastUpdated =
+    locale === "en"
+      ? PRIVACY_POLICY_LAST_UPDATED_EN
+      : locale === "es"
+        ? PRIVACY_POLICY_LAST_UPDATED_ES
+        : PRIVACY_POLICY_LAST_UPDATED_FR;
 
   return (
     <main className="min-h-screen bg-bg px-6 py-16">
@@ -26,14 +35,16 @@ export default async function PrivacyPolicyPage({
         </Link>
 
         <h1 className="mt-4 text-2xl font-extrabold text-text sm:text-3xl">{t("pageTitle")}</h1>
-        <p className="mt-1 text-sm text-muted">
-          {t("lastUpdated", {
-            date: isEnglish ? PRIVACY_POLICY_LAST_UPDATED_EN : PRIVACY_POLICY_LAST_UPDATED_FR,
-          })}
-        </p>
+        <p className="mt-1 text-sm text-muted">{t("lastUpdated", { date: lastUpdated })}</p>
 
         <article className="prose-privacy mt-6 flex flex-col gap-4 text-sm leading-relaxed text-text [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-extrabold [&_h2]:text-dark [&_li]:ml-5 [&_li]:list-disc [&_p]:text-text [&_strong]:font-bold [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-1.5">
-          {isEnglish ? <PrivacyPolicyContentEn /> : <PrivacyPolicyContentFr />}
+          {locale === "en" ? (
+            <PrivacyPolicyContentEn />
+          ) : locale === "es" ? (
+            <PrivacyPolicyContentEs />
+          ) : (
+            <PrivacyPolicyContentFr />
+          )}
         </article>
       </div>
     </main>

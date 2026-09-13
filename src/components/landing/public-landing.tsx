@@ -153,7 +153,12 @@ export function PublicLanding({
   }
 
   function categoryLabel(point: PublicMapPoint) {
-    const label = locale === "en" ? point.categoryLabelEn : point.categoryLabelFr;
+    const label =
+      locale === "en"
+        ? point.categoryLabelEn
+        : locale === "es"
+          ? point.categoryLabelEs || point.categoryLabelFr
+          : point.categoryLabelFr;
     if (!label) return null;
     return point.categoryEmoji ? `${point.categoryEmoji} ${label}` : label;
   }
@@ -246,7 +251,11 @@ export function PublicLanding({
                 </p>
                 <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-[11px] font-semibold text-teal2">
                   {selectedProfile.interest.emoji}{" "}
-                  {locale === "en" ? selectedProfile.interest.en : selectedProfile.interest.fr}
+                  {locale === "en"
+                    ? selectedProfile.interest.en
+                    : locale === "es"
+                      ? selectedProfile.interest.es
+                      : selectedProfile.interest.fr}
                 </span>
                 <p className="text-[11px] text-muted">{t("previewNote")}</p>
               </div>

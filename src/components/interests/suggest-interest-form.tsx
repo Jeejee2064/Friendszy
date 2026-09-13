@@ -51,7 +51,7 @@ export function SuggestInterestForm({
       await createInterestSuggestion(supabase, {
         suggestedBy: userId,
         label: label.trim(),
-        locale: locale === "en" ? "en" : "fr",
+        locale: locale === "en" ? "en" : locale === "es" ? "es" : "fr",
         category,
       });
       onSuggested?.();

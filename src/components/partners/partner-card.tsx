@@ -5,6 +5,7 @@ import { MapPin, Phone, Globe } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { PartnerListingRow } from "@/lib/partners/queries";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { ReportButton } from "@/components/social/report-button";
 import { isOpenNow, type OpeningHours } from "@/lib/partners/opening-hours";
 
@@ -25,7 +26,7 @@ export function PartnerCard({
   const openNow = isOpenNow(listing.opening_hours as OpeningHours | null);
 
   function labelFor(i: Interest) {
-    return locale === "en" ? i.label_en : i.label_fr;
+    return localizedInterestLabel(i, locale);
   }
 
   return (

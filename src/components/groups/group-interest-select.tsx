@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
 import { normalizeForSearch } from "@/lib/text";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { SuggestInterestPrompt } from "@/components/interests/suggest-interest-prompt";
 
 const CATEGORY_ORDER = [
@@ -55,7 +56,7 @@ export function GroupInterestSelect({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   function labelFor(interest: Interest) {
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   }
 
   function handleSelect(id: number | null) {

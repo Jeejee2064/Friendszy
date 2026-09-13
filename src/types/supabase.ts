@@ -589,6 +589,7 @@ export type Database = {
           resolved_at: string | null
           resolved_by: string | null
           resolved_label_en: string | null
+          resolved_label_es: string | null
           resolved_label_fr: string | null
           status: string
           suggested_by: string
@@ -603,6 +604,7 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           resolved_label_en?: string | null
+          resolved_label_es?: string | null
           resolved_label_fr?: string | null
           status?: string
           suggested_by: string
@@ -617,6 +619,7 @@ export type Database = {
           resolved_at?: string | null
           resolved_by?: string | null
           resolved_label_en?: string | null
+          resolved_label_es?: string | null
           resolved_label_fr?: string | null
           status?: string
           suggested_by?: string
@@ -651,6 +654,7 @@ export type Database = {
           emoji: string | null
           id: number
           label_en: string
+          label_es: string | null
           label_fr: string
           slug: string
         }
@@ -659,6 +663,7 @@ export type Database = {
           emoji?: string | null
           id?: number
           label_en: string
+          label_es?: string | null
           label_fr: string
           slug: string
         }
@@ -667,6 +672,7 @@ export type Database = {
           emoji?: string | null
           id?: number
           label_en?: string
+          label_es?: string | null
           label_fr?: string
           slug?: string
         }
@@ -925,6 +931,8 @@ export type Database = {
           moderation_status: string
           plan: string
           plan_valid_until: string | null
+          temporary_city_destination: string | null
+          temporary_city_from: string | null
           temporary_city_until: string | null
           updated_at: string
           username: string | null
@@ -948,6 +956,8 @@ export type Database = {
           moderation_status?: string
           plan?: string
           plan_valid_until?: string | null
+          temporary_city_destination?: string | null
+          temporary_city_from?: string | null
           temporary_city_until?: string | null
           updated_at?: string
           username?: string | null
@@ -971,6 +981,8 @@ export type Database = {
           moderation_status?: string
           plan?: string
           plan_valid_until?: string | null
+          temporary_city_destination?: string | null
+          temporary_city_from?: string | null
           temporary_city_until?: string | null
           updated_at?: string
           username?: string | null
@@ -1077,6 +1089,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_due_temporary_cities: { Args: never; Returns: undefined }
       can_invite_to_group: { Args: { p_group_id: string }; Returns: boolean }
       clear_temporary_city: { Args: never; Returns: undefined }
       get_blocked_profiles: {
@@ -1109,6 +1122,7 @@ export type Database = {
         Returns: {
           category_emoji: string
           category_label_en: string
+          category_label_es: string
           category_label_fr: string
           city: string
           id: string
@@ -1155,7 +1169,7 @@ export type Database = {
       }
       revert_expired_temporary_cities: { Args: never; Returns: undefined }
       set_temporary_city: {
-        Args: { p_city: string; p_until: string }
+        Args: { p_city: string; p_from: string; p_until: string }
         Returns: undefined
       }
       unaccent: { Args: { "": string }; Returns: string }

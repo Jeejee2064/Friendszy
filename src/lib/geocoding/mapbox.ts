@@ -69,7 +69,7 @@ export async function geocodeAddress(
  */
 export async function suggestAddresses(
   query: string,
-  { city, language }: { city?: string; language?: "fr" | "en" } = {}
+  { city, language }: { city?: string; language?: "fr" | "en" | "es" } = {}
 ): Promise<AddressSuggestion[]> {
   const trimmedQuery = query.trim();
   if (!trimmedQuery) return [];

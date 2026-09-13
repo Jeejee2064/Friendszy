@@ -11,7 +11,9 @@ export async function getProfilesByIds(
   if (ids.length === 0) return [];
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, last_name, avatar_url, city, age, gender, temporary_city_until")
+    .select(
+      "id, full_name, last_name, avatar_url, city, age, gender, temporary_city_until, temporary_city_from"
+    )
     .in("id", ids);
   if (error) throw error;
   return data ?? [];
@@ -144,18 +146,22 @@ export async function upsertMyProfile(
   if (error) throw error;
 }
 
-// Ville temporaire (Premium) — la validation (plan, durée, compte actif)
-// vit entièrement côté serveur dans ces deux fonctions RPC ; voir
-// supabase/migrations/20260908180000_profiles_temporary_city.sql. Le client
-// ne peut pas écrire profiles.temporary_city_until/home_city directement
-// (privilège colonne retiré), donc ces wrappers sont le seul chemin.
+// Ville temporaire (Premium) — la validation (plan, dates, compte actif)
+// vit entièrement côté serveur dans ces fonctions RPC ; voir
+// supabase/migrations/20260908180000_profiles_temporary_city.sql et
+// 20260913120000_temporary_city_date_range.sql (dates d'arrivée/départ
+// explicites plutôt qu'une durée préréglée). Le client ne peut pas écrire
+// profiles.temporary_city_*/home_city directement (privilège colonne
+// retiré), donc ces wrappers sont le seul chemin.
 export async function setTemporaryCity(
   supabase: Client,
   city: string,
+  from: Date,
   until: Date
 ) {
   const { error } = await supabase.rpc("set_temporary_city", {
     p_city: city,
+    p_from: from.toISOString(),
     p_until: until.toISOString(),
   });
   if (error) throw error;

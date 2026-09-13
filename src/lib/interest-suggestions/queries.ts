@@ -10,7 +10,7 @@ export async function createInterestSuggestion(
   suggestion: {
     suggestedBy: string;
     label: string;
-    locale: "fr" | "en";
+    locale: "fr" | "en" | "es";
     category: string;
   }
 ) {
@@ -54,7 +54,8 @@ export async function approveInterestSuggestion(
   suggestionId: string,
   adminId: string,
   resolvedLabelFr: string,
-  resolvedLabelEn: string
+  resolvedLabelEn: string,
+  resolvedLabelEs: string
 ) {
   const { error } = await supabase
     .from("interest_suggestions")
@@ -64,6 +65,7 @@ export async function approveInterestSuggestion(
       resolved_by: adminId,
       resolved_label_fr: resolvedLabelFr,
       resolved_label_en: resolvedLabelEn,
+      resolved_label_es: resolvedLabelEs,
     })
     .eq("id", suggestionId);
   if (error) throw error;

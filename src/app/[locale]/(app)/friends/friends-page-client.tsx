@@ -21,6 +21,7 @@ import {
 } from "@/lib/blocks/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { PersonCard } from "@/components/social/person-card";
 import { ReportButton } from "@/components/social/report-button";
 import { BlockButton } from "@/components/social/block-button";
@@ -63,7 +64,7 @@ export function FriendsPageClient({
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
     if (!interest) return "";
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   };
 
   async function load() {

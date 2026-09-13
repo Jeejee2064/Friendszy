@@ -4,6 +4,7 @@ import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { MapPin, Calendar } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { EventCardData } from "@/lib/events/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 
 export function EventCard({ event }: { event: EventCardData }) {
   const t = useTranslations("Events.discovery");
@@ -12,7 +13,7 @@ export function EventCard({ event }: { event: EventCardData }) {
 
   const interestLabel = event.interest
     ? `${event.interest.emoji ? `${event.interest.emoji} ` : ""}${
-        locale === "en" ? event.interest.label_en : event.interest.label_fr
+        localizedInterestLabel(event.interest, locale)
       }`
     : null;
 

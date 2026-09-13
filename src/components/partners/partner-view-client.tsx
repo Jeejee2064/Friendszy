@@ -6,6 +6,7 @@ import { MapPin, Phone, Globe } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { PartnerListingRow } from "@/lib/partners/queries";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { PageHeader } from "@/components/layout/page-header";
 import { MapView, type MapPoint } from "@/components/map/map-view";
 import { PhotoLightbox } from "@/components/media/photo-lightbox";
@@ -40,7 +41,7 @@ export function PartnerViewClient({
 
   const interestLabel = interest
     ? `${interest.emoji ? `${interest.emoji} ` : ""}${
-        locale === "en" ? interest.label_en : interest.label_fr
+        localizedInterestLabel(interest, locale)
       }`
     : null;
 

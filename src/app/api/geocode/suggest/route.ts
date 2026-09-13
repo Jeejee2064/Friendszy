@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
 
   const suggestions = await suggestAddresses(query, {
     city: typeof city === "string" ? city : undefined,
-    language: language === "en" ? "en" : language === "fr" ? "fr" : undefined,
+    language:
+      language === "en" ? "en" : language === "fr" ? "fr" : language === "es" ? "es" : undefined,
   });
   return NextResponse.json({ suggestions });
 }

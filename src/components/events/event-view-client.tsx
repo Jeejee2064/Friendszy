@@ -15,6 +15,7 @@ import {
 } from "@/lib/events/queries";
 import type { EventRow, EventPhotoRow, EventMessageRow } from "@/lib/events/types";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { PageHeader } from "@/components/layout/page-header";
 import { MapView, type MapPoint } from "@/components/map/map-view";
 import { EventChatPane } from "@/components/events/event-chat-pane";
@@ -71,7 +72,7 @@ export function EventViewClient({
   const isFull = event.capacity != null && registrationCount >= event.capacity;
   const interestLabel = interest
     ? `${interest.emoji ? `${interest.emoji} ` : ""}${
-        locale === "en" ? interest.label_en : interest.label_fr
+        localizedInterestLabel(interest, locale)
       }`
     : null;
   const organizerName = organizer?.full_name

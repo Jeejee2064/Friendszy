@@ -12,6 +12,7 @@ import {
 import { logAdminAction } from "@/lib/admin/queries";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { Notice } from "@/components/ui/notice";
 import { Modal } from "@/components/ui/modal";
 
@@ -76,7 +77,7 @@ export function AdminPartnersClient({
   }
 
   function labelFor(interest: Interest) {
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   }
 
   const filteredListings = useMemo(() => {

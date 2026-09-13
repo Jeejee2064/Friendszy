@@ -38,7 +38,16 @@ export default async function ProfilePage({
   // reverts it within ~15min of expiry, but this page can still catch a
   // just-expired row a beat early by checking the timestamp itself, so the
   // editable city field never shows a stale destination as "home".
-  const tripActive = Boolean(
+  //
+  // A trip can also be booked ahead of arrival (20260913120000_temporary_
+  // city_date_range.sql): profiles.city only switches to the destination
+  // once temporary_city_from is reached, so while a trip is merely
+  // scheduled, profiles.city is still the real city already — hasTrip is
+  // what gates the editable city field (locked as soon as a trip exists,
+  // scheduled or not, so it can't be edited out from under set_temporary_
+  // city()/pg_cron), while the destination itself always comes from
+  // temporary_city_destination.
+  const hasTrip = Boolean(
     profile?.temporary_city_until && new Date(profile.temporary_city_until) > new Date()
   );
 
@@ -49,15 +58,16 @@ export default async function ProfilePage({
       plan={profile?.plan ?? "free"}
       photos={photos.map((photo) => photo.url)}
       temporaryCity={{
-        homeCity: (tripActive ? profile?.home_city : profile?.city) ?? null,
-        activeCity: tripActive ? profile?.city ?? null : null,
-        activeUntil: tripActive ? profile?.temporary_city_until ?? null : null,
+        homeCity: (hasTrip ? profile?.home_city : profile?.city) ?? null,
+        destination: hasTrip ? profile?.temporary_city_destination ?? null : null,
+        from: hasTrip ? profile?.temporary_city_from ?? null : null,
+        until: hasTrip ? profile?.temporary_city_until ?? null : null,
       }}
       initial={{
         fullName: profile?.full_name ?? "",
         lastName: profile?.last_name ?? "",
         avatarUrl: profile?.avatar_url ?? null,
-        city: (tripActive ? profile?.home_city : profile?.city) ?? "",
+        city: (hasTrip ? profile?.home_city : profile?.city) ?? "",
         age: profile?.age ?? null,
         gender: (profile?.gender as Gender | null) ?? null,
         interestIds,

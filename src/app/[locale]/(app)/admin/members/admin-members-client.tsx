@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin/members-queries";
 import { setModerationStatus, logAdminAction } from "@/lib/admin/queries";
 import type { ModerationStatus } from "@/lib/admin/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 
@@ -424,7 +425,7 @@ export function AdminMembersClient({
                           className="rounded-full border border-border px-2.5 py-1 text-xs"
                         >
                           {i.emoji ? `${i.emoji} ` : ""}
-                          {locale === "en" ? i.label_en : i.label_fr}
+                          {localizedInterestLabel(i, locale)}
                         </span>
                       ))}
                     </div>

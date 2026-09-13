@@ -31,4 +31,10 @@ export type ProfileSummary = {
   // in supabase/migrations/20260908180000_profiles_temporary_city.sql.
   // Optional: only present when the caller's select actually asked for it.
   temporary_city_until?: string | null;
+  // Arrival date of that same trip (20260913120000_temporary_city_date_range.sql).
+  // A trip can be booked ahead of time, so `temporary_city_until` alone
+  // isn't enough to know the person has actually arrived yet — `city`
+  // itself doesn't switch to the destination until this date, so treat
+  // "visiting" as true only once now() has passed it too.
+  temporary_city_from?: string | null;
 };

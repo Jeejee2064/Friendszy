@@ -13,6 +13,7 @@ import {
   removeProfilePhoto,
 } from "@/lib/profile/queries";
 import type { Gender, Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { PhotoPicker } from "@/components/media/photo-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
@@ -62,8 +63,9 @@ export function ProfileForm({
   plan: string;
   temporaryCity: {
     homeCity: string | null;
-    activeCity: string | null;
-    activeUntil: string | null;
+    destination: string | null;
+    from: string | null;
+    until: string | null;
   };
   photos: string[];
 }) {
@@ -81,7 +83,7 @@ export function ProfileForm({
   // onActiveChange) so the city field below can be disabled while a trip is
   // active — editing it directly would otherwise silently get clobbered by
   // save (see handleSave) or fight with set_temporary_city()/pg_cron.
-  const [tripActive, setTripActive] = useState(Boolean(temporaryCity.activeUntil));
+  const [tripActive, setTripActive] = useState(Boolean(temporaryCity.until));
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<
     { kind: "success" | "error"; message: string } | null
@@ -286,7 +288,7 @@ export function ProfileForm({
                     className="rounded-full border border-border bg-bg px-2.5 py-1 text-xs font-semibold text-muted"
                   >
                     {interest.emoji ? `${interest.emoji} ` : ""}
-                    {locale === "en" ? interest.label_en : interest.label_fr}
+                    {localizedInterestLabel(interest, locale)}
                   </span>
                 ))}
             </div>
@@ -374,8 +376,9 @@ export function ProfileForm({
         <TemporaryCityCard
           plan={plan}
           homeCity={temporaryCity.homeCity}
-          activeCity={temporaryCity.activeCity}
-          activeUntil={temporaryCity.activeUntil}
+          destination={temporaryCity.destination}
+          from={temporaryCity.from}
+          until={temporaryCity.until}
           onActiveChange={setTripActive}
         />
       </div>

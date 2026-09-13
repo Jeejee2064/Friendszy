@@ -13,6 +13,7 @@ import type {
   GroupMessageRow,
 } from "@/lib/groups/types";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { MemberList } from "@/components/groups/member-list";
 import { GroupChatPane } from "@/components/groups/group-chat-pane";
 import {
@@ -125,7 +126,7 @@ export function GroupViewClient({
             {interest && (
               <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal2">
                 {interest.emoji ? `${interest.emoji} ` : ""}
-                {locale === "en" ? interest.label_en : interest.label_fr}
+                {localizedInterestLabel(interest, locale)}
               </span>
             )}
             <span className="text-xs text-muted">{t("memberCount", { count: memberCount })}</span>

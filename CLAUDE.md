@@ -9,7 +9,9 @@ visuels et le ton doivent toujours rester cohérents avec ça.
 
 - Client : Alexandre Chaput, Friendszy Inc. (Québec, Canada)
 - Lancement visé : 1er octobre 2026
-- Bilingue français / anglais, **français par défaut**
+- Trilingue français / anglais / espagnol, **français par défaut** (espagnol ajouté le
+  10 septembre 2026 — voir section i18n pour ce qui reste en suspens : le contenu légal
+  de la politique de confidentialité n'a pas encore de version espagnole officielle)
 - Conformité Loi 25 (protection des données, Québec) : hébergement des données au Canada,
   suppression réelle de compte, export des données — voir section Base de données.
 - PWA d'abord (pas d'app native pour l'instant — installable sur mobile sans passer par les stores)
@@ -18,7 +20,16 @@ visuels et le ton doivent toujours rester cohérents avec ça.
 
 - **Frontend** : Next.js (App Router), PWA (manifest + service worker, installable)
 - **Backend / DB** : Supabase (PostgreSQL), projet hébergé en **région Canada (Central)**
-- **i18n** : next-intl, `fr` par défaut, `en` en second
+- **i18n** : next-intl, `fr` par défaut, `en` et `es` ensuite (`src/i18n/routing.ts`). Les
+  libellés d'intérêts (`interests.label_fr/label_en/label_es`) vivent en base, pas dans les
+  fichiers de messages — `label_es` est nullable (catalogue existant non rétro-traduit) et
+  tout site d'affichage retombe sur `label_fr` si absent, via `localizedInterestLabel()`
+  (`src/lib/interests/label.ts`) — toujours passer par cet helper plutôt que de refaire le
+  ternaire fr/en/es à la main. La politique de confidentialité (`src/content/privacy-policy.*`)
+  a maintenant une version espagnole (`privacy-policy.es.tsx`), mais **c'est une traduction de
+  travail non officielle**, au même titre que la version anglaise (voir le commentaire en tête
+  de chaque fichier) — contenu juridique fourni par le client en français, à faire valider par
+  un juriste/traducteur professionnel avant de s'y fier comme version espagnole faisant foi.
 - **Auth** : Supabase Auth — email/mot de passe (Google OAuth ajouté plus tard, pas encore
   configuré côté Google Cloud), confirmation par courriel, réinitialisation de mot de passe
 - **Temps réel** : Supabase Realtime (messagerie, présence)
@@ -51,6 +62,14 @@ Points importants à connaître avant de coder dessus :
   liront ce champ).
 - **Comptes suspendus/bannis** (`moderation_status`) ne peuvent plus écrire (policies déjà en place
   côté DB) — mais penser à aussi gérer l'expérience côté UI (message clair plutôt qu'une erreur brute).
+- **`handle_interest_suggestion_resolution()` vit uniquement en prod, jamais dans une migration
+  suivie ici** (créée à la main dans Supabase Studio — voir `20260831120000_interests_admin_write.sql`).
+  La migration `20260910120000_add_spanish_locale.sql` en contient une reconstruction best-effort
+  (pour lui ajouter `label_es`), écrite sans accès direct à la vraie source — **à differ contre
+  `select pg_get_functiondef('public.handle_interest_suggestion_resolution'::regproc);` avant
+  d'appliquer la migration en prod.** Idéalement, rapatrier cette fonction (et toute autre logique
+  écrite à la main côté Studio) dans une migration suivie dès que l'occasion se présente, pour
+  éviter que ça se reproduise.
 
 ## Ce qui n'existe PAS encore dans la DB (à ne pas construire pour l'instant)
 
@@ -111,8 +130,9 @@ la maquette fournie par le client.
 
 ## Conventions générales
 
-- Toujours écrire les textes visibles en **français d'abord**, avec la clé de traduction anglaise
-  à côté (next-intl) — ne jamais coder de texte en dur non traduit.
+- Toujours écrire les textes visibles en **français d'abord**, avec les clés de traduction anglaise
+  et espagnole à côté (next-intl, `messages/{fr,en,es}.json`) — ne jamais coder de texte en dur
+  non traduit.
 - Toute nouvelle table doit naître avec RLS activé (le projet Supabase est configuré pour ça par
   défaut) — ne jamais désactiver le RLS pour "tester plus vite".
 - Ne jamais exposer la `service_role` key côté client. Elle ne vit que dans des fonctions serveur.

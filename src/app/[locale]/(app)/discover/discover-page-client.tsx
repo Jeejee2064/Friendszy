@@ -15,6 +15,7 @@ import type { EventCardData } from "@/lib/events/types";
 import { listPartnerListings, type PartnerListingRow } from "@/lib/partners/queries";
 import { isOpenNow, type OpeningHours } from "@/lib/partners/opening-hours";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { haversineDistanceKm } from "@/lib/geocoding/distance";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
@@ -196,7 +197,7 @@ export function DiscoverPageClient({
     return interests.find((i) => i.id === id);
   }
   function labelFor(interest: Interest) {
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   }
 
   const eventPoints: MapPoint[] =

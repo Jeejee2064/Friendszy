@@ -11,6 +11,7 @@ import {
 import { logAdminAction, createInterest, updateInterest, deleteInterest } from "@/lib/admin/queries";
 import type { InterestSuggestionWithProfile } from "@/lib/admin/types";
 import type { Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { normalizeForSearch } from "@/lib/text";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
@@ -55,7 +56,7 @@ function profileDisplayName(
 }
 
 // "Pas besoin de sophistiqué" — a plain normalized-text comparison against
-// every existing interest's fr/en label, not a fuzzy-matching library.
+// every existing interest's fr/en/es label, not a fuzzy-matching library.
 // Flags an equal or substring match either direction (covers "Rando" vs
 // "Randonnée", "Escalade" vs "Escalade en salle", etc.).
 function findSimilarInterest(label: string, allInterests: Interest[]): Interest | null {
@@ -65,13 +66,16 @@ function findSimilarInterest(label: string, allInterests: Interest[]): Interest 
     allInterests.find((interest) => {
       const fr = normalizeForSearch(interest.label_fr);
       const en = normalizeForSearch(interest.label_en);
+      const es = normalizeForSearch(interest.label_es ?? "");
       return (
         fr === normalized ||
         en === normalized ||
+        es === normalized ||
         fr.includes(normalized) ||
         normalized.includes(fr) ||
         en.includes(normalized) ||
-        normalized.includes(en)
+        normalized.includes(en) ||
+        (!!es && (es.includes(normalized) || normalized.includes(es)))
       );
     }) ?? null
   );
@@ -103,6 +107,7 @@ export function AdminInterestSuggestionsClient({
   const [approveTarget, setApproveTarget] = useState<InterestSuggestionWithProfile | null>(null);
   const [labelFr, setLabelFr] = useState("");
   const [labelEn, setLabelEn] = useState("");
+  const [labelEs, setLabelEs] = useState("");
   const [approving, setApproving] = useState(false);
 
   // Interest catalogue (list + manual add/edit/delete) ---------------------
@@ -117,6 +122,7 @@ export function AdminInterestSuggestionsClient({
   const [editingInterest, setEditingInterest] = useState<Interest | null>(null);
   const [iLabelFr, setILabelFr] = useState("");
   const [iLabelEn, setILabelEn] = useState("");
+  const [iLabelEs, setILabelEs] = useState("");
   const [iCategory, setICategory] = useState<string>(CATEGORY_KEYS[0]);
   const [iEmoji, setIEmoji] = useState("");
   const [iSlug, setISlug] = useState("");
@@ -132,7 +138,10 @@ export function AdminInterestSuggestionsClient({
     return interests.filter((interest) => {
       const fr = normalizeForSearch(interest.label_fr);
       const en = normalizeForSearch(interest.label_en);
-      return fr.includes(query) || en.includes(query) || interest.slug.includes(query);
+      const es = normalizeForSearch(interest.label_es ?? "");
+      return (
+        fr.includes(query) || en.includes(query) || es.includes(query) || interest.slug.includes(query)
+      );
     });
   }, [interests, search]);
 
@@ -151,6 +160,7 @@ export function AdminInterestSuggestionsClient({
     setEditingInterest(null);
     setILabelFr("");
     setILabelEn("");
+    setILabelEs("");
     setICategory(CATEGORY_KEYS[0]);
     setIEmoji("");
     setISlug("");
@@ -162,6 +172,7 @@ export function AdminInterestSuggestionsClient({
     setEditingInterest(interest);
     setILabelFr(interest.label_fr);
     setILabelEn(interest.label_en);
+    setILabelEs(interest.label_es ?? "");
     setICategory(interest.category ?? CATEGORY_KEYS[0]);
     setIEmoji(interest.emoji ?? "");
     setISlug(interest.slug);
@@ -182,13 +193,14 @@ export function AdminInterestSuggestionsClient({
   }
 
   async function handleSaveInterest() {
-    if (!formMode || !iLabelFr.trim() || !iLabelEn.trim() || !iSlug.trim()) return;
+    if (!formMode || !iLabelFr.trim() || !iLabelEn.trim() || !iLabelEs.trim() || !iSlug.trim()) return;
     setSavingInterest(true);
     setCatalogFeedback(null);
     const payload = {
       slug: iSlug.trim(),
       labelFr: iLabelFr.trim(),
       labelEn: iLabelEn.trim(),
+      labelEs: iLabelEs.trim(),
       category: iCategory,
       emoji: iEmoji.trim() || null,
     };
@@ -267,6 +279,7 @@ export function AdminInterestSuggestionsClient({
     setApproveTarget(suggestion);
     setLabelFr(suggestion.locale === "fr" ? suggestion.label : "");
     setLabelEn(suggestion.locale === "en" ? suggestion.label : "");
+    setLabelEs(suggestion.locale === "es" ? suggestion.label : "");
   }
 
   function closeApprove() {
@@ -275,7 +288,7 @@ export function AdminInterestSuggestionsClient({
   }
 
   async function handleApprove() {
-    if (!approveTarget || !labelFr.trim() || !labelEn.trim()) return;
+    if (!approveTarget || !labelFr.trim() || !labelEn.trim() || !labelEs.trim()) return;
     setApproving(true);
     setFeedback(null);
     try {
@@ -285,7 +298,8 @@ export function AdminInterestSuggestionsClient({
         approveTarget.id,
         adminId,
         labelFr.trim(),
-        labelEn.trim()
+        labelEn.trim(),
+        labelEs.trim()
       );
       setSuggestions((prev) => prev.filter((s) => s.id !== approveTarget.id));
       logAdminAction(supabase, {
@@ -372,7 +386,11 @@ export function AdminInterestSuggestionsClient({
                       className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white"
                       style={{ backgroundImage: "var(--grad)" }}
                     >
-                      {suggestion.locale === "en" ? t("labelLangBadgeEn") : t("labelLangBadgeFr")}
+                      {suggestion.locale === "en"
+                        ? t("labelLangBadgeEn")
+                        : suggestion.locale === "es"
+                          ? t("labelLangBadgeEs")
+                          : t("labelLangBadgeFr")}
                     </span>
                     <p className="text-sm font-bold text-text">{suggestion.label}</p>
                   </div>
@@ -387,7 +405,7 @@ export function AdminInterestSuggestionsClient({
                   {similar && (
                     <p className="text-xs text-muted">
                       {t("similarHint", {
-                        label: locale === "en" ? similar.label_en : similar.label_fr,
+                        label: localizedInterestLabel(similar, locale),
                       })}
                     </p>
                   )}
@@ -464,7 +482,7 @@ export function AdminInterestSuggestionsClient({
                     >
                       <span>
                         {interest.emoji ? `${interest.emoji} ` : ""}
-                        {locale === "en" ? interest.label_en : interest.label_fr}
+                        {localizedInterestLabel(interest, locale)}
                       </span>
                       <button
                         type="button"
@@ -518,6 +536,17 @@ export function AdminInterestSuggestionsClient({
                 className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-teal2"
               />
             </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">
+                {t("labelEsLabel")}
+              </span>
+              <input
+                type="text"
+                value={labelEs}
+                onChange={(e) => setLabelEs(e.target.value)}
+                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-teal2"
+              />
+            </label>
             <p className="text-xs text-muted">
               {t("categoryLabel")}:{" "}
               {tCategory.has(approveTarget.category)
@@ -537,7 +566,7 @@ export function AdminInterestSuggestionsClient({
               <button
                 type="button"
                 onClick={handleApprove}
-                disabled={approving || !labelFr.trim() || !labelEn.trim()}
+                disabled={approving || !labelFr.trim() || !labelEn.trim() || !labelEs.trim()}
                 className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
                 style={{ backgroundImage: "var(--grad)" }}
               >
@@ -573,6 +602,17 @@ export function AdminInterestSuggestionsClient({
               type="text"
               value={iLabelEn}
               onChange={(e) => setILabelEn(e.target.value)}
+              className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-teal2"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">
+              {t("labelEsLabel")}
+            </span>
+            <input
+              type="text"
+              value={iLabelEs}
+              onChange={(e) => setILabelEs(e.target.value)}
               className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-teal2"
             />
           </label>
@@ -631,7 +671,13 @@ export function AdminInterestSuggestionsClient({
             <button
               type="button"
               onClick={handleSaveInterest}
-              disabled={savingInterest || !iLabelFr.trim() || !iLabelEn.trim() || !iSlug.trim()}
+              disabled={
+                savingInterest ||
+                !iLabelFr.trim() ||
+                !iLabelEn.trim() ||
+                !iLabelEs.trim() ||
+                !iSlug.trim()
+              }
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
               style={{ backgroundImage: "var(--grad)" }}
             >

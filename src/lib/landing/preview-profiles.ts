@@ -16,7 +16,7 @@
 // (app)/page.tsx — the public path only loads public map points), so each
 // profile's `interest` is its own small, hardcoded, bilingual tag rather
 // than a reference into the DB-backed Interest type used elsewhere.
-export type PreviewInterestTag = { emoji: string; fr: string; en: string };
+export type PreviewInterestTag = { emoji: string; fr: string; en: string; es: string };
 
 export type PreviewProfile = {
   id: string;
@@ -31,16 +31,16 @@ export type PreviewProfile = {
   interest: PreviewInterestTag;
 };
 
-const BOARD_GAMES: PreviewInterestTag = { emoji: "🎲", fr: "Jeux de société", en: "Board games" };
-const MUSIC: PreviewInterestTag = { emoji: "🎸", fr: "Musique", en: "Music" };
-const READING: PreviewInterestTag = { emoji: "📚", fr: "Lecture", en: "Reading" };
-const OUTDOORS: PreviewInterestTag = { emoji: "🥾", fr: "Plein air", en: "Outdoors" };
-const COOKING: PreviewInterestTag = { emoji: "🍳", fr: "Cuisine", en: "Cooking" };
-const MOVIES: PreviewInterestTag = { emoji: "🎬", fr: "Cinéma", en: "Movies" };
-const YOGA: PreviewInterestTag = { emoji: "🧘", fr: "Yoga", en: "Yoga" };
-const CYCLING: PreviewInterestTag = { emoji: "🚴", fr: "Vélo", en: "Cycling" };
-const PHOTOGRAPHY: PreviewInterestTag = { emoji: "📸", fr: "Photo", en: "Photography" };
-const SPORTS: PreviewInterestTag = { emoji: "⚽", fr: "Sport", en: "Sports" };
+const BOARD_GAMES: PreviewInterestTag = { emoji: "🎲", fr: "Jeux de société", en: "Board games", es: "Juegos de mesa" };
+const MUSIC: PreviewInterestTag = { emoji: "🎸", fr: "Musique", en: "Music", es: "Música" };
+const READING: PreviewInterestTag = { emoji: "📚", fr: "Lecture", en: "Reading", es: "Lectura" };
+const OUTDOORS: PreviewInterestTag = { emoji: "🥾", fr: "Plein air", en: "Outdoors", es: "Aire libre" };
+const COOKING: PreviewInterestTag = { emoji: "🍳", fr: "Cuisine", en: "Cooking", es: "Cocina" };
+const MOVIES: PreviewInterestTag = { emoji: "🎬", fr: "Cinéma", en: "Movies", es: "Cine" };
+const YOGA: PreviewInterestTag = { emoji: "🧘", fr: "Yoga", en: "Yoga", es: "Yoga" };
+const CYCLING: PreviewInterestTag = { emoji: "🚴", fr: "Vélo", en: "Cycling", es: "Ciclismo" };
+const PHOTOGRAPHY: PreviewInterestTag = { emoji: "📸", fr: "Photo", en: "Photography", es: "Fotografía" };
+const SPORTS: PreviewInterestTag = { emoji: "⚽", fr: "Sport", en: "Sports", es: "Deportes" };
 
 export const PREVIEW_PROFILES: PreviewProfile[] = [
   { id: "p1", firstName: "Sophie", lastInitial: "L.", age: 27, neighbourhood: "Le Plateau-Mont-Royal", latitude: 45.5185, longitude: -73.5813, photo: "/images/preview-people/p6.jpg", interest: BOARD_GAMES },

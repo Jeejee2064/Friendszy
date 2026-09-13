@@ -43,7 +43,7 @@ export function AddressAutocomplete({
           body: JSON.stringify({
             query: trimmed,
             city: city?.trim() || undefined,
-            language: locale === "en" ? "en" : "fr",
+            language: locale === "en" ? "en" : locale === "es" ? "es" : "fr",
           }),
         });
         if (!response.ok) return;

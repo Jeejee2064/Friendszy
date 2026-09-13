@@ -25,10 +25,16 @@ export function PersonCard({
   const displayName = profile.full_name
     ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
     : deletedUserLabel;
-  // Non-null means city is a temporary override rather than the person's
-  // real city (see set_temporary_city()) — pg_cron reverts it within ~15min
-  // of expiry, so treating "set" as "still active" here is close enough.
-  const isVisiting = Boolean(profile.temporary_city_until);
+  // Non-null means a temporary-city trip is booked (see set_temporary_city())
+  // — pg_cron reverts it within ~15min of expiry, so treating "set" as
+  // "still active" here is close enough. But a trip can be booked ahead of
+  // time, in which case `city` itself hasn't switched to the destination
+  // yet (see 20260913120000_temporary_city_date_range.sql) — so also check
+  // the arrival date has actually passed before showing the badge, or
+  // people would look "visiting" a city they haven't reached yet.
+  const isVisiting =
+    Boolean(profile.temporary_city_until) &&
+    (!profile.temporary_city_from || new Date(profile.temporary_city_from) <= new Date());
 
   const infoBlock = (
     <>

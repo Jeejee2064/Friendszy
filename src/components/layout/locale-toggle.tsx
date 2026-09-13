@@ -3,7 +3,7 @@
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 
-const LOCALES = ["fr", "en"] as const;
+const LOCALES = ["fr", "en", "es"] as const;
 
 function LocalePill({
   locale,

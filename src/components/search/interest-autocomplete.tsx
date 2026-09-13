@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
 import { normalizeForSearch } from "@/lib/text";
+import { localizedInterestLabel } from "@/lib/interests/label";
 
 const MAX_INTERESTS = 3;
 const MAX_SUGGESTIONS = 8;
@@ -28,7 +29,7 @@ export function InterestAutocomplete({
   const atMax = selectedIds.length >= MAX_INTERESTS;
 
   function labelFor(interest: Interest) {
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   }
 
   const suggestions = useMemo(() => {

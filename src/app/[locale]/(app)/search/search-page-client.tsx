@@ -18,6 +18,7 @@ import {
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getMyInterestIds } from "@/lib/profile/queries";
 import { GENDERS, type Gender, type Interest } from "@/lib/profile/types";
+import { localizedInterestLabel } from "@/lib/interests/label";
 import { InterestPicker, MAX_SEARCH_INTERESTS } from "@/components/search/interest-picker";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { AgeBracketPicker, type AgeBracket } from "@/components/search/age-bracket-picker";
@@ -74,7 +75,7 @@ export function SearchPageClient({
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
     if (!interest) return "";
-    return locale === "en" ? interest.label_en : interest.label_fr;
+    return localizedInterestLabel(interest, locale);
   };
 
   async function applyResults(mode: Tab, searchResults: SearchResult[]) {

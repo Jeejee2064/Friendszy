@@ -57,7 +57,9 @@ export async function searchProfiles(
 
   let query = supabase
     .from("profiles")
-    .select("id, full_name, last_name, avatar_url, city, age, gender, temporary_city_until")
+    .select(
+      "id, full_name, last_name, avatar_url, city, age, gender, temporary_city_until, temporary_city_from"
+    )
     .neq("id", excludeUserId)
     .limit(30);
 

@@ -273,7 +273,14 @@ export async function removeMessageAsAdmin(
 // (interests_insert_admin/interests_update_admin/interests_delete_admin).
 export async function createInterest(
   supabase: Client,
-  interest: { slug: string; labelFr: string; labelEn: string; category: string; emoji: string | null }
+  interest: {
+    slug: string;
+    labelFr: string;
+    labelEn: string;
+    labelEs: string;
+    category: string;
+    emoji: string | null;
+  }
 ): Promise<Interest> {
   const { data, error } = await supabase
     .from("interests")
@@ -281,6 +288,7 @@ export async function createInterest(
       slug: interest.slug,
       label_fr: interest.labelFr,
       label_en: interest.labelEn,
+      label_es: interest.labelEs,
       category: interest.category,
       emoji: interest.emoji,
     })
@@ -293,7 +301,14 @@ export async function createInterest(
 export async function updateInterest(
   supabase: Client,
   interestId: number,
-  interest: { slug: string; labelFr: string; labelEn: string; category: string; emoji: string | null }
+  interest: {
+    slug: string;
+    labelFr: string;
+    labelEn: string;
+    labelEs: string;
+    category: string;
+    emoji: string | null;
+  }
 ): Promise<Interest> {
   const { data, error } = await supabase
     .from("interests")
@@ -301,6 +316,7 @@ export async function updateInterest(
       slug: interest.slug,
       label_fr: interest.labelFr,
       label_en: interest.labelEn,
+      label_es: interest.labelEs,
       category: interest.category,
       emoji: interest.emoji,
     })
