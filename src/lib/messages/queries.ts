@@ -212,7 +212,12 @@ export async function setMessageReaction(
   const { data, error } = await supabase
     .from("message_reactions")
     .upsert(
-      { message_id: messageId, user_id: userId, emoji },
+      // conversation_id est posé côté serveur par le trigger
+      // set_message_reaction_conversation_id (voir la migration), jamais
+      // par le client — `as never` contourne l'exigence du type Insert
+      // généré (colonne NOT NULL sans défaut, la CLI ne sait pas qu'un
+      // trigger la remplit).
+      { message_id: messageId, user_id: userId, emoji } as never,
       { onConflict: "message_id,user_id" }
     )
     .select("*")
