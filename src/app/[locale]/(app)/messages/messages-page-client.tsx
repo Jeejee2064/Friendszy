@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +22,8 @@ import { isBlockedBetween, haveIBlocked } from "@/lib/blocks/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { MessageBubble } from "@/components/messages/message-bubble";
 import { ReplyPreviewBar } from "@/components/chat/reply-preview-bar";
+import { TypingIndicator } from "@/components/chat/typing-indicator";
+import { typingLabel } from "@/lib/chat/typing-label";
 import { OnlineDot } from "@/components/social/online-dot";
 import { BlockButton } from "@/components/social/block-button";
 import { ReportButton } from "@/components/social/report-button";
@@ -461,6 +464,10 @@ function ConversationPane({
   const closingRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isTypingRef = useRef(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [otherTyping, setOtherTyping] = useState(false);
 
   const otherDisplayName = displayName(otherProfile, tCommon("deletedUser"));
   const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
@@ -499,6 +506,36 @@ function ConversationPane({
     } catch {
       // ignore — the realtime event (or next catchUp) reconciles the true state
     }
+  }
+
+  // Debounced typing broadcast via presence on the conversation channel
+  // (see channelRef, set by the subscribe effect below) — presence untracks
+  // automatically on disconnect, so a torn-down tab never leaves a stuck
+  // "typing..." for the other person.
+  function stopTyping() {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      channelRef.current?.track({ typing: false });
+    }
+  }
+
+  function handleContentChange(value: string) {
+    setContent(value);
+    if (!channelRef.current) return;
+    if (value.trim().length === 0) {
+      stopTyping();
+      return;
+    }
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      channelRef.current.track({ typing: true });
+    }
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(stopTyping, 3000);
   }
 
   async function closeDueToBlock(byMe: boolean) {
@@ -572,9 +609,18 @@ function ConversationPane({
       );
     }
 
+    function syncTyping(current: RealtimeChannel) {
+      const state = current.presenceState<{ typing?: boolean }>();
+      const entries = state[otherProfile.id] ?? [];
+      setOtherTyping(entries.some((entry) => entry.typing));
+    }
+
     function subscribe() {
       channel = supabase
-        .channel(`conversation:${conversationId}`)
+        .channel(`conversation:${conversationId}`, { config: { presence: { key: userId } } })
+        .on("presence", { event: "sync" }, () => {
+          if (channel) syncTyping(channel);
+        })
         .on(
           "postgres_changes",
           {
@@ -651,6 +697,8 @@ function ConversationPane({
           if (cancelled) return;
 
           if (status === "SUBSCRIBED") {
+            channelRef.current = channel;
+            channel?.track({ typing: false });
             catchUp();
             return;
           }
@@ -659,6 +707,7 @@ function ConversationPane({
           // etc.) — without this, INSERT/UPDATE events (new messages, read
           // ticks) silently stop arriving until the page is refreshed.
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channelRef.current === channel) channelRef.current = null;
             if (channel) {
               supabase.removeChannel(channel);
               channel = null;
@@ -695,10 +744,12 @@ function ConversationPane({
     return () => {
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      channelRef.current = null;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (channel) supabase.removeChannel(channel);
     };
-  }, [conversationId, userId]);
+  }, [conversationId, userId, otherProfile.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -711,6 +762,7 @@ function ConversationPane({
 
     setSending(true);
     setContent("");
+    stopTyping();
     const replyToId = replyingTo?.id ?? null;
     setReplyingTo(null);
     try {
@@ -859,6 +911,14 @@ function ConversationPane({
         <div ref={bottomRef} />
       </div>
 
+      <TypingIndicator
+        label={typingLabel(otherTyping ? [otherDisplayName] : [], {
+          one: (name) => t("typingOne", { name }),
+          two: (a, b) => t("typingTwo", { a, b }),
+          many: (count) => t("typingMany", { count }),
+        })}
+      />
+
       {replyingTo && (
         <ReplyPreviewBar
           senderLabel={t("replyingTo", {
@@ -874,7 +934,7 @@ function ConversationPane({
         <input
           type="text"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => handleContentChange(e.target.value)}
           placeholder={t("messagePlaceholder")}
           className="min-w-0 flex-1 rounded-full border border-border px-4 py-2.5 text-sm outline-none focus:border-teal2"
         />

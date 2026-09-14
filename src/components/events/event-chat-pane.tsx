@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useFormatter, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -16,6 +17,8 @@ import { getProfilesByIds } from "@/lib/profile/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { EventMessageBubble } from "@/components/events/event-message-bubble";
 import { ReplyPreviewBar } from "@/components/chat/reply-preview-bar";
+import { TypingIndicator } from "@/components/chat/typing-indicator";
+import { typingLabel } from "@/lib/chat/typing-label";
 
 function dayDividerLabel(
   date: Date,
@@ -59,8 +62,12 @@ export function EventChatPane({
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
+  const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isTypingRef = useRef(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
   const reactionsByMessageId = useMemo(() => {
@@ -107,6 +114,36 @@ export function EventChatPane({
     }
   }
 
+  // Debounced typing broadcast via presence on the event channel (see
+  // channelRef, set by the subscribe effect below) — presence untracks
+  // automatically on disconnect, so a torn-down tab never leaves a stuck
+  // "typing..." for everyone else.
+  function stopTyping() {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      channelRef.current?.track({ typing: false });
+    }
+  }
+
+  function handleContentChange(value: string) {
+    setContent(value);
+    if (!channelRef.current) return;
+    if (value.trim().length === 0) {
+      stopTyping();
+      return;
+    }
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      channelRef.current.track({ typing: true });
+    }
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(stopTyping, 3000);
+  }
+
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
@@ -143,9 +180,35 @@ export function EventChatPane({
       }
     }
 
+    // Reads who's currently tracked as typing (excluding myself) from
+    // presence state, and lazily fetches profiles for anyone not already
+    // known from a prior message (someone can be typing without having
+    // sent a single message yet).
+    function syncTyping(current: RealtimeChannel) {
+      const state = current.presenceState<{ typing?: boolean }>();
+      const ids = Object.keys(state).filter(
+        (id) => id !== userId && (state[id] ?? []).some((entry) => entry.typing)
+      );
+      setTypingUserIds(ids);
+      const unseen = ids.filter((id) => !senderById.has(id));
+      if (unseen.length > 0) {
+        getProfilesByIds(supabase, unseen).then((profiles) => {
+          if (cancelled) return;
+          setSenderById((prev) => {
+            const next = new Map(prev);
+            for (const profile of profiles) next.set(profile.id, profile);
+            return next;
+          });
+        });
+      }
+    }
+
     function subscribe() {
       channel = supabase
-        .channel(`event-chat:${eventId}`)
+        .channel(`event-chat:${eventId}`, { config: { presence: { key: userId } } })
+        .on("presence", { event: "sync" }, () => {
+          if (channel) syncTyping(channel);
+        })
         .on(
           "postgres_changes",
           {
@@ -223,6 +286,8 @@ export function EventChatPane({
           if (cancelled) return;
 
           if (status === "SUBSCRIBED") {
+            channelRef.current = channel;
+            channel?.track({ typing: false });
             catchUp();
             return;
           }
@@ -251,6 +316,7 @@ export function EventChatPane({
       if (channel) {
         const toRemove = channel;
         channel = null;
+        if (channelRef.current === toRemove) channelRef.current = null;
         await supabase.removeChannel(toRemove);
       }
       if (!cancelled) subscribe();
@@ -273,6 +339,8 @@ export function EventChatPane({
     return () => {
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      channelRef.current = null;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (channel) supabase.removeChannel(channel);
     };
@@ -290,6 +358,7 @@ export function EventChatPane({
 
     setSending(true);
     setContent("");
+    stopTyping();
     const replyToId = replyingTo?.id ?? null;
     setReplyingTo(null);
     try {
@@ -395,6 +464,17 @@ export function EventChatPane({
         <div ref={bottomRef} />
       </div>
 
+      <TypingIndicator
+        label={typingLabel(
+          typingUserIds.map((id) => nameFor(id)),
+          {
+            one: (name) => t("typingOne", { name }),
+            two: (a, b) => t("typingTwo", { a, b }),
+            many: (count) => t("typingMany", { count }),
+          }
+        )}
+      />
+
       {replyingTo && (
         <ReplyPreviewBar
           senderLabel={t("replyingTo", {
@@ -410,7 +490,7 @@ export function EventChatPane({
         <input
           type="text"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => handleContentChange(e.target.value)}
           placeholder={t("messagePlaceholder")}
           className="min-w-0 flex-1 rounded-full border border-border px-4 py-2.5 text-sm outline-none focus:border-teal2"
         />
