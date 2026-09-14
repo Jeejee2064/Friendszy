@@ -320,6 +320,7 @@
     "react": "React",
     "replyingTo": "Replying to {name}",
     "cancelReply": "Cancel reply",
+    "deleteMessage": "Delete",
     "typingOne": "{name} is typing...",
     "typingTwo": "{a} and {b} are typing...",
     "typingMany": "{count} people are typing...",
@@ -398,6 +399,7 @@
     "react": "React",
     "replyingTo": "Replying to {name}",
     "cancelReply": "Cancel reply",
+    "deleteMessage": "Delete",
     "typingOne": "{name} is typing...",
     "typingTwo": "{a} and {b} are typing...",
     "typingMany": "{count} people are typing...",
@@ -647,6 +649,7 @@
     "react": "React",
     "replyingTo": "Replying to {name}",
     "cancelReply": "Cancel reply",
+    "deleteMessage": "Delete",
     "typingOne": "{name} is typing...",
     "typingTwo": "{a} and {b} are typing...",
     "typingMany": "{count} people are typing..."
@@ -824,6 +827,24 @@
       "confirmApprove": "Approve",
       "cancel": "Cancel"
     },
+    "cities": {
+      "title": "Cities",
+      "addCity": "Add a city",
+      "searchPlaceholder": "Search for a city…",
+      "noCities": "No cities.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "addModalTitle": "Add a city",
+      "editModalTitle": "Edit \"{name}\"",
+      "nameLabel": "City name",
+      "confirmAdd": "Add",
+      "confirmEdit": "Save",
+      "deleteConfirmTitle": "Delete \"{name}\"?",
+      "deleteConfirmBody": "This cannot be undone. The city will disappear from the suggestions offered in \"city\" fields.",
+      "confirmDelete": "Delete",
+      "duplicateNameError": "This city already exists.",
+      "cancel": "Cancel"
+    },
     "nav": {
       "dashboard": "Dashboard",
       "analytics": "Analytics",
@@ -831,6 +852,7 @@
       "members": "Members",
       "partners": "Partners",
       "interestSuggestions": "Interests",
+      "cities": "Cities",
       "logs": "Logs"
     },
     "logs": {

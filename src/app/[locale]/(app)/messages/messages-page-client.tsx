@@ -7,6 +7,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   sendMessage,
+  removeMessage,
   markConversationRead,
   getOrCreateConversation,
   getUnreadCountsByConversation,
@@ -508,6 +509,24 @@ function ConversationPane({
     }
   }
 
+  async function handleDeleteMessage(messageId: string) {
+    const supabase = createClient();
+    try {
+      await removeMessage(supabase, messageId, userId);
+      // Optimistic: the realtime UPDATE handler below also reflects this,
+      // but applying it locally right away avoids a visible round-trip.
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, removed_at: new Date().toISOString(), removed_by: userId }
+            : m
+        )
+      );
+    } catch {
+      // ignore — the realtime event (or next catchUp) reconciles the true state
+    }
+  }
+
   // Debounced typing broadcast via presence on the conversation channel
   // (see channelRef, set by the subscribe effect below) — presence untracks
   // automatically on disconnect, so a torn-down tab never leaves a stuck
@@ -899,8 +918,9 @@ function ConversationPane({
                   onReply={() => setReplyingTo(message)}
                   onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
                   onJumpToMessage={jumpToMessage}
+                  onDelete={() => handleDeleteMessage(message.id)}
                   replyLabel={t("reply")}
-                  reactLabel={t("react")}
+                  deleteLabel={t("deleteMessage")}
                   youLabel={tCommon("you")}
                   removedLabel={t("messageRemovedPlaceholder")}
                 />

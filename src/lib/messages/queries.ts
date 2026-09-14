@@ -155,6 +155,18 @@ export async function listMessages(
   return data ?? [];
 }
 
+// Retrait doux par l'auteur de son propre message (removed_at/removed_by),
+// sur le même modèle que le retrait admin des messages de groupe/événement
+// — le contenu reste en base (trigger d'immutabilité) mais n'est plus
+// affiché (voir MessageBubble). RLS restreint qui peut réellement le faire.
+export async function removeMessage(supabase: Client, messageId: string, userId: string) {
+  const { error } = await supabase
+    .from("messages")
+    .update({ removed_at: new Date().toISOString(), removed_by: userId })
+    .eq("id", messageId);
+  if (error) throw error;
+}
+
 export async function sendMessage(
   supabase: Client,
   conversationId: string,

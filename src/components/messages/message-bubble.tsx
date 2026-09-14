@@ -1,6 +1,6 @@
 import type { MessageRow, MessageReactionRow } from "@/lib/messages/queries";
 import { MessageStatusTicks } from "@/components/messages/message-status-ticks";
-import { MessageActions } from "@/components/chat/message-actions";
+import { MessageContextMenu } from "@/components/chat/message-context-menu";
 import { ReactionPills } from "@/components/chat/reaction-pills";
 import { QuotedMessage } from "@/components/chat/quoted-message";
 
@@ -16,8 +16,9 @@ export function MessageBubble({
   onReply,
   onToggleReaction,
   onJumpToMessage,
+  onDelete,
   replyLabel,
-  reactLabel,
+  deleteLabel,
   youLabel,
   removedLabel,
 }: {
@@ -32,21 +33,38 @@ export function MessageBubble({
   onReply: () => void;
   onToggleReaction: (emoji: string) => void;
   onJumpToMessage: (messageId: string) => void;
+  onDelete: () => void;
   replyLabel: string;
-  reactLabel: string;
+  deleteLabel: string;
   youLabel: string;
   removedLabel: string;
 }) {
+  const isRemoved = !!message.removed_at;
+
   return (
     <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
-      <div className={`flex items-end gap-1 ${isMine ? "flex-row-reverse" : ""}`}>
+      <MessageContextMenu
+        align={isMine ? "end" : "start"}
+        canDelete={isMine && !isRemoved}
+        onReply={onReply}
+        onReact={onToggleReaction}
+        onDelete={onDelete}
+        replyLabel={replyLabel}
+        deleteLabel={deleteLabel}
+      >
         <div
-          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${isMine ? "text-white" : "text-text"}`}
+          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+            isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
+          }`}
           style={
-            isMine ? { backgroundImage: "var(--grad)" } : { background: "var(--bg)" }
+            isRemoved
+              ? { background: "var(--bg)" }
+              : isMine
+                ? { backgroundImage: "var(--grad)" }
+                : { background: "var(--bg)" }
           }
         >
-          {repliedMessage && (
+          {!isRemoved && repliedMessage && (
             <QuotedMessage
               senderLabel={repliedMessage.isMine ? youLabel : repliedMessage.senderName}
               content={repliedMessage.content ?? removedLabel}
@@ -54,17 +72,12 @@ export function MessageBubble({
               onClick={() => onJumpToMessage(message.reply_to_id!)}
             />
           )}
-          {message.content}
+          {isRemoved ? removedLabel : message.content}
         </div>
-        <MessageActions
-          align={isMine ? "end" : "start"}
-          onReply={onReply}
-          onReact={onToggleReaction}
-          replyLabel={replyLabel}
-          reactLabel={reactLabel}
-        />
-      </div>
-      <ReactionPills reactions={reactions} myUserId={myUserId} onToggle={onToggleReaction} />
+      </MessageContextMenu>
+      {!isRemoved && (
+        <ReactionPills reactions={reactions} myUserId={myUserId} onToggle={onToggleReaction} />
+      )}
       <div className="mt-1 flex items-center gap-1.5">
         <span className="text-xs text-muted">{time}</span>
         {isMine && status && <MessageStatusTicks status={status} label={statusLabel} />}

@@ -320,6 +320,7 @@
     "react": "Reaccionar",
     "replyingTo": "Respondiendo a {name}",
     "cancelReply": "Cancelar respuesta",
+    "deleteMessage": "Eliminar",
     "typingOne": "{name} está escribiendo...",
     "typingTwo": "{a} y {b} están escribiendo...",
     "typingMany": "{count} personas están escribiendo...",
@@ -398,6 +399,7 @@
     "react": "Reaccionar",
     "replyingTo": "Respondiendo a {name}",
     "cancelReply": "Cancelar respuesta",
+    "deleteMessage": "Eliminar",
     "typingOne": "{name} está escribiendo...",
     "typingTwo": "{a} y {b} están escribiendo...",
     "typingMany": "{count} personas están escribiendo...",
@@ -647,6 +649,7 @@
     "react": "Reaccionar",
     "replyingTo": "Respondiendo a {name}",
     "cancelReply": "Cancelar respuesta",
+    "deleteMessage": "Eliminar",
     "typingOne": "{name} está escribiendo...",
     "typingTwo": "{a} y {b} están escribiendo...",
     "typingMany": "{count} personas están escribiendo..."
@@ -824,6 +827,24 @@
       "confirmApprove": "Aprobar",
       "cancel": "Cancelar"
     },
+    "cities": {
+      "title": "Ciudades",
+      "addCity": "Agregar una ciudad",
+      "searchPlaceholder": "Buscar una ciudad…",
+      "noCities": "No hay ciudades.",
+      "edit": "Modificar",
+      "delete": "Eliminar",
+      "addModalTitle": "Agregar una ciudad",
+      "editModalTitle": "Modificar \"{name}\"",
+      "nameLabel": "Nombre de la ciudad",
+      "confirmAdd": "Agregar",
+      "confirmEdit": "Guardar",
+      "deleteConfirmTitle": "¿Eliminar \"{name}\"?",
+      "deleteConfirmBody": "Esta acción es definitiva. La ciudad desaparecerá de las sugerencias ofrecidas en los campos «ciudad».",
+      "confirmDelete": "Eliminar",
+      "duplicateNameError": "Esta ciudad ya existe.",
+      "cancel": "Cancelar"
+    },
     "nav": {
       "dashboard": "Panel",
       "analytics": "Analítica",
@@ -831,6 +852,7 @@
       "members": "Miembros",
       "partners": "Socios",
       "interestSuggestions": "Intereses",
+      "cities": "Ciudades",
       "logs": "Registro"
     },
     "logs": {

@@ -1,6 +1,6 @@
 import type { GroupMessageRow, GroupMessageReactionRow } from "@/lib/groups/types";
 import type { ProfileSummary } from "@/lib/profile/types";
-import { MessageActions } from "@/components/chat/message-actions";
+import { MessageContextMenu } from "@/components/chat/message-context-menu";
 import { ReactionPills } from "@/components/chat/reaction-pills";
 import { QuotedMessage } from "@/components/chat/quoted-message";
 
@@ -20,8 +20,9 @@ export function GroupMessageBubble({
   onReply,
   onToggleReaction,
   onJumpToMessage,
+  onDelete,
   replyLabel,
-  reactLabel,
+  deleteLabel,
   youLabel,
 }: {
   message: GroupMessageRow;
@@ -39,8 +40,9 @@ export function GroupMessageBubble({
   onReply: () => void;
   onToggleReaction: (emoji: string) => void;
   onJumpToMessage: (messageId: string) => void;
+  onDelete: () => void;
   replyLabel: string;
-  reactLabel: string;
+  deleteLabel: string;
   youLabel: string;
 }) {
   const isRemoved = !!message.removed_at;
@@ -68,7 +70,15 @@ export function GroupMessageBubble({
           <span className="text-xs font-semibold text-muted">{senderName}</span>
         </div>
       )}
-      <div className={`flex items-end gap-1 ${isMine ? "flex-row-reverse" : ""}`}>
+      <MessageContextMenu
+        align={isMine ? "end" : "start"}
+        canDelete={isMine && !isRemoved}
+        onReply={onReply}
+        onReact={onToggleReaction}
+        onDelete={onDelete}
+        replyLabel={replyLabel}
+        deleteLabel={deleteLabel}
+      >
         <div className="group/bubble relative max-w-[75%]">
           <div
             className={`rounded-2xl px-4 py-2 text-sm ${
@@ -95,7 +105,10 @@ export function GroupMessageBubble({
           {canRemove && !isRemoved && (
             <button
               type="button"
-              onClick={() => onRemove(message.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(message.id);
+              }}
               aria-label={removeLabel}
               className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
             >
@@ -103,16 +116,7 @@ export function GroupMessageBubble({
             </button>
           )}
         </div>
-        {!isRemoved && (
-          <MessageActions
-            align={isMine ? "end" : "start"}
-            onReply={onReply}
-            onReact={onToggleReaction}
-            replyLabel={replyLabel}
-            reactLabel={reactLabel}
-          />
-        )}
-      </div>
+      </MessageContextMenu>
       {!isRemoved && (
         <ReactionPills reactions={reactions} myUserId={myUserId} onToggle={onToggleReaction} />
       )}

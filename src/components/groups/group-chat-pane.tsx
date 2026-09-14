@@ -428,8 +428,9 @@ export function GroupChatPane({
                   onReply={() => setReplyingTo(message)}
                   onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
                   onJumpToMessage={jumpToMessage}
+                  onDelete={() => handleRemove(message.id)}
                   replyLabel={t("reply")}
-                  reactLabel={t("react")}
+                  deleteLabel={t("deleteMessage")}
                   youLabel={tCommon("you")}
                 />
               </div>

@@ -320,6 +320,7 @@
     "react": "Réagir",
     "replyingTo": "Réponse à {name}",
     "cancelReply": "Annuler la réponse",
+    "deleteMessage": "Supprimer",
     "typingOne": "{name} écrit...",
     "typingTwo": "{a} et {b} écrivent...",
     "typingMany": "{count} personnes écrivent...",
@@ -398,6 +399,7 @@
     "react": "Réagir",
     "replyingTo": "Réponse à {name}",
     "cancelReply": "Annuler la réponse",
+    "deleteMessage": "Supprimer",
     "typingOne": "{name} écrit...",
     "typingTwo": "{a} et {b} écrivent...",
     "typingMany": "{count} personnes écrivent...",
@@ -647,6 +649,7 @@
     "react": "Réagir",
     "replyingTo": "Réponse à {name}",
     "cancelReply": "Annuler la réponse",
+    "deleteMessage": "Supprimer",
     "typingOne": "{name} écrit...",
     "typingTwo": "{a} et {b} écrivent...",
     "typingMany": "{count} personnes écrivent..."
@@ -824,6 +827,24 @@
       "confirmApprove": "Approuver",
       "cancel": "Annuler"
     },
+    "cities": {
+      "title": "Villes",
+      "addCity": "Ajouter une ville",
+      "searchPlaceholder": "Rechercher une ville…",
+      "noCities": "Aucune ville.",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "addModalTitle": "Ajouter une ville",
+      "editModalTitle": "Modifier « {name} »",
+      "nameLabel": "Nom de la ville",
+      "confirmAdd": "Ajouter",
+      "confirmEdit": "Enregistrer",
+      "deleteConfirmTitle": "Supprimer « {name} » ?",
+      "deleteConfirmBody": "Cette action est définitive. La ville disparaîtra des suggestions proposées dans les champs « ville ».",
+      "confirmDelete": "Supprimer",
+      "duplicateNameError": "Cette ville existe déjà.",
+      "cancel": "Annuler"
+    },
     "nav": {
       "dashboard": "Dashboard",
       "analytics": "Analytics",
@@ -831,6 +852,7 @@
       "members": "Membres",
       "partners": "Partenaires",
       "interestSuggestions": "Intérêts",
+      "cities": "Villes",
       "logs": "Journal"
     },
     "logs": {
