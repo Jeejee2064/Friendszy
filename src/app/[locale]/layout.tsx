@@ -9,6 +9,7 @@ import { CookieConsentBanner } from "@/components/consent/cookie-consent-banner"
 import { PresenceProvider } from "@/lib/presence/presence-context";
 import { NotificationsProvider } from "@/lib/notifications/notifications-context";
 import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
+import { ActiveConversationProvider } from "@/lib/messages/active-conversation-context";
 import { ToastProvider } from "@/components/ui/toast-context";
 import { PwaInstallProvider } from "@/lib/pwa/install-context";
 import { AnalyticsSessionPing } from "@/components/analytics/session-ping";
@@ -80,14 +81,16 @@ export default async function LocaleLayout({
           <PwaInstallProvider>
             <ToastProvider>
               <PresenceProvider>
-                <NotificationsProvider>
-                  <UnreadMessagesProvider>
-                    {children}
-                    <ServiceWorkerRegister />
-                    <CookieConsentBanner />
-                    <AnalyticsSessionPing />
-                  </UnreadMessagesProvider>
-                </NotificationsProvider>
+                <ActiveConversationProvider>
+                  <NotificationsProvider>
+                    <UnreadMessagesProvider>
+                      {children}
+                      <ServiceWorkerRegister />
+                      <CookieConsentBanner />
+                      <AnalyticsSessionPing />
+                    </UnreadMessagesProvider>
+                  </NotificationsProvider>
+                </ActiveConversationProvider>
               </PresenceProvider>
             </ToastProvider>
           </PwaInstallProvider>

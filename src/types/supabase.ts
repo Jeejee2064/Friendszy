@@ -117,6 +117,24 @@ export type Database = {
           },
         ]
       }
+      cities: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
       conversation_presence: {
         Row: {
           conversation_id: string
@@ -1343,6 +1361,7 @@ export type Database = {
           title: string
         }[]
       }
+      immutable_unaccent: { Args: { "": string }; Returns: string }
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_banned_from_group: {

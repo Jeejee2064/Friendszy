@@ -29,6 +29,13 @@ webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+// Le client fait un heartbeat (upsert) toutes les 15s tant que la
+// conversation est ouverte à l'écran (voir trackConversationPresence,
+// src/lib/messages/queries.ts) — une ligne plus vieille que ça veut dire
+// que l'onglet a été fermé/masqué sans avoir pu nettoyer, pas que la
+// conversation est encore regardée.
+const PRESENCE_FRESH_MS = 20_000;
+
 // French first, English alongside — mirrors messages/fr.json's existing
 // "newMessage" in-app toast wording, but this is its own short copy (the
 // client asked for this exact generic phrasing for push specifically).
@@ -85,6 +92,22 @@ Deno.serve(async (req) => {
     return new Response("missing sender_id/conversation_id in notification payload", {
       status: 422,
     });
+  }
+
+  // Le destinataire a déjà cette conversation ouverte à l'écran (elle lui
+  // affiche le message en direct) — une notif push serait redondante, et
+  // gênante en pleine discussion (voir conversation_presence, migration
+  // 20260914160000). Une ligne présente mais périmée ne compte pas : elle
+  // n'a pas pu être nettoyée à temps, pas une preuve de présence actuelle.
+  const { data: presence } = await admin
+    .from("conversation_presence")
+    .select("updated_at")
+    .eq("user_id", userId)
+    .eq("conversation_id", conversationId)
+    .maybeSingle();
+
+  if (presence && Date.now() - new Date(presence.updated_at).getTime() < PRESENCE_FRESH_MS) {
+    return new Response("recipient viewing conversation, push skipped", { status: 200 });
   }
 
   const [{ data: sender }, { data: subscriptions }] = await Promise.all([

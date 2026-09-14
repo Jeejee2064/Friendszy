@@ -15,6 +15,8 @@ import {
   listMessageReactions,
   setMessageReaction,
   removeMessageReaction,
+  trackConversationPresence,
+  clearConversationPresence,
   type MessageRow,
   type MessageReactionRow,
 } from "@/lib/messages/queries";
@@ -31,8 +33,15 @@ import { ReportButton } from "@/components/social/report-button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Modal } from "@/components/ui/modal";
 import { usePresence } from "@/lib/presence/presence-context";
+import { useSetActiveConversationId } from "@/lib/messages/active-conversation-context";
 import { useToast } from "@/components/ui/toast-context";
 import { PushPermissionBanner } from "@/components/push/push-permission-banner";
+
+// Fenêtre de rafraîchissement de la présence de conversation (voir
+// trackConversationPresence) — nettement en dessous des 20s de fraîcheur
+// côté push-new-message pour ne jamais laisser la ligne devenir périmée
+// pendant qu'on regarde encore la conversation.
+const PRESENCE_HEARTBEAT_MS = 15000;
 
 type ConversationSummary = {
   id: string;
@@ -454,6 +463,7 @@ function ConversationPane({
   const format = useFormatter();
   const router = useRouter();
   const showToast = useToast();
+  const setActiveConversationId = useSetActiveConversationId();
   const onlineIds = usePresence();
   const isOnline = onlineIds.has(otherProfile.id);
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
@@ -599,6 +609,58 @@ function ConversationPane({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, userId, otherProfile.id]);
+
+  // Signale "je regarde cette conversation" tant qu'elle est ouverte à
+  // l'écran : côté serveur, un heartbeat pour que push-new-message
+  // n'envoie pas de notif push pour un message qu'on est déjà en train de
+  // lire ; côté client, ActiveConversationContext pour que le toast
+  // in-app (unread-context.tsx) ne fasse pas la même redondance. Onglet
+  // masqué → on efface tout de suite la présence serveur au lieu d'attendre
+  // qu'elle devienne périmée, pour que le push reparte sans délai si on
+  // quitte l'appli à ce moment-là ; ActiveConversationContext, lui, reste
+  // posé tant que le composant est monté (revenir sur l'onglet ne doit pas
+  // faire réapparaître le toast pour cette même conversation).
+  useEffect(() => {
+    setActiveConversationId(conversationId);
+    return () => setActiveConversationId(null);
+  }, [conversationId, setActiveConversationId]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    let heartbeat: ReturnType<typeof setInterval> | null = null;
+
+    function start() {
+      trackConversationPresence(supabase, userId, conversationId).catch(() => {});
+      if (!heartbeat) {
+        heartbeat = setInterval(() => {
+          trackConversationPresence(supabase, userId, conversationId).catch(() => {});
+        }, PRESENCE_HEARTBEAT_MS);
+      }
+    }
+
+    function stop() {
+      if (heartbeat) {
+        clearInterval(heartbeat);
+        heartbeat = null;
+      }
+      clearConversationPresence(supabase, userId).catch(() => {});
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") start();
+      else stop();
+    }
+
+    if (document.visibilityState === "visible") start();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", stop);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", stop);
+      stop();
+    };
+  }, [conversationId, userId]);
 
   useEffect(() => {
     const supabase = createClient();

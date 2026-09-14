@@ -253,6 +253,36 @@ export async function markConversationRead(
   if (error) throw error;
 }
 
+// Heartbeat "je regarde cette conversation" — voir
+// supabase/migrations/20260914160000_conversation_presence.sql. Upsert sur
+// user_id (une seule ligne par utilisateur, une seule conversation
+// regardée à la fois) ; le client rappelle ceci toutes les ~15s tant que
+// la conversation reste ouverte à l'écran.
+export async function trackConversationPresence(
+  supabase: Client,
+  userId: string,
+  conversationId: string
+) {
+  const { error } = await supabase.from("conversation_presence").upsert({
+    user_id: userId,
+    conversation_id: conversationId,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+
+// Appelé en quittant la conversation (changement de conversation, onglet
+// masqué, démontage du composant) pour que push-new-message arrête
+// immédiatement d'ignorer les push vers cet utilisateur — sans attendre
+// que la ligne devienne périmée.
+export async function clearConversationPresence(supabase: Client, userId: string) {
+  const { error } = await supabase
+    .from("conversation_presence")
+    .delete()
+    .eq("user_id", userId);
+  if (error) throw error;
+}
+
 export async function markMessageDelivered(supabase: Client, messageId: string) {
   const { error } = await supabase
     .from("messages")

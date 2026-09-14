@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import { useToast } from "@/components/ui/toast-context";
+import { useActiveConversationId } from "./active-conversation-context";
 import {
   getUnreadConversationsCount,
   markAllReceivedMessagesDelivered,
@@ -22,6 +23,17 @@ export function UnreadMessagesProvider({ children }: { children: ReactNode }) {
   const [count, setCount] = useState(0);
   const t = useTranslations("Notifications");
   const showToast = useToast();
+
+  // Conversation actuellement ouverte à l'écran (posée par ConversationPane
+  // via ActiveConversationProvider), lue dans un ref plutôt que capturée
+  // directement : la souscription realtime ci-dessous n'est montée qu'une
+  // fois, alors que ceci change à chaque navigation — sans le ref, le
+  // handler d'INSERT verrait toujours sa valeur du premier rendu.
+  const activeConversationId = useActiveConversationId();
+  const openConversationIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    openConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -57,6 +69,11 @@ export function UnreadMessagesProvider({ children }: { children: ReactNode }) {
             const newMessage = payload.new as MessageRow;
             if (newMessage.sender_id === userId) return;
             markMessageDelivered(supabase, newMessage.id).catch(() => {});
+            // Déjà en train de regarder cette conversation (elle affiche le
+            // message directement) — le toast serait redondant. Voir aussi
+            // conversation_presence côté serveur, qui évite la même
+            // redondance pour la notif push.
+            if (newMessage.conversation_id === openConversationIdRef.current) return;
             const [profile] = await getProfilesByIds(supabase, [newMessage.sender_id]);
             const name = profile?.full_name ?? "";
             showToast({
