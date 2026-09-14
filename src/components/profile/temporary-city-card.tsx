@@ -32,14 +32,12 @@ function endOfLocalDay(dateStr: string): Date {
 }
 
 export function TemporaryCityCard({
-  plan,
   homeCity,
   destination,
   from,
   until,
   onActiveChange,
 }: {
-  plan: string;
   // Ville à laquelle on revient (profiles.home_city) — affichée dans l'état
   // planifié/en cours.
   homeCity: string | null;
@@ -65,7 +63,6 @@ export function TemporaryCityCard({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isPremium = plan === "premium";
   // Un séjour peut être planifié à l'avance — tant que l'arrivée n'est pas
   // là, profiles.city n'a pas encore changé (voir set_temporary_city()).
   const hasArrived = !tripFrom || new Date(tripFrom) <= new Date();
@@ -94,13 +91,7 @@ export function TemporaryCityCard({
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
-      setError(
-        message.includes("temporary_city_requires_premium")
-          ? t("errorPremiumRequired")
-          : message.includes("invalid_")
-            ? t("errorInvalidDates")
-            : t("errorGeneric")
-      );
+      setError(message.includes("invalid_") ? t("errorInvalidDates") : t("errorGeneric"));
     } finally {
       setPending(false);
     }
@@ -121,23 +112,6 @@ export function TemporaryCityCard({
     } finally {
       setPending(false);
     }
-  }
-
-  if (!isPremium) {
-    return (
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <div className="mb-2 flex items-center gap-2">
-          <h2 className="font-bold text-text">{t("cardTitle")}</h2>
-          <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-            style={{ backgroundImage: "var(--grad)" }}
-          >
-            {t("premiumBadge")}
-          </span>
-        </div>
-        <p className="text-sm text-muted">{t("premiumLockedBody")}</p>
-      </div>
-    );
   }
 
   return (

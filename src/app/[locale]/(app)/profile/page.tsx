@@ -55,7 +55,6 @@ export default async function ProfilePage({
     <ProfileForm
       userId={user.id}
       interests={interests}
-      plan={profile?.plan ?? "free"}
       photos={photos.map((photo) => photo.url)}
       temporaryCity={{
         homeCity: (hasTrip ? profile?.home_city : profile?.city) ?? null,

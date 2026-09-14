@@ -53,14 +53,12 @@ export function ProfileForm({
   userId,
   interests,
   initial,
-  plan,
   temporaryCity,
   photos: initialPhotos,
 }: {
   userId: string;
   interests: Interest[];
   initial: FormState;
-  plan: string;
   temporaryCity: {
     homeCity: string | null;
     destination: string | null;
@@ -374,7 +372,6 @@ export function ProfileForm({
 
       <div className="mt-4 w-full max-w-sm">
         <TemporaryCityCard
-          plan={plan}
           homeCity={temporaryCity.homeCity}
           destination={temporaryCity.destination}
           from={temporaryCity.from}
