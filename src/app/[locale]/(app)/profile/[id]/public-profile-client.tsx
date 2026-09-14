@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { OnlineDot } from "@/components/social/online-dot";
 import { ReportButton } from "@/components/social/report-button";
 import { BlockButton } from "@/components/social/block-button";
+import { PhotoLightbox } from "@/components/media/photo-lightbox";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -44,6 +45,15 @@ export function PublicProfileClient({
   const [messaging, setMessaging] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // Une seule galerie plein écran pour toutes les photos du profil — l'avatar
+  // d'abord (s'il existe), puis les photos supplémentaires — pour permettre
+  // de naviguer d'une photo à l'autre sans fermer/réouvrir la visionneuse.
+  const galleryPhotos = [
+    ...(profile.avatar_url ? [profile.avatar_url] : []),
+    ...photos,
+  ];
 
   const displayName = profile.full_name
     ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
@@ -98,12 +108,18 @@ export function PublicProfileClient({
               style={!profile.avatar_url ? { backgroundImage: "var(--grad)" } : undefined}
             >
               {profile.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={profile.avatar_url}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(0)}
+                  className="h-full w-full"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={profile.avatar_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </button>
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-white">
                   {displayName.charAt(0).toUpperCase()}
@@ -159,13 +175,15 @@ export function PublicProfileClient({
           {photos.length > 0 && (
             <div className="flex w-full flex-wrap justify-center gap-2">
               {photos.map((url) => (
-                <div
+                <button
                   key={url}
+                  type="button"
+                  onClick={() => setLightboxIndex(galleryPhotos.indexOf(url))}
                   className="h-24 w-24 overflow-hidden rounded-lg border border-border"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" className="h-full w-full object-cover" />
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -220,6 +238,18 @@ export function PublicProfileClient({
           )}
         </div>
       </div>
+
+      {lightboxIndex !== null && (
+        <PhotoLightbox
+          photos={galleryPhotos}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onNavigate={setLightboxIndex}
+          closeLabel={tCommon("lightboxClose")}
+          prevLabel={tCommon("lightboxPrev")}
+          nextLabel={tCommon("lightboxNext")}
+        />
+      )}
     </div>
   );
 }
