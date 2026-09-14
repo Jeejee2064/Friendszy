@@ -7,6 +7,7 @@ import {
   getLatestMessagesByConversation,
   getUnreadCountsByConversation,
   listMessages,
+  listMessageReactions,
 } from "@/lib/messages/queries";
 import { MessagesPageClient } from "./messages-page-client";
 
@@ -62,6 +63,7 @@ export default async function MessagesPage({
 
   let selectedOtherProfile = null;
   let initialMessages: Awaited<ReturnType<typeof listMessages>> = [];
+  let initialReactions: Awaited<ReturnType<typeof listMessageReactions>> = [];
 
   if (selectedId) {
     const { data: conversation, error } = await supabase
@@ -77,7 +79,10 @@ export default async function MessagesPage({
     const [profile] = await getProfilesByIds(supabase, [otherId]);
     if (!profile || profile.full_name === null) notFound();
     selectedOtherProfile = profile;
-    initialMessages = await listMessages(supabase, selectedId);
+    [initialMessages, initialReactions] = await Promise.all([
+      listMessages(supabase, selectedId),
+      listMessageReactions(supabase, selectedId),
+    ]);
   }
 
   return (
@@ -87,6 +92,7 @@ export default async function MessagesPage({
       selectedConversationId={selectedId ?? null}
       selectedOtherProfile={selectedOtherProfile}
       initialMessages={initialMessages}
+      initialReactions={initialReactions}
     />
   );
 }

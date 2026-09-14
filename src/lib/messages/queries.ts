@@ -5,6 +5,7 @@ import { getProfilesByIds } from "@/lib/profile/queries";
 type Client = SupabaseClient<Database>;
 export type ConversationRow = Database["public"]["Tables"]["conversations"]["Row"];
 export type MessageRow = Database["public"]["Tables"]["messages"]["Row"];
+export type MessageReactionRow = Database["public"]["Tables"]["message_reactions"]["Row"];
 
 export function orderPair(a: string, b: string): [string, string] {
   return a < b ? [a, b] : [b, a];
@@ -158,15 +159,67 @@ export async function sendMessage(
   supabase: Client,
   conversationId: string,
   senderId: string,
-  content: string
+  content: string,
+  replyToId?: string | null
 ): Promise<MessageRow> {
   const { data, error } = await supabase
     .from("messages")
-    .insert({ conversation_id: conversationId, sender_id: senderId, content })
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      content,
+      reply_to_id: replyToId ?? null,
+    })
     .select("*")
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function listMessageReactions(
+  supabase: Client,
+  conversationId: string
+): Promise<MessageReactionRow[]> {
+  const { data, error } = await supabase
+    .from("message_reactions")
+    .select("*")
+    .eq("conversation_id", conversationId);
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Une seule réaction active par personne et par message : poser un nouvel
+// emoji remplace le précédent (upsert sur la contrainte unique
+// message_id+user_id, voir la migration).
+export async function setMessageReaction(
+  supabase: Client,
+  messageId: string,
+  userId: string,
+  emoji: string
+): Promise<MessageReactionRow> {
+  const { data, error } = await supabase
+    .from("message_reactions")
+    .upsert(
+      { message_id: messageId, user_id: userId, emoji },
+      { onConflict: "message_id,user_id" }
+    )
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function removeMessageReaction(
+  supabase: Client,
+  messageId: string,
+  userId: string
+) {
+  const { error } = await supabase
+    .from("message_reactions")
+    .delete()
+    .eq("message_id", messageId)
+    .eq("user_id", userId);
+  if (error) throw error;
 }
 
 export async function markConversationRead(

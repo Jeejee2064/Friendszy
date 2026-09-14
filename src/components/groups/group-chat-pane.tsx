@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { listGroupMessages, sendGroupMessage } from "@/lib/groups/messages-queries";
+import {
+  listGroupMessages,
+  sendGroupMessage,
+  listGroupMessageReactions,
+  setGroupMessageReaction,
+  removeGroupMessageReaction,
+} from "@/lib/groups/messages-queries";
 import { removeGroupMessage } from "@/lib/groups/queries";
-import type { GroupMessageRow } from "@/lib/groups/types";
+import type { GroupMessageRow, GroupMessageReactionRow } from "@/lib/groups/types";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { GroupMessageBubble } from "@/components/groups/group-message-bubble";
+import { ReplyPreviewBar } from "@/components/chat/reply-preview-bar";
 
 function dayDividerLabel(
   date: Date,
@@ -31,12 +38,14 @@ export function GroupChatPane({
   isAdmin,
   initialMessages,
   initialSenders,
+  initialReactions,
 }: {
   groupId: string;
   userId: string;
   isAdmin: boolean;
   initialMessages: GroupMessageRow[];
   initialSenders: ProfileSummary[];
+  initialReactions: GroupMessageReactionRow[];
 }) {
   const t = useTranslations("Groups");
   const tCommon = useTranslations("Common");
@@ -45,9 +54,58 @@ export function GroupChatPane({
   const [senderById, setSenderById] = useState<Map<string, ProfileSummary>>(
     () => new Map(initialSenders.map((p) => [p.id, p]))
   );
+  const [reactions, setReactions] = useState<GroupMessageReactionRow[]>(initialReactions);
+  const [replyingTo, setReplyingTo] = useState<GroupMessageRow | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
+  const reactionsByMessageId = useMemo(() => {
+    const map = new Map<string, GroupMessageReactionRow[]>();
+    for (const r of reactions) {
+      const list = map.get(r.message_id);
+      if (list) list.push(r);
+      else map.set(r.message_id, [r]);
+    }
+    return map;
+  }, [reactions]);
+
+  function nameFor(profileId: string): string {
+    const profile = senderById.get(profileId);
+    return profile?.full_name
+      ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+      : tCommon("deletedUser");
+  }
+
+  function jumpToMessage(messageId: string) {
+    messageRefs.current.get(messageId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedId(messageId);
+    setTimeout(() => setHighlightedId((prev) => (prev === messageId ? null : prev)), 1500);
+  }
+
+  async function toggleReaction(messageId: string, emoji: string) {
+    const mine = reactionsByMessageId.get(messageId)?.find((r) => r.user_id === userId);
+    const supabase = createClient();
+    try {
+      if (mine?.emoji === emoji) {
+        await removeGroupMessageReaction(supabase, messageId, userId);
+        setReactions((prev) =>
+          prev.filter((r) => !(r.message_id === messageId && r.user_id === userId))
+        );
+      } else {
+        const saved = await setGroupMessageReaction(supabase, messageId, userId, emoji);
+        setReactions((prev) => [
+          ...prev.filter((r) => !(r.message_id === messageId && r.user_id === userId)),
+          saved,
+        ]);
+      }
+    } catch {
+      // ignore — the realtime event (or next catchUp) reconciles the true state
+    }
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -60,9 +118,13 @@ export function GroupChatPane({
     // backgrounded tab, ...) are otherwise lost for good.
     async function catchUp() {
       try {
-        const fresh = await listGroupMessages(supabase, groupId);
+        const [fresh, freshReactions] = await Promise.all([
+          listGroupMessages(supabase, groupId),
+          listGroupMessageReactions(supabase, groupId),
+        ]);
         if (cancelled) return;
         setMessages(fresh);
+        setReactions(freshReactions);
         const unseen = [...new Set(fresh.map((m) => m.sender_id))].filter(
           (id) => !senderById.has(id)
         );
@@ -116,6 +178,45 @@ export function GroupChatPane({
           (payload) => {
             const updated = payload.new as GroupMessageRow;
             setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "group_message_reactions",
+            filter: `group_id=eq.${groupId}`,
+          },
+          (payload) => {
+            const row = payload.new as GroupMessageReactionRow;
+            setReactions((prev) => (prev.some((r) => r.id === row.id) ? prev : [...prev, row]));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "group_message_reactions",
+            filter: `group_id=eq.${groupId}`,
+          },
+          (payload) => {
+            const row = payload.new as GroupMessageReactionRow;
+            setReactions((prev) => prev.map((r) => (r.id === row.id ? row : r)));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "group_message_reactions",
+            filter: `group_id=eq.${groupId}`,
+          },
+          (payload) => {
+            const oldRow = payload.old as { id: string };
+            setReactions((prev) => prev.filter((r) => r.id !== oldRow.id));
           }
         )
         .subscribe((status) => {
@@ -180,9 +281,11 @@ export function GroupChatPane({
 
     setSending(true);
     setContent("");
+    const replyToId = replyingTo?.id ?? null;
+    setReplyingTo(null);
     try {
       const supabase = createClient();
-      const sent = await sendGroupMessage(supabase, groupId, userId, text);
+      const sent = await sendGroupMessage(supabase, groupId, userId, text, replyToId);
       setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
     } catch {
       setContent(text);
@@ -211,8 +314,21 @@ export function GroupChatPane({
             const prevDate = i > 0 ? new Date(messages[i - 1].created_at) : null;
             const showDivider = !prevDate || date.toDateString() !== prevDate.toDateString();
 
+            const repliedTo = message.reply_to_id
+              ? messagesById.get(message.reply_to_id)
+              : null;
+
             return (
-              <div key={message.id} className="flex flex-col gap-3">
+              <div
+                key={message.id}
+                ref={(el) => {
+                  if (el) messageRefs.current.set(message.id, el);
+                  else messageRefs.current.delete(message.id);
+                }}
+                className={`flex flex-col gap-3 rounded-xl transition-colors ${
+                  highlightedId === message.id ? "bg-teal2/10" : ""
+                }`}
+              >
                 {showDivider && (
                   <p className="text-center text-xs text-muted">
                     {dayDividerLabel(date, format, t)}
@@ -228,6 +344,24 @@ export function GroupChatPane({
                   removedLabel={t("messageRemovedPlaceholder")}
                   removeLabel={t("removeMessage")}
                   deletedUserLabel={tCommon("deletedUser")}
+                  repliedMessage={
+                    message.reply_to_id
+                      ? {
+                          isMine: repliedTo?.sender_id === userId,
+                          senderName: repliedTo ? nameFor(repliedTo.sender_id) : tCommon("deletedUser"),
+                          content:
+                            repliedTo && !repliedTo.removed_at ? repliedTo.content : null,
+                        }
+                      : null
+                  }
+                  reactions={reactionsByMessageId.get(message.id) ?? []}
+                  myUserId={userId}
+                  onReply={() => setReplyingTo(message)}
+                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                  onJumpToMessage={jumpToMessage}
+                  replyLabel={t("reply")}
+                  reactLabel={t("react")}
+                  youLabel={tCommon("you")}
                 />
               </div>
             );
@@ -235,6 +369,17 @@ export function GroupChatPane({
         )}
         <div ref={bottomRef} />
       </div>
+
+      {replyingTo && (
+        <ReplyPreviewBar
+          senderLabel={t("replyingTo", {
+            name: replyingTo.sender_id === userId ? tCommon("you") : nameFor(replyingTo.sender_id),
+          })}
+          content={replyingTo.content ?? t("messageRemovedPlaceholder")}
+          onCancel={() => setReplyingTo(null)}
+          cancelLabel={t("cancelReply")}
+        />
+      )}
 
       <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-4">
         <input

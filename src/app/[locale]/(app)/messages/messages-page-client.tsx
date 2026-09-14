@@ -10,12 +10,17 @@ import {
   getOrCreateConversation,
   getUnreadCountsByConversation,
   listMessages,
+  listMessageReactions,
+  setMessageReaction,
+  removeMessageReaction,
   type MessageRow,
+  type MessageReactionRow,
 } from "@/lib/messages/queries";
 import { listFriends } from "@/lib/friends/queries";
 import { isBlockedBetween, haveIBlocked } from "@/lib/blocks/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { MessageBubble } from "@/components/messages/message-bubble";
+import { ReplyPreviewBar } from "@/components/chat/reply-preview-bar";
 import { OnlineDot } from "@/components/social/online-dot";
 import { BlockButton } from "@/components/social/block-button";
 import { ReportButton } from "@/components/social/report-button";
@@ -75,12 +80,14 @@ export function MessagesPageClient({
   selectedConversationId,
   selectedOtherProfile,
   initialMessages,
+  initialReactions,
 }: {
   userId: string;
   conversations: ConversationSummary[];
   selectedConversationId: string | null;
   selectedOtherProfile: ProfileSummary | null;
   initialMessages: MessageRow[];
+  initialReactions: MessageReactionRow[];
 }) {
   const t = useTranslations("Messages");
   const tCommon = useTranslations("Common");
@@ -290,6 +297,7 @@ export function MessagesPageClient({
               userId={userId}
               otherProfile={selectedOtherProfile!}
               initialMessages={initialMessages}
+              initialReactions={initialReactions}
             />
           ) : (
             <div className="flex flex-1 items-center justify-center text-sm text-muted">
@@ -429,11 +437,13 @@ function ConversationPane({
   userId,
   otherProfile,
   initialMessages,
+  initialReactions,
 }: {
   conversationId: string;
   userId: string;
   otherProfile: ProfileSummary;
   initialMessages: MessageRow[];
+  initialReactions: MessageReactionRow[];
 }) {
   const t = useTranslations("Messages");
   const tCommon = useTranslations("Common");
@@ -443,12 +453,53 @@ function ConversationPane({
   const onlineIds = usePresence();
   const isOnline = onlineIds.has(otherProfile.id);
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
+  const [reactions, setReactions] = useState<MessageReactionRow[]>(initialReactions);
+  const [replyingTo, setReplyingTo] = useState<MessageRow | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const closingRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const otherDisplayName = displayName(otherProfile, tCommon("deletedUser"));
+  const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
+  const reactionsByMessageId = useMemo(() => {
+    const map = new Map<string, MessageReactionRow[]>();
+    for (const r of reactions) {
+      const list = map.get(r.message_id);
+      if (list) list.push(r);
+      else map.set(r.message_id, [r]);
+    }
+    return map;
+  }, [reactions]);
+
+  function jumpToMessage(messageId: string) {
+    messageRefs.current.get(messageId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedId(messageId);
+    setTimeout(() => setHighlightedId((prev) => (prev === messageId ? null : prev)), 1500);
+  }
+
+  async function toggleReaction(messageId: string, emoji: string) {
+    const mine = reactionsByMessageId.get(messageId)?.find((r) => r.user_id === userId);
+    const supabase = createClient();
+    try {
+      if (mine?.emoji === emoji) {
+        await removeMessageReaction(supabase, messageId, userId);
+        setReactions((prev) =>
+          prev.filter((r) => !(r.message_id === messageId && r.user_id === userId))
+        );
+      } else {
+        const saved = await setMessageReaction(supabase, messageId, userId, emoji);
+        setReactions((prev) => [
+          ...prev.filter((r) => !(r.message_id === messageId && r.user_id === userId)),
+          saved,
+        ]);
+      }
+    } catch {
+      // ignore — the realtime event (or next catchUp) reconciles the true state
+    }
+  }
 
   async function closeDueToBlock(byMe: boolean) {
     if (closingRef.current) return;
@@ -505,8 +556,14 @@ function ConversationPane({
     // for good and ticks/messages silently go stale until a hard refresh.
     async function catchUp() {
       try {
-        const fresh = await listMessages(supabase, conversationId);
-        if (!cancelled) setMessages(fresh);
+        const [fresh, freshReactions] = await Promise.all([
+          listMessages(supabase, conversationId),
+          listMessageReactions(supabase, conversationId),
+        ]);
+        if (!cancelled) {
+          setMessages(fresh);
+          setReactions(freshReactions);
+        }
       } catch {
         // ignore transient errors, next reconnect/visibility change retries
       }
@@ -549,6 +606,45 @@ function ConversationPane({
           (payload) => {
             const updated = payload.new as MessageRow;
             setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "message_reactions",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const row = payload.new as MessageReactionRow;
+            setReactions((prev) => (prev.some((r) => r.id === row.id) ? prev : [...prev, row]));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "message_reactions",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const row = payload.new as MessageReactionRow;
+            setReactions((prev) => prev.map((r) => (r.id === row.id ? row : r)));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "message_reactions",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const oldRow = payload.old as { id: string };
+            setReactions((prev) => prev.filter((r) => r.id !== oldRow.id));
           }
         )
         .subscribe((status) => {
@@ -615,9 +711,11 @@ function ConversationPane({
 
     setSending(true);
     setContent("");
+    const replyToId = replyingTo?.id ?? null;
+    setReplyingTo(null);
     try {
       const supabase = createClient();
-      const sent = await sendMessage(supabase, conversationId, userId, text);
+      const sent = await sendMessage(supabase, conversationId, userId, text, replyToId);
       setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
     } catch {
       const supabase = createClient();
@@ -693,8 +791,21 @@ function ConversationPane({
               i > 0 ? new Date(messages[i - 1].created_at) : null;
             const showDivider = !prevDate || date.toDateString() !== prevDate.toDateString();
 
+            const repliedTo = message.reply_to_id
+              ? messagesById.get(message.reply_to_id)
+              : null;
+
             return (
-              <div key={message.id} className="flex flex-col gap-3">
+              <div
+                key={message.id}
+                ref={(el) => {
+                  if (el) messageRefs.current.set(message.id, el);
+                  else messageRefs.current.delete(message.id);
+                }}
+                className={`flex flex-col gap-3 rounded-xl transition-colors ${
+                  highlightedId === message.id ? "bg-teal2/10" : ""
+                }`}
+              >
                 {showDivider && (
                   <p className="text-center text-xs text-muted">
                     {dayDividerLabel(date, format, t)}
@@ -722,6 +833,24 @@ function ConversationPane({
                           : t("statusSent")
                       : undefined
                   }
+                  repliedMessage={
+                    message.reply_to_id
+                      ? {
+                          isMine: repliedTo?.sender_id === userId,
+                          senderName: otherDisplayName,
+                          content: repliedTo && !repliedTo.removed_at ? repliedTo.content : null,
+                        }
+                      : null
+                  }
+                  reactions={reactionsByMessageId.get(message.id) ?? []}
+                  myUserId={userId}
+                  onReply={() => setReplyingTo(message)}
+                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                  onJumpToMessage={jumpToMessage}
+                  replyLabel={t("reply")}
+                  reactLabel={t("react")}
+                  youLabel={tCommon("you")}
+                  removedLabel={t("messageRemovedPlaceholder")}
                 />
               </div>
             );
@@ -729,6 +858,17 @@ function ConversationPane({
         )}
         <div ref={bottomRef} />
       </div>
+
+      {replyingTo && (
+        <ReplyPreviewBar
+          senderLabel={t("replyingTo", {
+            name: replyingTo.sender_id === userId ? tCommon("you") : otherDisplayName,
+          })}
+          content={replyingTo.content ?? t("messageRemovedPlaceholder")}
+          onCancel={() => setReplyingTo(null)}
+          cancelLabel={t("cancelReply")}
+        />
+      )}
 
       <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-4">
         <input

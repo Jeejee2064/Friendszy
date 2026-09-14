@@ -11,6 +11,7 @@ import type {
   GroupMemberRole,
   GroupMemberWithProfile,
   GroupMessageRow,
+  GroupMessageReactionRow,
 } from "@/lib/groups/types";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
@@ -33,6 +34,7 @@ export function GroupViewClient({
   members,
   initialMessages,
   initialSenders,
+  initialReactions,
   canInvite,
   pendingRequests,
   myPendingJoinRequest,
@@ -45,6 +47,7 @@ export function GroupViewClient({
   members: GroupMemberWithProfile[];
   initialMessages: GroupMessageRow[];
   initialSenders: ProfileSummary[];
+  initialReactions: GroupMessageReactionRow[];
   canInvite: boolean;
   pendingRequests: JoinRequestWithProfile[];
   myPendingJoinRequest: boolean;
@@ -219,6 +222,7 @@ export function GroupViewClient({
               isAdmin={isAdminOrCreator}
               initialMessages={initialMessages}
               initialSenders={initialSenders}
+              initialReactions={initialReactions}
             />
           )}
           {tab === "members" && myRole && (

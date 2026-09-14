@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { listEventMessages, sendEventMessage } from "@/lib/events/messages-queries";
+import {
+  listEventMessages,
+  sendEventMessage,
+  listEventMessageReactions,
+  setEventMessageReaction,
+  removeEventMessageReaction,
+} from "@/lib/events/messages-queries";
 import { removeEventMessage } from "@/lib/events/queries";
-import type { EventMessageRow } from "@/lib/events/types";
+import type { EventMessageRow, EventMessageReactionRow } from "@/lib/events/types";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import type { ProfileSummary } from "@/lib/profile/types";
 import { EventMessageBubble } from "@/components/events/event-message-bubble";
+import { ReplyPreviewBar } from "@/components/chat/reply-preview-bar";
 
 function dayDividerLabel(
   date: Date,
@@ -31,12 +38,14 @@ export function EventChatPane({
   isOrganizer,
   initialMessages,
   initialSenders,
+  initialReactions,
 }: {
   eventId: string;
   userId: string;
   isOrganizer: boolean;
   initialMessages: EventMessageRow[];
   initialSenders: ProfileSummary[];
+  initialReactions: EventMessageReactionRow[];
 }) {
   const t = useTranslations("Events");
   const tCommon = useTranslations("Common");
@@ -45,9 +54,58 @@ export function EventChatPane({
   const [senderById, setSenderById] = useState<Map<string, ProfileSummary>>(
     () => new Map(initialSenders.map((p) => [p.id, p]))
   );
+  const [reactions, setReactions] = useState<EventMessageReactionRow[]>(initialReactions);
+  const [replyingTo, setReplyingTo] = useState<EventMessageRow | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
+  const reactionsByMessageId = useMemo(() => {
+    const map = new Map<string, EventMessageReactionRow[]>();
+    for (const r of reactions) {
+      const list = map.get(r.message_id);
+      if (list) list.push(r);
+      else map.set(r.message_id, [r]);
+    }
+    return map;
+  }, [reactions]);
+
+  function nameFor(profileId: string): string {
+    const profile = senderById.get(profileId);
+    return profile?.full_name
+      ? [profile.full_name, profile.last_name].filter(Boolean).join(" ")
+      : tCommon("deletedUser");
+  }
+
+  function jumpToMessage(messageId: string) {
+    messageRefs.current.get(messageId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedId(messageId);
+    setTimeout(() => setHighlightedId((prev) => (prev === messageId ? null : prev)), 1500);
+  }
+
+  async function toggleReaction(messageId: string, emoji: string) {
+    const mine = reactionsByMessageId.get(messageId)?.find((r) => r.user_id === userId);
+    const supabase = createClient();
+    try {
+      if (mine?.emoji === emoji) {
+        await removeEventMessageReaction(supabase, messageId, userId);
+        setReactions((prev) =>
+          prev.filter((r) => !(r.message_id === messageId && r.user_id === userId))
+        );
+      } else {
+        const saved = await setEventMessageReaction(supabase, messageId, userId, emoji);
+        setReactions((prev) => [
+          ...prev.filter((r) => !(r.message_id === messageId && r.user_id === userId)),
+          saved,
+        ]);
+      }
+    } catch {
+      // ignore — the realtime event (or next catchUp) reconciles the true state
+    }
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -60,9 +118,13 @@ export function EventChatPane({
     // backgrounded tab, ...) are otherwise lost for good.
     async function catchUp() {
       try {
-        const fresh = await listEventMessages(supabase, eventId);
+        const [fresh, freshReactions] = await Promise.all([
+          listEventMessages(supabase, eventId),
+          listEventMessageReactions(supabase, eventId),
+        ]);
         if (cancelled) return;
         setMessages(fresh);
+        setReactions(freshReactions);
         const unseen = [...new Set(fresh.map((m) => m.sender_id))].filter(
           (id) => !senderById.has(id)
         );
@@ -116,6 +178,45 @@ export function EventChatPane({
           (payload) => {
             const updated = payload.new as EventMessageRow;
             setMessages((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "event_message_reactions",
+            filter: `event_id=eq.${eventId}`,
+          },
+          (payload) => {
+            const row = payload.new as EventMessageReactionRow;
+            setReactions((prev) => (prev.some((r) => r.id === row.id) ? prev : [...prev, row]));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "event_message_reactions",
+            filter: `event_id=eq.${eventId}`,
+          },
+          (payload) => {
+            const row = payload.new as EventMessageReactionRow;
+            setReactions((prev) => prev.map((r) => (r.id === row.id ? row : r)));
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "event_message_reactions",
+            filter: `event_id=eq.${eventId}`,
+          },
+          (payload) => {
+            const oldRow = payload.old as { id: string };
+            setReactions((prev) => prev.filter((r) => r.id !== oldRow.id));
           }
         )
         .subscribe((status) => {
@@ -189,9 +290,11 @@ export function EventChatPane({
 
     setSending(true);
     setContent("");
+    const replyToId = replyingTo?.id ?? null;
+    setReplyingTo(null);
     try {
       const supabase = createClient();
-      const sent = await sendEventMessage(supabase, eventId, userId, text);
+      const sent = await sendEventMessage(supabase, eventId, userId, text, replyToId);
       setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
     } catch {
       setContent(text);
@@ -234,10 +337,20 @@ export function EventChatPane({
               date.toDateString() === nextDate.toDateString() &&
               nextMessage.sender_id === message.sender_id;
 
+            const repliedTo = message.reply_to_id
+              ? messagesById.get(message.reply_to_id)
+              : null;
+
             return (
               <div
                 key={message.id}
-                className={`flex flex-col ${i === 0 ? "" : groupedWithPrev ? "mt-0.5" : "mt-3"}`}
+                ref={(el) => {
+                  if (el) messageRefs.current.set(message.id, el);
+                  else messageRefs.current.delete(message.id);
+                }}
+                className={`flex flex-col rounded-xl transition-colors ${
+                  i === 0 ? "" : groupedWithPrev ? "mt-0.5" : "mt-3"
+                } ${highlightedId === message.id ? "bg-teal2/10" : ""}`}
               >
                 {showDivider && (
                   <p className="mb-3 text-center text-xs text-muted">
@@ -256,6 +369,24 @@ export function EventChatPane({
                   removedLabel={t("messageRemovedPlaceholder")}
                   removeLabel={t("removeMessage")}
                   deletedUserLabel={tCommon("deletedUser")}
+                  repliedMessage={
+                    message.reply_to_id
+                      ? {
+                          isMine: repliedTo?.sender_id === userId,
+                          senderName: repliedTo ? nameFor(repliedTo.sender_id) : tCommon("deletedUser"),
+                          content:
+                            repliedTo && !repliedTo.removed_at ? repliedTo.content : null,
+                        }
+                      : null
+                  }
+                  reactions={reactionsByMessageId.get(message.id) ?? []}
+                  myUserId={userId}
+                  onReply={() => setReplyingTo(message)}
+                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                  onJumpToMessage={jumpToMessage}
+                  replyLabel={t("reply")}
+                  reactLabel={t("react")}
+                  youLabel={tCommon("you")}
                 />
               </div>
             );
@@ -263,6 +394,17 @@ export function EventChatPane({
         )}
         <div ref={bottomRef} />
       </div>
+
+      {replyingTo && (
+        <ReplyPreviewBar
+          senderLabel={t("replyingTo", {
+            name: replyingTo.sender_id === userId ? tCommon("you") : nameFor(replyingTo.sender_id),
+          })}
+          content={replyingTo.content ?? t("messageRemovedPlaceholder")}
+          onCancel={() => setReplyingTo(null)}
+          cancelLabel={t("cancelReply")}
+        />
+      )}
 
       <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-4">
         <input

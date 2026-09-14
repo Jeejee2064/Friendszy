@@ -1,5 +1,8 @@
-import type { GroupMessageRow } from "@/lib/groups/types";
+import type { GroupMessageRow, GroupMessageReactionRow } from "@/lib/groups/types";
 import type { ProfileSummary } from "@/lib/profile/types";
+import { MessageActions } from "@/components/chat/message-actions";
+import { ReactionPills } from "@/components/chat/reaction-pills";
+import { QuotedMessage } from "@/components/chat/quoted-message";
 
 export function GroupMessageBubble({
   message,
@@ -11,6 +14,15 @@ export function GroupMessageBubble({
   removedLabel,
   removeLabel,
   deletedUserLabel,
+  repliedMessage,
+  reactions,
+  myUserId,
+  onReply,
+  onToggleReaction,
+  onJumpToMessage,
+  replyLabel,
+  reactLabel,
+  youLabel,
 }: {
   message: GroupMessageRow;
   isMine: boolean;
@@ -21,6 +33,15 @@ export function GroupMessageBubble({
   removedLabel: string;
   removeLabel: string;
   deletedUserLabel: string;
+  repliedMessage?: { isMine: boolean; senderName: string; content: string | null } | null;
+  reactions: GroupMessageReactionRow[];
+  myUserId: string;
+  onReply: () => void;
+  onToggleReaction: (emoji: string) => void;
+  onJumpToMessage: (messageId: string) => void;
+  replyLabel: string;
+  reactLabel: string;
+  youLabel: string;
 }) {
   const isRemoved = !!message.removed_at;
   const senderName = sender?.full_name
@@ -47,32 +68,54 @@ export function GroupMessageBubble({
           <span className="text-xs font-semibold text-muted">{senderName}</span>
         </div>
       )}
-      <div className="group/bubble relative max-w-[75%]">
-        <div
-          className={`rounded-2xl px-4 py-2 text-sm ${
-            isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
-          }`}
-          style={
-            isRemoved
-              ? { background: "var(--bg)" }
-              : isMine
-                ? { backgroundImage: "var(--grad)" }
-                : { background: "var(--bg)" }
-          }
-        >
-          {isRemoved ? removedLabel : message.content}
-        </div>
-        {canRemove && !isRemoved && (
-          <button
-            type="button"
-            onClick={() => onRemove(message.id)}
-            aria-label={removeLabel}
-            className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
+      <div className={`flex items-end gap-1 ${isMine ? "flex-row-reverse" : ""}`}>
+        <div className="group/bubble relative max-w-[75%]">
+          <div
+            className={`rounded-2xl px-4 py-2 text-sm ${
+              isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
+            }`}
+            style={
+              isRemoved
+                ? { background: "var(--bg)" }
+                : isMine
+                  ? { backgroundImage: "var(--grad)" }
+                  : { background: "var(--bg)" }
+            }
           >
-            🗑️
-          </button>
+            {!isRemoved && repliedMessage && (
+              <QuotedMessage
+                senderLabel={repliedMessage.isMine ? youLabel : repliedMessage.senderName}
+                content={repliedMessage.content ?? removedLabel}
+                tone={isMine ? "mine" : "theirs"}
+                onClick={() => onJumpToMessage(message.reply_to_id!)}
+              />
+            )}
+            {isRemoved ? removedLabel : message.content}
+          </div>
+          {canRemove && !isRemoved && (
+            <button
+              type="button"
+              onClick={() => onRemove(message.id)}
+              aria-label={removeLabel}
+              className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
+            >
+              🗑️
+            </button>
+          )}
+        </div>
+        {!isRemoved && (
+          <MessageActions
+            align={isMine ? "end" : "start"}
+            onReply={onReply}
+            onReact={onToggleReaction}
+            replyLabel={replyLabel}
+            reactLabel={reactLabel}
+          />
         )}
       </div>
+      {!isRemoved && (
+        <ReactionPills reactions={reactions} myUserId={myUserId} onToggle={onToggleReaction} />
+      )}
       <span className="mt-1 px-1 text-xs text-muted">{time}</span>
     </div>
   );

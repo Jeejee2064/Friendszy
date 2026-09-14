@@ -13,7 +13,12 @@ import {
   registerForEvent,
   unregisterFromEvent,
 } from "@/lib/events/queries";
-import type { EventRow, EventPhotoRow, EventMessageRow } from "@/lib/events/types";
+import type {
+  EventRow,
+  EventPhotoRow,
+  EventMessageRow,
+  EventMessageReactionRow,
+} from "@/lib/events/types";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import { PageHeader } from "@/components/layout/page-header";
@@ -34,6 +39,7 @@ export function EventViewClient({
   photos,
   initialMessages,
   initialSenders,
+  initialReactions,
 }: {
   userId: string;
   event: EventRow;
@@ -45,6 +51,7 @@ export function EventViewClient({
   photos: EventPhotoRow[];
   initialMessages: EventMessageRow[];
   initialSenders: ProfileSummary[];
+  initialReactions: EventMessageReactionRow[];
 }) {
   const t = useTranslations("Events.detail");
   const tDiscovery = useTranslations("Events.discovery");
@@ -308,6 +315,7 @@ export function EventViewClient({
               isOrganizer={isOrganizer}
               initialMessages={initialMessages}
               initialSenders={initialSenders}
+              initialReactions={initialReactions}
             />
           ) : (
             <div className="flex flex-1 items-center justify-center p-6 text-center">

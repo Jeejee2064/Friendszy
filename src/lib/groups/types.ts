@@ -4,6 +4,8 @@ import type { Interest, ProfileSummary } from "@/lib/profile/types";
 export type GroupRow = Database["public"]["Tables"]["groups"]["Row"];
 export type GroupMemberRow = Database["public"]["Tables"]["group_members"]["Row"];
 export type GroupMessageRow = Database["public"]["Tables"]["group_messages"]["Row"];
+export type GroupMessageReactionRow =
+  Database["public"]["Tables"]["group_message_reactions"]["Row"];
 export type GroupJoinRequestRow =
   Database["public"]["Tables"]["group_join_requests"]["Row"];
 

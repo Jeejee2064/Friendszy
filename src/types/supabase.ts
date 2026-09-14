@@ -164,6 +164,7 @@ export type Database = {
           id: string
           removed_at: string | null
           removed_by: string | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -173,6 +174,7 @@ export type Database = {
           id?: string
           removed_at?: string | null
           removed_by?: string | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -182,6 +184,7 @@ export type Database = {
           id?: string
           removed_at?: string | null
           removed_by?: string | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -200,8 +203,64 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "event_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "event_messages"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "event_messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          event_id: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          event_id?: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          event_id?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_message_reactions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "event_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_message_reactions_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -480,6 +539,7 @@ export type Database = {
           id: string
           removed_at: string | null
           removed_by: string | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -489,6 +549,7 @@ export type Database = {
           id?: string
           removed_at?: string | null
           removed_by?: string | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -498,6 +559,7 @@ export type Database = {
           id?: string
           removed_at?: string | null
           removed_by?: string | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -516,8 +578,64 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "group_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "group_messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          group_id: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          group_id?: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          group_id?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_message_reactions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_message_reactions_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -688,6 +806,7 @@ export type Database = {
           read_at: string | null
           removed_at: string | null
           removed_by: string | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -699,6 +818,7 @@ export type Database = {
           read_at?: string | null
           removed_at?: string | null
           removed_by?: string | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -710,6 +830,7 @@ export type Database = {
           read_at?: string | null
           removed_at?: string | null
           removed_by?: string | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -728,8 +849,64 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

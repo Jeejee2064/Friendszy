@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { GroupMessageRow } from "./types";
+import type { GroupMessageRow, GroupMessageReactionRow } from "./types";
 
 type Client = SupabaseClient<Database>;
 
@@ -21,15 +21,67 @@ export async function sendGroupMessage(
   supabase: Client,
   groupId: string,
   senderId: string,
-  content: string
+  content: string,
+  replyToId?: string | null
 ): Promise<GroupMessageRow> {
   const { data, error } = await supabase
     .from("group_messages")
-    .insert({ group_id: groupId, sender_id: senderId, content })
+    .insert({
+      group_id: groupId,
+      sender_id: senderId,
+      content,
+      reply_to_id: replyToId ?? null,
+    })
     .select("*")
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function listGroupMessageReactions(
+  supabase: Client,
+  groupId: string
+): Promise<GroupMessageReactionRow[]> {
+  const { data, error } = await supabase
+    .from("group_message_reactions")
+    .select("*")
+    .eq("group_id", groupId);
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Une seule réaction active par personne et par message : poser un nouvel
+// emoji remplace le précédent (upsert sur la contrainte unique
+// message_id+user_id, voir la migration).
+export async function setGroupMessageReaction(
+  supabase: Client,
+  messageId: string,
+  userId: string,
+  emoji: string
+): Promise<GroupMessageReactionRow> {
+  const { data, error } = await supabase
+    .from("group_message_reactions")
+    .upsert(
+      { message_id: messageId, user_id: userId, emoji },
+      { onConflict: "message_id,user_id" }
+    )
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function removeGroupMessageReaction(
+  supabase: Client,
+  messageId: string,
+  userId: string
+) {
+  const { error } = await supabase
+    .from("group_message_reactions")
+    .delete()
+    .eq("message_id", messageId)
+    .eq("user_id", userId);
+  if (error) throw error;
 }
 
 export async function getLatestMessagesByGroup(

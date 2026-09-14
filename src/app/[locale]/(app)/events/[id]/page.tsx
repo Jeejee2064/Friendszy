@@ -8,7 +8,7 @@ import {
   getMyRegistration,
   listEventPhotos,
 } from "@/lib/events/queries";
-import { listEventMessages } from "@/lib/events/messages-queries";
+import { listEventMessages, listEventMessageReactions } from "@/lib/events/messages-queries";
 import { EventViewClient } from "@/components/events/event-view-client";
 
 export default async function EventPage({
@@ -48,8 +48,12 @@ export default async function EventPage({
 
   let initialMessages: Awaited<ReturnType<typeof listEventMessages>> = [];
   let initialSenders: Awaited<ReturnType<typeof getProfilesByIds>> = [];
+  let initialReactions: Awaited<ReturnType<typeof listEventMessageReactions>> = [];
   if (isRegistered) {
-    initialMessages = await listEventMessages(supabase, id);
+    [initialMessages, initialReactions] = await Promise.all([
+      listEventMessages(supabase, id),
+      listEventMessageReactions(supabase, id),
+    ]);
     const senderIds = [...new Set(initialMessages.map((m) => m.sender_id))];
     initialSenders = await getProfilesByIds(supabase, senderIds);
   }
@@ -66,6 +70,7 @@ export default async function EventPage({
       photos={photos}
       initialMessages={initialMessages}
       initialSenders={initialSenders}
+      initialReactions={initialReactions}
     />
   );
 }

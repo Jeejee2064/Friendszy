@@ -13,7 +13,7 @@ import {
   isGroupCreator,
   listPendingJoinRequests,
 } from "@/lib/groups/queries";
-import { listGroupMessages } from "@/lib/groups/messages-queries";
+import { listGroupMessages, listGroupMessageReactions } from "@/lib/groups/messages-queries";
 import type { GroupMemberWithProfile } from "@/lib/groups/types";
 import type { JoinRequestWithProfile } from "@/components/groups/join-request-queue";
 import { GroupViewClient } from "@/components/groups/group-view-client";
@@ -61,6 +61,7 @@ export default async function GroupPage({
         members={[]}
         initialMessages={[]}
         initialSenders={[]}
+        initialReactions={[]}
         canInvite={false}
         pendingRequests={[]}
         myPendingJoinRequest={pendingIds.has(id)}
@@ -68,9 +69,10 @@ export default async function GroupPage({
     );
   }
 
-  const [memberRows, messages, canInvite, admin, creator] = await Promise.all([
+  const [memberRows, messages, reactions, canInvite, admin, creator] = await Promise.all([
     getGroupMembers(supabase, id, ["active", "excluded"]),
     listGroupMessages(supabase, id),
+    listGroupMessageReactions(supabase, id),
     canInviteToGroup(supabase, id),
     isGroupAdmin(supabase, id),
     isGroupCreator(supabase, id),
@@ -118,6 +120,7 @@ export default async function GroupPage({
       members={members}
       initialMessages={messages}
       initialSenders={initialSenders}
+      initialReactions={reactions}
       canInvite={canInvite}
       pendingRequests={pendingRequests}
       myPendingJoinRequest={false}
