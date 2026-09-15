@@ -212,7 +212,6 @@
     "tabInterests": "Intereses",
     "tabSettings": "Configuración",
     "blockedUsersLink": "Usuarios bloqueados",
-    "settingsLink": "Configuración",
     "save": "Guardar",
     "saveSuccess": "Perfil actualizado.",
     "saveError": "Se produjo un error. Inténtalo de nuevo.",
@@ -252,7 +251,7 @@
     "nameEmptyHint": "Escribe el nombre y el apellido para empezar la búsqueda.",
     "cityExample": "Ej.: Montreal, QC",
     "cityStepTitle": "¿En qué ciudad?",
-    "interestsStepTitle": "Hasta {max} intereses",
+    "interestsStepTitle": "Intereses",
     "interestsRequiredHint": "Elige al menos 1 interés para lanzar la búsqueda.",
     "ageGenderStepTitle": "Edad y género (opcional)",
     "skip": "Omitir este paso",
@@ -271,7 +270,8 @@
     "viewResults": "Ver resultados",
     "interestsPlaceholder": "Buscar un interés...",
     "yourInterests": "Tus intereses:",
-    "maxInterestsReached": "Máximo {max} intereses",
+    "selectAllInterests": "Seleccionar todo",
+    "deselectAllInterests": "Deseleccionar todo",
     "removeInterest": "Quitar"
   },
   "Friends": {
@@ -299,6 +299,7 @@
     "noGroupsFound": "No se encontró ningún grupo.",
     "noMyGroups": "Aún no formas parte de ningún grupo.",
     "allInterests": "Todos los intereses",
+    "noInterest": "Sin interés asociado",
     "memberCount": "{count} miembros",
     "memberBadge": "Miembro",
     "requestSent": "Solicitud enviada",
@@ -352,7 +353,8 @@
     "stepOf": "Paso {step} de {total}",
     "steps": {
       "basics": "Información del grupo",
-      "interest": "Interés",
+      "cities": "Ciudades",
+      "interest": "Interés (opcional)",
       "review": "Resumen"
     },
     "back": "Atrás",
@@ -372,9 +374,13 @@
     "cancel": "Cancelar",
     "errors": {
       "nameRequired": "El nombre del grupo es obligatorio.",
-      "interestRequired": "Elige un interés.",
       "createFailed": "Se produjo un error. Inténtalo de nuevo."
-    }
+    },
+    "citiesStepTitle": "¿En qué ciudades debería ser visible este grupo?",
+    "citiesStepHint": "Opcional: déjalo vacío para no dirigirte a una ciudad en particular.",
+    "citiesPlaceholder": "Buscar una ciudad...",
+    "noCitySelected": "Ninguna ciudad seleccionada",
+    "filterByCityTab": "Por ciudad"
   },
   "Messages": {
     "title": "Mensajería",
@@ -392,6 +398,13 @@
     "noMessagesYet": "Aún no hay mensajes. ¡Di hola!",
     "selectConversation": "Selecciona una conversación para abrirla.",
     "back": "Volver",
+    "searchInConversation": "Buscar en la conversación",
+    "searchInConversationPlaceholder": "Buscar una palabra clave...",
+    "matchCount": "{current}/{total}",
+    "noMatchesInConversation": "Sin resultados",
+    "previousMatch": "Resultado anterior",
+    "nextMatch": "Resultado siguiente",
+    "closeSearch": "Cerrar búsqueda",
     "read": "Leído",
     "statusSent": "Enviado",
     "statusDelivered": "Entregado",
@@ -845,6 +858,26 @@
       "duplicateNameError": "Esta ciudad ya existe.",
       "cancel": "Cancelar"
     },
+    "betaFeedback": {
+      "title": "Comentarios beta",
+      "filterStatusLabel": "Estado",
+      "filterCategoryLabel": "Categoría",
+      "allStatuses": "Todos",
+      "allCategories": "Todas",
+      "statusNew": "Nuevo",
+      "statusRead": "Leído",
+      "statusResolved": "Resuelto",
+      "categoryBug": "Error",
+      "categoryIdea": "Idea",
+      "categoryOther": "Otro",
+      "authorLabel": "Autor",
+      "pageLabel": "Página",
+      "dateLabel": "Fecha",
+      "noFeedback": "Todavía no hay comentarios.",
+      "markRead": "Marcar como leído",
+      "markResolved": "Marcar como resuelto",
+      "viewScreenshot": "Ver captura"
+    },
     "nav": {
       "dashboard": "Panel",
       "analytics": "Analítica",
@@ -853,6 +886,7 @@
       "partners": "Socios",
       "interestSuggestions": "Intereses",
       "cities": "Ciudades",
+      "betaFeedback": "Comentarios beta",
       "logs": "Registro"
     },
     "logs": {
@@ -969,10 +1003,30 @@
     "settingsCardBody": "Cambia tu elección sobre las cookies de medición de audiencia en cualquier momento.",
     "settingsCardButton": "Cambiar mi elección"
   },
+  "BetaFeedback": {
+    "buttonAriaLabel": "Enviar comentario beta",
+    "modalTitle": "Enviar un comentario",
+    "categoryLabel": "Tipo de comentario",
+    "categoryBug": "Error",
+    "categoryIdea": "Idea",
+    "categoryOther": "Otro",
+    "messageLabel": "Tu mensaje",
+    "messagePlaceholder": "Describe lo que viste o lo que propones…",
+    "screenshotLabel": "Captura de pantalla (opcional)",
+    "screenshotAdd": "Agregar",
+    "screenshotError": "Error al subir el archivo. Inténtalo de nuevo.",
+    "screenshotRemove": "Quitar la captura",
+    "submit": "Enviar",
+    "submitting": "Enviando…",
+    "cancel": "Cancelar",
+    "successMessage": "¡Gracias por tu comentario!",
+    "errorMessage": "Error al enviar. Inténtalo de nuevo."
+  },
   "Common": {
     "deletedUser": "Usuario eliminado",
     "you": "Tú",
     "back": "Volver",
+    "close": "Cerrar",
     "lightboxClose": "Cerrar",
     "lightboxPrev": "Foto anterior",
     "lightboxNext": "Foto siguiente"
@@ -989,6 +1043,9 @@
     "pushEnabledLabel": "✓ Notificaciones activadas",
     "pushBlockedLabel": "Notificaciones bloqueadas por tu navegador. Actívalas en la configuración del navegador para este sitio.",
     "pushIosNeedsInstallBody": "En iPhone/iPad, las notificaciones solo funcionan si Friendszy está agregado a tu pantalla de inicio.",
+    "pushHowToTitle": "¿Cómo recibir notificaciones?",
+    "pushHowToIosInstalled": "Tu dispositivo está listo: activa las notificaciones con el botón de arriba.",
+    "pushHowToAndroid": "En Android, las notificaciones funcionan directamente, sin instalación — actívalas con el botón de arriba.",
     "exportTitle": "Descargar mis datos",
     "exportBody": "Recibe una copia de tus datos de Friendszy (perfil, intereses, amigos, mensajes enviados) en formato JSON.",
     "exportButton": "Descargar mis datos",

@@ -212,7 +212,6 @@
     "tabInterests": "Interests",
     "tabSettings": "Settings",
     "blockedUsersLink": "Blocked users",
-    "settingsLink": "Settings",
     "save": "Save",
     "saveSuccess": "Profile updated.",
     "saveError": "Something went wrong. Try again.",
@@ -252,7 +251,7 @@
     "nameEmptyHint": "Type the first and last name to start searching.",
     "cityExample": "E.g.: Montreal, QC",
     "cityStepTitle": "Which city?",
-    "interestsStepTitle": "Up to {max} interests",
+    "interestsStepTitle": "Interests",
     "interestsRequiredHint": "Pick at least 1 interest to launch the search.",
     "ageGenderStepTitle": "Age & gender (optional)",
     "skip": "Skip this step",
@@ -271,7 +270,8 @@
     "viewResults": "View results",
     "interestsPlaceholder": "Search for an interest...",
     "yourInterests": "Your interests:",
-    "maxInterestsReached": "Maximum {max} interests",
+    "selectAllInterests": "Select all",
+    "deselectAllInterests": "Deselect all",
     "removeInterest": "Remove"
   },
   "Friends": {
@@ -299,6 +299,7 @@
     "noGroupsFound": "No groups found.",
     "noMyGroups": "You're not part of any group yet.",
     "allInterests": "All interests",
+    "noInterest": "No interest attached",
     "memberCount": "{count} members",
     "memberBadge": "Member",
     "requestSent": "Request sent",
@@ -352,7 +353,8 @@
     "stepOf": "Step {step} of {total}",
     "steps": {
       "basics": "Group info",
-      "interest": "Interest",
+      "cities": "Cities",
+      "interest": "Interest (optional)",
       "review": "Review"
     },
     "back": "Back",
@@ -372,9 +374,13 @@
     "cancel": "Cancel",
     "errors": {
       "nameRequired": "The group name is required.",
-      "interestRequired": "Choose an interest.",
       "createFailed": "Something went wrong. Try again."
-    }
+    },
+    "citiesStepTitle": "Which cities should this group be visible in?",
+    "citiesStepHint": "Optional — leave empty to not target a specific city.",
+    "citiesPlaceholder": "Search for a city...",
+    "noCitySelected": "No city selected",
+    "filterByCityTab": "By city"
   },
   "Messages": {
     "title": "Messages",
@@ -392,6 +398,13 @@
     "noMessagesYet": "No messages yet. Say hi!",
     "selectConversation": "Select a conversation to open it.",
     "back": "Back",
+    "searchInConversation": "Search in conversation",
+    "searchInConversationPlaceholder": "Search for a keyword...",
+    "matchCount": "{current}/{total}",
+    "noMatchesInConversation": "No results",
+    "previousMatch": "Previous result",
+    "nextMatch": "Next result",
+    "closeSearch": "Close search",
     "read": "Read",
     "statusSent": "Sent",
     "statusDelivered": "Delivered",
@@ -845,6 +858,26 @@
       "duplicateNameError": "This city already exists.",
       "cancel": "Cancel"
     },
+    "betaFeedback": {
+      "title": "Beta feedback",
+      "filterStatusLabel": "Status",
+      "filterCategoryLabel": "Category",
+      "allStatuses": "All",
+      "allCategories": "All",
+      "statusNew": "New",
+      "statusRead": "Read",
+      "statusResolved": "Resolved",
+      "categoryBug": "Bug",
+      "categoryIdea": "Idea",
+      "categoryOther": "Other",
+      "authorLabel": "Author",
+      "pageLabel": "Page",
+      "dateLabel": "Date",
+      "noFeedback": "No feedback yet.",
+      "markRead": "Mark read",
+      "markResolved": "Mark resolved",
+      "viewScreenshot": "View screenshot"
+    },
     "nav": {
       "dashboard": "Dashboard",
       "analytics": "Analytics",
@@ -853,6 +886,7 @@
       "partners": "Partners",
       "interestSuggestions": "Interests",
       "cities": "Cities",
+      "betaFeedback": "Beta feedback",
       "logs": "Logs"
     },
     "logs": {
@@ -969,10 +1003,30 @@
     "settingsCardBody": "Change your choice about audience-measurement cookies at any time.",
     "settingsCardButton": "Change my choice"
   },
+  "BetaFeedback": {
+    "buttonAriaLabel": "Send beta feedback",
+    "modalTitle": "Send feedback",
+    "categoryLabel": "Type of feedback",
+    "categoryBug": "Bug",
+    "categoryIdea": "Idea",
+    "categoryOther": "Other",
+    "messageLabel": "Your message",
+    "messagePlaceholder": "Describe what you saw or what you'd suggest…",
+    "screenshotLabel": "Screenshot (optional)",
+    "screenshotAdd": "Add",
+    "screenshotError": "Upload failed. Try again.",
+    "screenshotRemove": "Remove screenshot",
+    "submit": "Send",
+    "submitting": "Sending…",
+    "cancel": "Cancel",
+    "successMessage": "Thanks for your feedback!",
+    "errorMessage": "Sending failed. Try again."
+  },
   "Common": {
     "deletedUser": "Deleted user",
     "you": "You",
     "back": "Back",
+    "close": "Close",
     "lightboxClose": "Close",
     "lightboxPrev": "Previous photo",
     "lightboxNext": "Next photo"
@@ -989,6 +1043,9 @@
     "pushEnabledLabel": "✓ Notifications enabled",
     "pushBlockedLabel": "Notifications are blocked by your browser. Enable them in your browser's site settings.",
     "pushIosNeedsInstallBody": "On iPhone/iPad, notifications only work if Friendszy is added to your home screen.",
+    "pushHowToTitle": "How do I get notifications?",
+    "pushHowToIosInstalled": "Your device is ready: turn on notifications with the button above.",
+    "pushHowToAndroid": "On Android, notifications work right away, no install needed — turn them on with the button above.",
     "exportTitle": "Download my data",
     "exportBody": "Get a copy of your Friendszy data (profile, interests, friends, sent messages) as JSON.",
     "exportButton": "Download my data",
