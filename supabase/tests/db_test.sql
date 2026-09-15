@@ -11,7 +11,13 @@
 --   2. Or via psql:  psql "<connection string>" -f supabase/tests/db_test.sql
 --
 -- Everything runs inside a transaction that is rolled back at the end —
--- this file only reads catalog metadata, it never touches your real data.
+-- most of this file only reads catalog metadata, but several sections
+-- (functional tests, e.g. §8's event capacity/photo limits or §14's
+-- message self-removal) insert throwaway rows under fixed test-only ids
+-- (against two already-existing profiles, same convention throughout:
+-- `select id from profiles limit 1` / `offset 1 limit 1`) to exercise
+-- behavior no amount of metadata inspection can catch. Same rollback
+-- guarantee applies, so none of it leaves a trace.
 
 begin;
 
@@ -33,8 +39,8 @@ select has_extension('unaccent', 'extension unaccent is installed (city search)'
 
 select has_table('public', t, 'table public.' || t || ' exists')
 from unnest(array[
-  'analytics_events', 'blocks', 'conversations', 'event_messages', 'event_photos',
-  'event_registrations', 'events', 'friendships', 'group_join_requests',
+  'analytics_events', 'blocks', 'cities', 'conversations', 'event_messages', 'event_photos',
+  'event_registrations', 'events', 'friendships', 'group_cities', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
   'profile_interests', 'profile_photos', 'profiles', 'reports'
@@ -46,8 +52,8 @@ select ok(
   'RLS is enabled on public.' || t
 )
 from unnest(array[
-  'analytics_events', 'blocks', 'conversations', 'event_messages', 'event_photos',
-  'event_registrations', 'events', 'friendships', 'group_join_requests',
+  'analytics_events', 'blocks', 'cities', 'conversations', 'event_messages', 'event_photos',
+  'event_registrations', 'events', 'friendships', 'group_cities', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
   'profile_interests', 'profile_photos', 'profiles', 'reports'
@@ -62,6 +68,13 @@ select has_column('public', 'blocks', 'blocker_id', 'blocks.blocker_id exists');
 select has_column('public', 'blocks', 'blocked_id', 'blocks.blocked_id exists');
 select has_column('public', 'blocks', 'created_at', 'blocks.created_at exists');
 select col_is_pk('public', 'blocks', array['blocker_id', 'blocked_id'], 'blocks PK is (blocker_id, blocked_id)');
+
+-- cities
+select has_column('public', 'cities', 'id', 'cities.id exists');
+select has_column('public', 'cities', 'name', 'cities.name exists');
+select has_column('public', 'cities', 'created_at', 'cities.created_at exists');
+select col_is_pk('public', 'cities', array['id'], 'cities PK is (id)');
+select has_index('public', 'cities', 'cities_name_unique_idx', 'index cities_name_unique_idx exists (case/accent-insensitive unique name)');
 
 -- conversations
 select has_column('public', 'conversations', 'id', 'conversations.id exists');
@@ -82,6 +95,12 @@ select has_column('public', 'friendships', 'responded_at', 'friendships.responde
 select col_is_pk('public', 'friendships', array['id'], 'friendships PK is (id)');
 select col_is_unique('public', 'friendships', array['requester_id', 'addressee_id'], 'friendships (requester_id, addressee_id) is unique');
 select col_default_is('public', 'friendships', 'status', 'pending', 'friendships.status defaults to pending');
+
+-- group_cities
+select has_column('public', 'group_cities', 'group_id', 'group_cities.group_id exists');
+select has_column('public', 'group_cities', 'city_id', 'group_cities.city_id exists');
+select has_column('public', 'group_cities', 'created_at', 'group_cities.created_at exists');
+select col_is_pk('public', 'group_cities', array['group_id', 'city_id'], 'group_cities PK is (group_id, city_id)');
 
 -- group_join_requests
 select has_column('public', 'group_join_requests', 'id', 'group_join_requests.id exists');
@@ -314,6 +333,8 @@ select col_is_fk('public', 'conversations', 'user_a', 'conversations.user_a is a
 select col_is_fk('public', 'conversations', 'user_b', 'conversations.user_b is a FK');
 select col_is_fk('public', 'friendships', 'requester_id', 'friendships.requester_id is a FK');
 select col_is_fk('public', 'friendships', 'addressee_id', 'friendships.addressee_id is a FK');
+select col_is_fk('public', 'group_cities', 'group_id', 'group_cities.group_id is a FK');
+select col_is_fk('public', 'group_cities', 'city_id', 'group_cities.city_id is a FK');
 select col_is_fk('public', 'group_join_requests', 'group_id', 'group_join_requests.group_id is a FK');
 select col_is_fk('public', 'group_join_requests', 'profile_id', 'group_join_requests.profile_id is a FK');
 select col_is_fk('public', 'group_join_requests', 'resolved_by', 'group_join_requests.resolved_by is a FK');
@@ -373,6 +394,14 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'groups_creator_id_fkey') = 'n',
   'groups.creator_id -> profiles(id) is ON DELETE SET NULL (group survives its creator''s account deletion)'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'group_cities_group_id_fkey') = 'c',
+  'group_cities.group_id -> groups(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'group_cities_city_id_fkey') = 'c',
+  'group_cities.city_id -> cities(id) is ON DELETE CASCADE'
 );
 select ok(
   (select confdeltype from pg_constraint where conname = 'partner_listings_profile_id_fkey') = 'n',
@@ -520,8 +549,8 @@ select ok(
 select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.interest_suggestions'::regclass
     and conname = 'interest_suggestions_locale_check'
-    and pg_get_constraintdef(oid) = 'CHECK ((locale = ANY (ARRAY[''fr''::text, ''en''::text])))'),
-  'interest_suggestions.locale is constrained to fr/en'
+    and pg_get_constraintdef(oid) = 'CHECK ((locale = ANY (ARRAY[''fr''::text, ''en''::text, ''es''::text])))'),
+  'interest_suggestions.locale is constrained to fr/en/es'
 );
 select ok(
   exists(select 1 from pg_constraint where conrelid = 'public.interest_suggestions'::regclass
@@ -594,6 +623,7 @@ select has_index('public', 'conversations', 'idx_conversations_user_a', 'index i
 select has_index('public', 'conversations', 'idx_conversations_user_b', 'index idx_conversations_user_b exists');
 select has_index('public', 'friendships', 'idx_friendships_addressee', 'index idx_friendships_addressee exists');
 select has_index('public', 'friendships', 'idx_friendships_requester', 'index idx_friendships_requester exists');
+select has_index('public', 'group_cities', 'group_cities_city_id_idx', 'index group_cities_city_id_idx exists');
 select has_index('public', 'group_join_requests', 'group_join_requests_pending_unique', 'index group_join_requests_pending_unique exists');
 select has_index('public', 'group_join_requests', 'idx_group_join_requests_group', 'index idx_group_join_requests_group exists');
 select has_index('public', 'group_members', 'group_members_one_active_creator', 'index group_members_one_active_creator exists');
@@ -1043,6 +1073,10 @@ select policies_are('public', 'friendships', array[
   'friendships_select_own', 'friendships_update'
 ], 'friendships has exactly the expected policies');
 
+select policies_are('public', 'group_cities', array[
+  'group_cities_delete', 'group_cities_insert', 'group_cities_select'
+], 'group_cities has exactly the expected policies');
+
 select policies_are('public', 'group_join_requests', array[
   'group_join_requests_insert', 'group_join_requests_select', 'group_join_requests_update_admin'
 ], 'group_join_requests has exactly the expected policies');
@@ -1054,7 +1088,7 @@ select policies_are('public', 'group_members', array[
 
 select policies_are('public', 'group_messages', array[
   'group_messages_insert', 'group_messages_select', 'group_messages_select_admin',
-  'group_messages_update_admin'
+  'group_messages_sender_remove', 'group_messages_update_admin'
 ], 'group_messages has exactly the expected policies');
 
 select policies_are('public', 'groups', array[
@@ -1065,9 +1099,13 @@ select policies_are('public', 'interests', array[
   'interests_delete_admin', 'interests_insert_admin', 'interests_select', 'interests_update_admin'
 ], 'interests has exactly the expected policies (read for everyone, write for admins only)');
 
+select policies_are('public', 'cities', array[
+  'cities_delete_admin', 'cities_insert_admin', 'cities_select', 'cities_update_admin'
+], 'cities has exactly the expected policies (read for everyone, write for admins only)');
+
 select policies_are('public', 'messages', array[
   'messages_insert', 'messages_select', 'messages_select_admin',
-  'messages_update_admin', 'messages_update_mark_read'
+  'messages_sender_remove', 'messages_update_admin', 'messages_update_mark_read'
 ], 'messages has exactly the expected policies');
 
 select policies_are('public', 'notifications', array[
@@ -1112,7 +1150,7 @@ select policies_are('public', 'event_registrations', array[
 
 select policies_are('public', 'event_messages', array[
   'event_messages_insert', 'event_messages_select', 'event_messages_select_admin',
-  'event_messages_update_admin'
+  'event_messages_sender_remove', 'event_messages_update_admin'
 ], 'event_messages has exactly the expected policies');
 
 -- Spot-check a few security-critical policy definitions verbatim, since
@@ -1158,6 +1196,23 @@ select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'interests' and policyname = 'interests_delete_admin')
     = 'is_admin()',
   'interests_delete_admin: only an admin can delete an interest'
+);
+select ok(
+  (select with_check from pg_policies where schemaname = 'public' and tablename = 'cities' and policyname = 'cities_insert_admin')
+    = 'is_admin()',
+  'cities_insert_admin: only an admin can add a new city'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'cities' and policyname = 'cities_update_admin')
+    = 'is_admin()'
+  and (select with_check from pg_policies where schemaname = 'public' and tablename = 'cities' and policyname = 'cities_update_admin')
+    = 'is_admin()',
+  'cities_update_admin: only an admin can edit a city'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'cities' and policyname = 'cities_delete_admin')
+    = 'is_admin()',
+  'cities_delete_admin: only an admin can delete a city'
 );
 select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'group_messages' and policyname = 'group_messages_update_admin')
@@ -1232,12 +1287,18 @@ select ok(
 select table_privs_are('public', 'blocks', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
   'authenticated has expected privileges on blocks');
+select table_privs_are('public', 'cities', 'authenticated',
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
+  'authenticated has expected privileges on cities (write restricted to admins by RLS)');
 select table_privs_are('public', 'conversations', 'authenticated',
   array['INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
   'authenticated has expected privileges on conversations');
 select table_privs_are('public', 'friendships', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on friendships');
+select table_privs_are('public', 'group_cities', 'authenticated',
+  array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
+  'authenticated has expected privileges on group_cities (no UPDATE — rows are added/removed, never edited)');
 select table_privs_are('public', 'group_join_requests', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on group_join_requests');
@@ -1299,8 +1360,8 @@ select table_privs_are('public', t, 'anon',
   array['REFERENCES', 'TRIGGER', 'TRUNCATE'],
   'anon has no explicit privileges on ' || t || ' (unauthenticated users see nothing)')
 from unnest(array[
-  'analytics_events', 'blocks', 'conversations', 'event_messages', 'event_photos',
-  'event_registrations', 'events', 'friendships', 'group_join_requests',
+  'analytics_events', 'blocks', 'cities', 'conversations', 'event_messages', 'event_photos',
+  'event_registrations', 'events', 'friendships', 'group_cities', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
   'profile_interests', 'profile_photos', 'profiles', 'reports'
@@ -1380,6 +1441,159 @@ select ok(
   exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'event_photos_bucket_delete'),
   'storage.objects has event_photos_bucket_delete policy'
 );
+
+-- ============================================================
+-- 14. Fonctionnel — retrait de son propre message (triggers d'immutabilité)
+-- ============================================================
+-- Régression pour le bug corrigé par
+-- 20260915100000_fix_self_delete_immutability_triggers.sql : les policies
+-- RLS ajoutées par 20260914150000_message_self_delete.sql étaient
+-- nécessaires mais pas suffisantes, deux triggers d'immutabilité legacy
+-- (protect_message_immutability, protect_group_message_immutability)
+-- rejetaient encore le retrait par l'auteur — aucun des tests "structure"
+-- ci-dessus ne peut détecter ça, seul un vrai INSERT/UPDATE le peut.
+--
+-- Deux profils existants (même convention que plus haut) jouent les deux
+-- côtés de chaque surface — auteur du message d'un côté, autre
+-- participant/créateur-admin de l'autre. auth.uid() lit
+-- request.jwt.claims (voir sa définition) : on le simule avec
+-- set_config() pour se faire passer pour l'auteur, comme le ferait
+-- PostgREST avec un vrai JWT — sans ça, enforce_*_self_remove_only (qui
+-- exige removed_by = auth.uid()) rejetterait tout retrait, comme documenté
+-- plus haut pour is_event_participant()/is_event_organizer() hors contexte
+-- authentifié.
+--
+-- IMPORTANT : les retraits "à nouveau" ci-dessous utilisent
+-- clock_timestamp(), pas now() — now() renvoie l'heure de DÉBUT DE
+-- TRANSACTION (constante sur tout ce fichier), donc un deuxième
+-- `removed_at = now()` vaudrait exactement la même valeur que le premier
+-- et ne serait pas vu comme un changement par les triggers.
+
+-- -- messages privés ---------------------------------------------------------
+
+insert into public.conversations (id, user_a, user_b)
+select '00000000-0000-0000-0000-0000000000c1', least(a.id, b.id), greatest(a.id, b.id)
+from (select id from profiles order by id limit 1) a,
+     (select id from profiles order by id limit 1 offset 1) b;
+
+insert into public.messages (id, conversation_id, sender_id, content)
+select '00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000c1', id, 'hello'
+from profiles order by id limit 1;
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', (select id from profiles order by id limit 1))::text,
+  true
+);
+
+select throws_ok(
+  $$ update public.messages set content = 'edited'
+     where id = '00000000-0000-0000-0000-0000000000c2' $$,
+  'P0001', 'Un message envoyé ne peut pas être modifié.',
+  'a private message content stays immutable, even for its own sender'
+);
+select lives_ok(
+  format(
+    $$ update public.messages set removed_at = now(), removed_by = %L
+       where id = '00000000-0000-0000-0000-0000000000c2' $$,
+    (select id from profiles order by id limit 1)
+  ),
+  'the author can self-remove their own private message'
+);
+select throws_ok(
+  $$ update public.messages set removed_at = clock_timestamp()
+     where id = '00000000-0000-0000-0000-0000000000c2' $$,
+  'P0001', 'Un message retiré ne peut pas être modifié à nouveau.',
+  'an already-removed private message cannot be un-removed / re-removed'
+);
+
+-- -- messages de groupe --------------------------------------------------------
+-- Le membre régulier (pas admin/créateur) envoie et retire son propre
+-- message : c'est précisément le cas qui était cassé.
+
+insert into public.groups (id, name, creator_id)
+select '00000000-0000-0000-0000-0000000000f2', '__pgtap_test_group_self_remove__', id
+from profiles order by id limit 1;
+
+insert into public.group_members (group_id, profile_id, role)
+(select '00000000-0000-0000-0000-0000000000f2'::uuid, id, 'creator' from profiles order by id limit 1)
+union all
+(select '00000000-0000-0000-0000-0000000000f2'::uuid, id, 'member' from profiles order by id limit 1 offset 1);
+
+insert into public.group_messages (id, group_id, sender_id, content)
+select '00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-0000000000f2', id, 'hello group'
+from profiles order by id limit 1 offset 1;
+
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', (select id from profiles order by id limit 1 offset 1))::text,
+  true
+);
+
+select throws_ok(
+  $$ update public.group_messages set content = 'edited'
+     where id = '00000000-0000-0000-0000-0000000000f3' $$,
+  'P0001', 'Un message de groupe envoyé ne peut pas être modifié.',
+  'a group message content stays immutable, even for its own sender'
+);
+select lives_ok(
+  format(
+    $$ update public.group_messages set removed_at = now(), removed_by = %L
+       where id = '00000000-0000-0000-0000-0000000000f3' $$,
+    (select id from profiles order by id limit 1 offset 1)
+  ),
+  'a regular (non-admin) group member can self-remove their own group message'
+);
+select throws_ok(
+  $$ update public.group_messages set removed_at = clock_timestamp()
+     where id = '00000000-0000-0000-0000-0000000000f3' $$,
+  'P0001', 'Un message de groupe retiré ne peut pas être modifié à nouveau.',
+  'an already-removed group message cannot be un-removed / re-removed'
+);
+
+-- -- messages d'événement (déjà correct avant le fix ci-dessus — testé ici
+-- -- pour garder une référence du comportement voulu et éviter une
+-- -- régression future) -------------------------------------------------------
+-- Le participant inscrit (pas l'organisateur) envoie et retire son propre
+-- message.
+
+insert into public.events (id, title, city, interest_id, starts_at, ends_at, creator_id)
+select '00000000-0000-0000-0000-0000000000e4', '__pgtap_test_event_self_remove__', 'Montréal',
+       (select id from interests limit 1),
+       now() + interval '1 day', now() + interval '1 day' + interval '2 hours',
+       profiles.id
+from profiles order by profiles.id limit 1;
+
+insert into public.event_registrations (event_id, profile_id)
+select '00000000-0000-0000-0000-0000000000e4', id from profiles order by id limit 1 offset 1;
+
+insert into public.event_messages (id, event_id, sender_id, content)
+select '00000000-0000-0000-0000-0000000000e5', '00000000-0000-0000-0000-0000000000e4', id, 'hello event'
+from profiles order by id limit 1 offset 1;
+
+select throws_ok(
+  $$ update public.event_messages set content = 'edited'
+     where id = '00000000-0000-0000-0000-0000000000e5' $$,
+  'P0001', 'Event messages cannot be edited',
+  'an event message content stays immutable, even for its own sender'
+);
+select lives_ok(
+  format(
+    $$ update public.event_messages set removed_at = now(), removed_by = %L
+       where id = '00000000-0000-0000-0000-0000000000e5' $$,
+    (select id from profiles order by id limit 1 offset 1)
+  ),
+  'a registered participant (not the organizer) can self-remove their own event message'
+);
+select throws_ok(
+  $$ update public.event_messages set removed_at = clock_timestamp()
+     where id = '00000000-0000-0000-0000-0000000000e5' $$,
+  'P0001', 'Event messages cannot be un-removed',
+  'an already-removed event message cannot be un-removed / re-removed'
+);
+
+-- Ne laisse pas le JWT simulé fuiter vers le reste de la session.
+select set_config('request.jwt.claims', '', true);
 
 select * from finish();
 
