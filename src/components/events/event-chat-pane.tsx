@@ -127,7 +127,7 @@ export function EventChatPane({
     }
     if (isTypingRef.current) {
       isTypingRef.current = false;
-      channelRef.current?.track({ typing: false });
+      channelRef.current?.track({ typing: false, user_id: userId });
     }
   }
 
@@ -140,7 +140,7 @@ export function EventChatPane({
     }
     if (!isTypingRef.current) {
       isTypingRef.current = true;
-      channelRef.current.track({ typing: true });
+      channelRef.current.track({ typing: true, user_id: userId });
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(stopTyping, 3000);
@@ -342,18 +342,27 @@ export function EventChatPane({
     let retryTimeout: ReturnType<typeof setTimeout> | null = null;
     const staleTimeouts = typingStaleTimeoutsRef.current;
 
-    // Reads who's currently tracked as typing (excluding myself) from
-    // presence state, and lazily fetches profiles for anyone not already
-    // known from a prior message (someone can be typing without having
-    // sent a single message yet). Also arms a per-user stale timer: if no
-    // fresher sync confirms someone is still typing within 6s, they're
-    // dropped locally — a lost "typing: false" event (or a channel that
-    // silently stops delivering) can never leave them stuck forever.
+    // Reads who's currently tracked as typing from presence state — via le
+    // user_id explicite du payload plutôt que la clé du channel
+    // (`config.presence.key`) : si un channel réutilisé (même topic) garde
+    // une clé d'une session précédente, indexer par clé peut renvoyer sa
+    // PROPRE frappe sous le mauvais nom ; le contenu du payload, lui, ne
+    // ment pas. Lazily fetches profiles for anyone not already known from
+    // a prior message (someone can be typing without having sent a single
+    // message yet). Also arms a per-user stale timer: if no fresher sync
+    // confirms someone is still typing within 6s, they're dropped locally
+    // — a lost "typing: false" event (or a channel that silently stops
+    // delivering) can never leave them stuck forever.
     function syncTyping(current: RealtimeChannel) {
-      const state = current.presenceState<{ typing?: boolean }>();
-      const ids = Object.keys(state).filter(
-        (id) => id !== userId && (state[id] ?? []).some((entry) => entry.typing)
-      );
+      const state = current.presenceState<{ typing?: boolean; user_id?: string }>();
+      const ids = [
+        ...new Set(
+          Object.values(state)
+            .flat()
+            .filter((entry) => entry.typing && entry.user_id && entry.user_id !== userId)
+            .map((entry) => entry.user_id!)
+        ),
+      ];
       setTypingUserIds(ids);
 
       for (const [id, timeout] of staleTimeouts) {
@@ -398,7 +407,7 @@ export function EventChatPane({
 
           if (status === "SUBSCRIBED") {
             channelRef.current = channel;
-            channel?.track({ typing: false });
+            channel?.track({ typing: false, user_id: userId });
             return;
           }
 

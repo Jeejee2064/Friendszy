@@ -587,7 +587,7 @@ function ConversationPane({
     }
     if (isTypingRef.current) {
       isTypingRef.current = false;
-      channelRef.current?.track({ typing: false });
+      channelRef.current?.track({ typing: false, user_id: userId });
     }
   }
 
@@ -600,7 +600,7 @@ function ConversationPane({
     }
     if (!isTypingRef.current) {
       isTypingRef.current = true;
-      channelRef.current.track({ typing: true });
+      channelRef.current.track({ typing: true, user_id: userId });
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(stopTyping, 3000);
@@ -880,10 +880,16 @@ function ConversationPane({
     let channel: RealtimeChannel | null = null;
     let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
+    // Scanne toutes les entrées de présence par leur user_id explicite
+    // plutôt que de faire confiance à la clé du channel (`config.presence.key`)
+    // — si un channel réutilisé (même topic) garde une clé d'une session
+    // précédente, indexer par clé peut renvoyer sa PROPRE frappe sous le
+    // mauvais nom ; le contenu du payload, lui, ne ment pas.
     function syncTyping(current: RealtimeChannel) {
-      const state = current.presenceState<{ typing?: boolean }>();
-      const entries = state[otherProfile.id] ?? [];
-      const typing = entries.some((entry) => entry.typing);
+      const state = current.presenceState<{ typing?: boolean; user_id?: string }>();
+      const typing = Object.values(state)
+        .flat()
+        .some((entry) => entry.user_id === otherProfile.id && entry.typing);
       setOtherTyping(typing);
 
       if (otherTypingStaleTimeoutRef.current) {
@@ -908,7 +914,7 @@ function ConversationPane({
 
           if (status === "SUBSCRIBED") {
             channelRef.current = channel;
-            channel?.track({ typing: false });
+            channel?.track({ typing: false, user_id: userId });
             return;
           }
 
