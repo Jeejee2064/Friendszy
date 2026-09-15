@@ -19,7 +19,7 @@ import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getMyInterestIds } from "@/lib/profile/queries";
 import { GENDERS, type Gender, type Interest } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
-import { InterestPicker, MAX_SEARCH_INTERESTS } from "@/components/search/interest-picker";
+import { InterestPicker } from "@/components/search/interest-picker";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { AgeBracketPicker, type AgeBracket } from "@/components/search/age-bracket-picker";
 import { Modal } from "@/components/ui/modal";
@@ -360,7 +360,7 @@ export function SearchPageClient({
       ) : step === "interests" ? (
         <div className="max-w-md">
           <h2 className="mb-3 text-lg font-bold text-text">
-            {t("interestsStepTitle", { max: MAX_SEARCH_INTERESTS })}
+            {t("interestsStepTitle")}
           </h2>
           <InterestPicker
             interests={interests}
@@ -466,7 +466,7 @@ export function SearchPageClient({
 
               <div>
                 <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted">
-                  {t("interestsStepTitle", { max: MAX_SEARCH_INTERESTS })}
+                  {t("interestsStepTitle")}
                 </span>
                 <InterestPicker
                   interests={interests}

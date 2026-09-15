@@ -10,6 +10,7 @@ import { ProfileInfoSection } from "@/components/profile/profile-info-section";
 import { ProfilePhotosSection } from "@/components/profile/profile-photos-section";
 import { ProfileInterestsSection } from "@/components/profile/profile-interests-section";
 import { ProfileSettingsSection } from "@/components/profile/profile-settings-section";
+import { TemporaryCityCard } from "@/components/profile/temporary-city-card";
 
 function sameInterestSet(a: number[], b: number[]) {
   if (a.length !== b.length) return false;
@@ -153,20 +154,40 @@ export function ProfileForm({
           info: t("tabInfo"),
           photos: t("tabPhotos"),
           interests: t("tabInterests"),
-          settings: t("tabSettings"),
+          // Texte seul pour les 3 autres onglets, mais "Paramètres" est le
+          // mot le plus long et fait déborder la barre à largeur mobile —
+          // on garde juste l'icône ici (avec un libellé accessible caché
+          // pour les lecteurs d'écran).
+          settings: (
+            <>
+              <span aria-hidden>⚙️</span>
+              <span className="sr-only">{t("tabSettings")}</span>
+            </>
+          ),
         }}
       />
 
       {activeTab === "info" && (
-        <ProfileInfoSection
-          userId={userId}
-          form={form}
-          onUpdate={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
-          tripActive={tripActive}
-          pending={pending}
-          notice={notice}
-          onSubmit={handleSave}
-        />
+        <>
+          <ProfileInfoSection
+            userId={userId}
+            form={form}
+            onUpdate={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
+            tripActive={tripActive}
+            pending={pending}
+            notice={notice}
+            onSubmit={handleSave}
+          />
+          <div className="mt-4 w-full max-w-sm">
+            <TemporaryCityCard
+              homeCity={temporaryCity.homeCity}
+              destination={temporaryCity.destination}
+              from={temporaryCity.from}
+              until={temporaryCity.until}
+              onActiveChange={setTripActive}
+            />
+          </div>
+        </>
       )}
 
       {activeTab === "photos" && (
@@ -190,12 +211,7 @@ export function ProfileForm({
         />
       )}
 
-      {activeTab === "settings" && (
-        <ProfileSettingsSection
-          temporaryCity={temporaryCity}
-          onTripActiveChange={setTripActive}
-        />
-      )}
+      {activeTab === "settings" && <ProfileSettingsSection />}
     </div>
   );
 }

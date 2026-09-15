@@ -6,8 +6,6 @@ import type { Interest } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 
-export const MAX_SEARCH_INTERESTS = 3; // change here only
-
 export function InterestPicker({
   interests,
   selectedIds,
@@ -27,7 +25,7 @@ export function InterestPicker({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const byId = useMemo(() => new Map(interests.map((i) => [i.id, i])), [interests]);
-  const atMax = selectedIds.length >= MAX_SEARCH_INTERESTS;
+  const allSelected = interests.length > 0 && selectedIds.length >= interests.length;
 
   function labelFor(interest: Interest) {
     return localizedInterestLabel(interest, locale);
@@ -38,8 +36,12 @@ export function InterestPicker({
   }
 
   function addInterest(id: number) {
-    if (atMax || selectedIds.includes(id)) return;
+    if (selectedIds.includes(id)) return;
     onChange([...selectedIds, id]);
+  }
+
+  function toggleSelectAll() {
+    onChange(allSelected ? [] : interests.map((i) => i.id));
   }
 
   const quickSuggestions = myInterestIds
@@ -86,7 +88,7 @@ export function InterestPicker({
         </div>
       )}
 
-      {quickSuggestions.length > 0 && !atMax && (
+      {quickSuggestions.length > 0 && !allSelected && (
         <p className="text-xs text-muted">
           {t("yourInterests")}{" "}
           {quickSuggestions.map((interest, i) => (
@@ -107,24 +109,31 @@ export function InterestPicker({
       <div className="relative">
         <button
           type="button"
-          disabled={atMax}
           onClick={() => setOpen(true)}
-          className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-left text-sm text-muted outline-none focus:border-teal2 disabled:opacity-60"
+          className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-left text-sm text-muted outline-none focus:border-teal2"
         >
-          {atMax ? t("maxInterestsReached", { max: MAX_SEARCH_INTERESTS }) : t("interestsPlaceholder")}
+          {t("interestsPlaceholder")}
         </button>
 
         {open && (
           <>
             {/* Desktop: compact dropdown anchored below the field */}
             <div className="absolute z-10 mt-1 hidden w-full rounded-lg border border-border bg-card p-3 shadow-lg md:block">
+              <div className="mb-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="text-xs font-semibold text-teal2 hover:underline"
+                >
+                  {allSelected ? t("deselectAllInterests") : t("selectAllInterests")}
+                </button>
+              </div>
               <div className="max-h-80 overflow-y-auto">
                 <InterestsGrid
                   interests={interests}
                   selectedIds={selectedIds}
                   onChange={onChange}
                   userId={userId}
-                  maxSelected={MAX_SEARCH_INTERESTS}
                   flatSearchResults
                   autoFocus
                 />
@@ -134,9 +143,7 @@ export function InterestPicker({
             {/* Mobile: full-screen panel */}
             <div className="fixed inset-0 z-50 flex flex-col bg-card md:hidden">
               <div className="flex items-center justify-between border-b border-border p-4">
-                <span className="font-bold text-text">
-                  {t("interestsStepTitle", { max: MAX_SEARCH_INTERESTS })}
-                </span>
+                <span className="font-bold text-text">{t("interestsStepTitle")}</span>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
@@ -146,13 +153,21 @@ export function InterestPicker({
                   ✕
                 </button>
               </div>
+              <div className="flex items-center justify-end border-b border-border px-4 py-2">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="text-xs font-semibold text-teal2 hover:underline"
+                >
+                  {allSelected ? t("deselectAllInterests") : t("selectAllInterests")}
+                </button>
+              </div>
               <div className="flex-1 overflow-y-auto p-4">
                 <InterestsGrid
                   interests={interests}
                   selectedIds={selectedIds}
                   onChange={onChange}
                   userId={userId}
-                  maxSelected={MAX_SEARCH_INTERESTS}
                   flatSearchResults
                   autoFocus
                 />

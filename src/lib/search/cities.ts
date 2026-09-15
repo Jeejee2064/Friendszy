@@ -1,243 +1,62 @@
-export const CITY_SUGGESTIONS = [
-  // Grandes villes (triées par population)
-  "Montréal",
-  "Québec",
-  "Laval",
-  "Gatineau",
-  "Longueuil",
-  "Sherbrooke",
-  "Saguenay",
-  "Lévis",
-  "Trois-Rivières",
-  "Terrebonne",
-  "Saint-Jean-sur-Richelieu",
-  "Repentigny",
-  "Drummondville",
-  "Saint-Jérôme",
-  "Granby",
-  "Blainville",
-  "Shawinigan",
-  "Dollard-des-Ormeaux",
-  "Rimouski",
-  "Châteauguay",
-  // Autres villes et villages du Québec
-  "Acton Vale",
-  "Alma",
-  "Amos",
-  "Amqui",
-  "Baie-Comeau",
-  "Baie-D'Urfé",
-  "Baie-Saint-Paul",
-  "Barkmere",
-  "Beaconsfield",
-  "Beauceville",
-  "Beauharnois",
-  "Beaupré",
-  "Bécancour",
-  "Bedford",
-  "Belleterre",
-  "Belœil",
-  "Berthierville",
-  "Boisbriand",
-  "Bois-des-Filion",
-  "Bonaventure",
-  "Boucherville",
-  "Bromont",
-  "Brossard",
-  "Brownsburg-Chatham",
-  "Candiac",
-  "Cap-Chat",
-  "Cap-Santé",
-  "Carignan",
-  "Carleton-sur-Mer",
-  "Causapscal",
-  "Chambly",
-  "Chandler",
-  "Chapais",
-  "Charlemagne",
-  "Château-Richer",
-  "Chibougamau",
-  "Clermont",
-  "Coaticook",
-  "Contrecœur",
-  "Cookshire-Eaton",
-  "Coteau-du-Lac",
-  "Côte-Saint-Luc",
-  "Cowansville",
-  "Danville",
-  "Daveluyville",
-  "Dégelis",
-  "Delson",
-  "Desbiens",
-  "Deux-Montagnes",
-  "Disraeli",
-  "Dolbeau-Mistassini",
-  "Donnacona",
-  "Dorval",
-  "Dunham",
-  "Duparquet",
-  "East Angus",
-  "Estérel",
-  "Farnham",
-  "Fermont",
-  "Forestville",
-  "Fossambault-sur-le-Lac",
-  "Gaspé",
-  "Gracefield",
-  "Grande-Rivière",
-  "Hampstead",
-  "Hudson",
-  "Huntingdon",
-  "Joliette",
-  "Kingsey Falls",
-  "Kirkland",
-  "L'Ancienne-Lorette",
-  "L'Assomption",
-  "L'Épiphanie",
-  "L'Île-Cadieux",
-  "L'Île-Dorval",
-  "L'Île-Perrot",
-  "Lac-Brome",
-  "Lac-Delage",
-  "Lachute",
-  "Lac-des-Aigles",
-  "Lac-Mégantic",
-  "Lac-Saint-Joseph",
-  "Lac-Sergent",
-  "La Malbaie",
-  "La Pocatière",
-  "La Prairie",
-  "La Sarre",
-  "La Tuque",
-  "Lavaltrie",
-  "Lebel-sur-Quévillon",
-  "Léry",
-  "Lorraine",
-  "Louiseville",
-  "Macamic",
-  "Magog",
-  "Malartic",
-  "Maniwaki",
-  "Marieville",
-  "Mascouche",
-  "Matagami",
-  "Matane",
-  "McMasterville",
-  "Mercier",
-  "Métabetchouan–Lac-à-la-Croix",
-  "Métis-sur-Mer",
-  "Mirabel",
-  "Mont-Joli",
-  "Mont-Laurier",
-  "Montmagny",
-  "Montréal-Est",
-  "Montréal-Ouest",
-  "Mont-Royal",
-  "Mont-Saint-Hilaire",
-  "Mont-Tremblant",
-  "Murdochville",
-  "Neuville",
-  "New Richmond",
-  "Nicolet",
-  "Normandin",
-  "Notre-Dame-de-l'Île-Perrot",
-  "Notre-Dame-des-Prairies",
-  "Otterburn Park",
-  "Paspébiac",
-  "Percé",
-  "Pincourt",
-  "Plessisville",
-  "Pohénégamook",
-  "Pointe-Claire",
-  "Pont-Rouge",
-  "Port-Cartier",
-  "Portneuf",
-  "Prévost",
-  "Princeville",
-  "Richelieu",
-  "Richmond",
-  "Rigaud",
-  "Rivière-du-Loup",
-  "Rivière-Rouge",
-  "Roberval",
-  "Rosemère",
-  "Rouyn-Noranda",
-  "Saint-Amable",
-  "Saint-Antonin",
-  "Saint-Augustin-de-Desmaures",
-  "Saint-Basile",
-  "Saint-Basile-le-Grand",
-  "Saint-Bruno-de-Montarville",
-  "Saint-Césaire",
-  "Saint-Charles-Borromée",
-  "Saint-Colomban",
-  "Saint-Constant",
-  "Sainte-Adèle",
-  "Sainte-Agathe-des-Monts",
-  "Sainte-Anne-de-Beaupré",
-  "Sainte-Anne-de-Bellevue",
-  "Sainte-Anne-des-Monts",
-  "Sainte-Anne-des-Plaines",
-  "Sainte-Brigitte-de-Laval",
-  "Sainte-Catherine",
-  "Sainte-Catherine-de-la-Jacques-Cartier",
-  "Sainte-Julie",
-  "Sainte-Marguerite-du-Lac-Masson",
-  "Sainte-Marie",
-  "Sainte-Marthe-sur-le-Lac",
-  "Sainte-Thérèse",
-  "Saint-Eustache",
-  "Saint-Félicien",
-  "Saint-Gabriel",
-  "Saint-Georges",
-  "Saint-Honoré",
-  "Saint-Hyacinthe",
-  "Saint-Joseph-de-Beauce",
-  "Saint-Joseph-de-Sorel",
-  "Saint-Lambert",
-  "Saint-Lazare",
-  "Saint-Lin–Laurentides",
-  "Saint-Marc-des-Carrières",
-  "Saint-Ours",
-  "Saint-Pamphile",
-  "Saint-Pascal",
-  "Saint-Philippe",
-  "Saint-Pie",
-  "Saint-Raymond",
-  "Saint-Rémi",
-  "Saint-Sauveur",
-  "Saint-Tite",
-  "Saint-Zotique",
-  "Salaberry-de-Valleyfield",
-  "Schefferville",
-  "Scotstown",
-  "Senneterre",
-  "Sept-Îles",
-  "Shannon",
-  "Sorel-Tracy",
-  "Stanstead",
-  "Sutton",
-  "Témiscaming",
-  "Témiscouata-sur-le-Lac",
-  "Thetford Mines",
-  "Thurso",
-  "Trois-Pistoles",
-  "Valcourt",
-  "Val-d'Or",
-  "Val-des-Sources",
-  "Varennes",
-  "Vaudreuil-Dorion",
-  "Victoriaville",
-  "Ville-Marie",
-  "Warwick",
-  "Waterloo",
-  "Waterville",
-  "Westmount",
-  "Windsor",
-  // Grandes villes canadiennes hors Québec
-  "Ottawa",
-  "Toronto",
-  "Vancouver",
-  "Calgary",
-  "Halifax",
-];
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import type { Database } from "@/types/supabase";
+
+// The city list used to be hardcoded here (CITY_SUGGESTIONS); it now lives in
+// the `cities` table (supabase/migrations/20260914140000_cities_catalogue.sql)
+// so admins can add missing cities themselves from /admin/cities instead of a
+// code change + deploy. Fetched once per page load and cached at module
+// scope — CityAutocomplete can mount several times on the same page (search
+// filters, event/partner wizards, onboarding...) and they all share this one
+// request instead of each firing their own.
+let cachedNames: Promise<string[]> | null = null;
+
+export function getCityNames(): Promise<string[]> {
+  if (!cachedNames) {
+    // `cities` isn't in the generated Database type yet (see City in
+    // profile/types.ts) — `as any` needed until `npm run supabase:types` is
+    // re-run post-migration. A failed fetch resolves to [] rather than
+    // rejecting (a network hiccup shouldn't crash every CityAutocomplete on
+    // the page) — it's cached for the rest of this page load like a
+    // successful result would be, a fresh navigation retries.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- `cities` isn't in the generated Database type yet, see comment above
+    cachedNames = (createClient() as any)
+      .from("cities")
+      .select("name")
+      .order("name")
+      .then(
+        ({ data, error }: { data: { name: string }[] | null; error: unknown }) =>
+          error ? [] : (data ?? []).map((row) => row.name)
+      ) as Promise<string[]>;
+  }
+  return cachedNames;
+}
+
+export type CityOption = { id: number; name: string };
+
+// Same module-scope caching as getCityNames — used wherever a stable city id
+// is needed (group visibility, city-based filtering) rather than the free
+// text `getCityNames()` backs (profile/search city fields aren't FK'd to
+// this catalogue, see 20260914140000_cities_catalogue.sql).
+let cachedCities: Promise<CityOption[]> | null = null;
+
+export function getCities(): Promise<CityOption[]> {
+  if (!cachedCities) {
+    cachedCities = Promise.resolve(
+      createClient().from("cities").select("id, name").order("name")
+    ).then(({ data, error }) => (error ? [] : (data ?? [])));
+  }
+  return cachedCities;
+}
+
+// Server-safe variant — takes an explicit client (server or browser) instead
+// of creating/caching a browser one at module scope, same reasoning as
+// getInterests(supabase) in src/lib/profile/queries.ts. For a server
+// component's one-shot per-request fetch, no caching needed.
+export async function getCitiesList(
+  supabase: SupabaseClient<Database>
+): Promise<CityOption[]> {
+  const { data, error } = await supabase.from("cities").select("id, name").order("name");
+  if (error) throw error;
+  return data ?? [];
+}

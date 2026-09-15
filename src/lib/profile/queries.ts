@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { Interest, ProfileFormData, ProfilePhoto, ProfileSummary } from "./types";
+import type { City, Interest, ProfileFormData, ProfilePhoto, ProfileSummary } from "./types";
 
 type Client = SupabaseClient<Database>;
 
@@ -27,6 +27,15 @@ export async function getInterests(supabase: Client): Promise<Interest[]> {
     .order("label_fr");
   if (error) throw error;
   return data ?? [];
+}
+
+// `cities` isn't in the generated Database type yet (see City in ./types) —
+// `as any` needed until `npm run supabase:types` is re-run post-migration.
+export async function getCities(supabase: Client): Promise<City[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { data, error } = await (supabase as any).from("cities").select("*").order("name");
+  if (error) throw error;
+  return (data as City[] | null) ?? [];
 }
 
 export async function getMyProfile(supabase: Client, userId: string) {

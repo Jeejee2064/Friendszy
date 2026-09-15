@@ -4,6 +4,16 @@ export type Interest = Database["public"]["Tables"]["interests"]["Row"];
 
 export type ProfilePhoto = Database["public"]["Tables"]["profile_photos"]["Row"];
 
+// Hand-written to match the `cities` table from
+// supabase/migrations/20260914140000_cities_catalogue.sql (id/name/created_at,
+// see that migration) — not sourced from Database["public"]["Tables"] like
+// the types above because generated types are only refreshed by running the
+// Supabase CLI after a migration lands in the project (see CLAUDE.md), which
+// hasn't happened yet for this table. Switch this to
+// Database["public"]["Tables"]["cities"]["Row"] once `npm run supabase:types`
+// has been re-run against the live schema.
+export type City = { id: number; name: string; created_at: string };
+
 export type Gender = "homme" | "femme" | "non-binaire" | "autre";
 
 export const GENDERS: Gender[] = ["homme", "femme", "non-binaire", "autre"];

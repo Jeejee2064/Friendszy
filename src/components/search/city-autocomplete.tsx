@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { normalizeForSearch } from "@/lib/text";
-import { CITY_SUGGESTIONS } from "@/lib/search/cities";
+import { getCityNames } from "@/lib/search/cities";
 
 const MAX_SUGGESTIONS = 6;
 
@@ -18,14 +18,25 @@ export function CityAutocomplete({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [cityNames, setCityNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCityNames().then((names) => {
+      if (!cancelled) setCityNames(names);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const suggestions = useMemo(() => {
     const normalizedQuery = normalizeForSearch(value);
     if (!normalizedQuery) return [];
-    return CITY_SUGGESTIONS.filter((city) =>
-      normalizeForSearch(city).includes(normalizedQuery)
-    ).slice(0, MAX_SUGGESTIONS);
-  }, [value]);
+    return cityNames
+      .filter((city) => normalizeForSearch(city).includes(normalizedQuery))
+      .slice(0, MAX_SUGGESTIONS);
+  }, [value, cityNames]);
 
   return (
     <div className="relative">
