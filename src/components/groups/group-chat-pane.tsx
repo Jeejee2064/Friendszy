@@ -63,6 +63,11 @@ export function GroupChatPane({
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
+  // Garde-fou explicite, indépendant de tout ce qui se passe côté
+  // présence : tant que je suis moi-même en train d'écrire, mon propre
+  // écran ne doit jamais afficher les autres comme en train d'écrire —
+  // quelle qu'en soit la cause côté Realtime.
+  const [amTyping, setAmTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const messageInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +132,7 @@ export function GroupChatPane({
     }
     if (isTypingRef.current) {
       isTypingRef.current = false;
+      setAmTyping(false);
       channelRef.current?.track({ typing: false, user_id: userId });
     }
   }
@@ -140,6 +146,7 @@ export function GroupChatPane({
     }
     if (!isTypingRef.current) {
       isTypingRef.current = true;
+      setAmTyping(true);
       channelRef.current.track({ typing: true, user_id: userId });
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -542,7 +549,7 @@ export function GroupChatPane({
 
       <TypingIndicator
         label={typingLabel(
-          typingUserIds.map((id) => nameFor(id)),
+          amTyping ? [] : typingUserIds.map((id) => nameFor(id)),
           {
             one: (name) => t("typingOne", { name }),
             two: (a, b) => t("typingTwo", { a, b }),

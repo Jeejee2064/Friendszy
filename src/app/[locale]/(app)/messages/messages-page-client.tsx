@@ -484,6 +484,11 @@ function ConversationPane({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const otherTypingStaleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [otherTyping, setOtherTyping] = useState(false);
+  // Garde-fou explicite, indépendant de tout ce qui se passe côté
+  // présence : tant que je suis moi-même en train d'écrire, mon propre
+  // écran ne doit jamais afficher "l'autre écrit..." — quelle qu'en soit
+  // la cause côté Realtime.
+  const [amTyping, setAmTyping] = useState(false);
 
   const otherDisplayName = displayName(otherProfile, tCommon("deletedUser"));
   const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
@@ -587,6 +592,7 @@ function ConversationPane({
     }
     if (isTypingRef.current) {
       isTypingRef.current = false;
+      setAmTyping(false);
       channelRef.current?.track({ typing: false, user_id: userId });
     }
   }
@@ -600,6 +606,7 @@ function ConversationPane({
     }
     if (!isTypingRef.current) {
       isTypingRef.current = true;
+      setAmTyping(true);
       channelRef.current.track({ typing: true, user_id: userId });
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -1176,7 +1183,7 @@ function ConversationPane({
       </div>
 
       <TypingIndicator
-        label={typingLabel(otherTyping ? [otherDisplayName] : [], {
+        label={typingLabel(otherTyping && !amTyping ? [otherDisplayName] : [], {
           one: (name) => t("typingOne", { name }),
           two: (a, b) => t("typingTwo", { a, b }),
           many: (count) => t("typingMany", { count }),
