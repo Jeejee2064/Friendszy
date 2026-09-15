@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getInterests } from "@/lib/profile/queries";
-import { getGroupById, getMyGroupMembership } from "@/lib/groups/queries";
+import { getGroupById, getMyGroupMembership, getCitiesByGroup } from "@/lib/groups/queries";
 import type { GroupMemberRole } from "@/lib/groups/types";
 import { GroupSettingsForm } from "@/components/groups/group-settings-form";
 
@@ -31,6 +31,7 @@ export default async function GroupSettingsPage({
   if (myRole !== "creator" && myRole !== "admin") notFound();
 
   const interests = await getInterests(supabase);
+  const citiesByGroup = await getCitiesByGroup(supabase, [group.id]);
 
   return (
     <div className="p-6 md:p-10">
@@ -44,6 +45,7 @@ export default async function GroupSettingsPage({
           name: group.name,
           description: group.description ?? "",
           avatarUrl: group.avatar_url,
+          cityIds: citiesByGroup.get(group.id) ?? [],
           interestId: group.interest_id,
           invitePermission: group.invite_permission as "all_members" | "admins_only",
         }}

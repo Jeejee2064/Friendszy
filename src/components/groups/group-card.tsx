@@ -33,6 +33,7 @@ export function GroupCard({
         localizedInterestLabel(group.interest, locale)
       }`
     : null;
+  const cityLabels = group.cities.map((city) => city.name);
 
   const avatar = (
     <div
@@ -57,6 +58,14 @@ export function GroupCard({
           {interestLabel}
         </span>
       )}
+      {cityLabels.map((name) => (
+        <span
+          key={name}
+          className="rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold text-muted"
+        >
+          📍 {name}
+        </span>
+      ))}
       <span className="text-xs text-muted">{t("memberCount", { count: group.memberCount })}</span>
     </div>
   );

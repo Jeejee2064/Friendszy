@@ -18,10 +18,11 @@ export async function createGroup(
     name: string;
     description: string | null;
     avatar_url: string | null;
-    interest_id: number;
+    interest_id: number | null;
     invite_permission: GroupInvitePermission;
   },
-  creatorId: string
+  creatorId: string,
+  cityIds: number[] = []
 ): Promise<GroupRow> {
   const { data: group, error: groupError } = await supabase
     .from("groups")
@@ -38,7 +39,52 @@ export async function createGroup(
   });
   if (memberError) throw memberError;
 
+  if (cityIds.length > 0) {
+    await setGroupCities(supabase, group.id, cityIds);
+  }
+
   return group;
+}
+
+// `group_cities` isn't in the generated Database type yet — `as any` needed
+// until `npm run supabase:types` is re-run post-migration (see getCityNames
+// in src/lib/search/cities.ts for the same situation with `cities`).
+export async function setGroupCities(
+  supabase: Client,
+  groupId: string,
+  cityIds: number[]
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const table = (supabase as any).from("group_cities");
+  const { error: deleteError } = await table.delete().eq("group_id", groupId);
+  if (deleteError) throw deleteError;
+
+  if (cityIds.length === 0) return;
+  const { error: insertError } = await table.insert(
+    cityIds.map((cityId) => ({ group_id: groupId, city_id: cityId }))
+  );
+  if (insertError) throw insertError;
+}
+
+export async function getCitiesByGroup(
+  supabase: Client,
+  groupIds: string[]
+): Promise<Map<string, number[]>> {
+  if (groupIds.length === 0) return new Map();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see setGroupCities comment above
+  const { data, error } = await (supabase as any)
+    .from("group_cities")
+    .select("group_id, city_id")
+    .in("group_id", groupIds);
+  if (error) throw error;
+
+  const map = new Map<string, number[]>();
+  for (const row of (data ?? []) as { group_id: string; city_id: number }[]) {
+    const existing = map.get(row.group_id) ?? [];
+    existing.push(row.city_id);
+    map.set(row.group_id, existing);
+  }
+  return map;
 }
 
 export async function getGroupById(
@@ -80,7 +126,7 @@ export async function getGroupSummariesByIds(
 
 export async function listGroups(
   supabase: Client,
-  filters: { name?: string; interestId?: number }
+  filters: { name?: string; interestId?: number; cityId?: number }
 ): Promise<GroupRow[]> {
   let query = supabase
     .from("groups")
@@ -88,6 +134,21 @@ export async function listGroups(
     .order("created_at", { ascending: false });
   if (filters.name) query = query.ilike("name", `%${filters.name}%`);
   if (filters.interestId != null) query = query.eq("interest_id", filters.interestId);
+
+  if (filters.cityId != null) {
+    // Two-step, not an embedded join — this codebase never does those (see
+    // GroupCardData comment in ./types) — resolve group_cities -> group ids
+    // first, same pattern as the name/interest filters above.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- group_cities isn't in the generated Database type yet, see setGroupCities in this file
+    const { data: rows, error: cityError } = await (supabase as any)
+      .from("group_cities")
+      .select("group_id")
+      .eq("city_id", filters.cityId);
+    if (cityError) throw cityError;
+    const groupIds = ((rows ?? []) as { group_id: string }[]).map((r) => r.group_id);
+    if (groupIds.length === 0) return [];
+    query = query.in("id", groupIds);
+  }
 
   const { data, error } = await query;
   if (error) throw error;
@@ -369,9 +430,10 @@ export async function updateGroupSettings(
     name: string;
     description: string | null;
     avatar_url: string | null;
-    interest_id: number;
+    interest_id: number | null;
     invite_permission: GroupInvitePermission;
-  }>
+  }>,
+  cityIds?: number[]
 ) {
   // No DB trigger keeps `updated_at` current for this table — set it explicitly.
   const { error } = await supabase
@@ -379,6 +441,10 @@ export async function updateGroupSettings(
     .update({ ...fields, updated_at: new Date().toISOString() })
     .eq("id", groupId);
   if (error) throw error;
+
+  if (cityIds !== undefined) {
+    await setGroupCities(supabase, groupId, cityIds);
+  }
 }
 
 export async function deleteGroup(supabase: Client, groupId: string) {

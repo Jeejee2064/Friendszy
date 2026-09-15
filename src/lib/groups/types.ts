@@ -1,5 +1,6 @@
 import type { Database } from "@/types/supabase";
 import type { Interest, ProfileSummary } from "@/lib/profile/types";
+import type { CityOption } from "@/lib/search/cities";
 
 export type GroupRow = Database["public"]["Tables"]["groups"]["Row"];
 export type GroupMemberRow = Database["public"]["Tables"]["group_members"]["Row"];
@@ -16,6 +17,7 @@ export type GroupInvitePermission = "all_members" | "admins_only";
 // Composed client-side — this codebase never does embedded-relationship queries.
 export type GroupCardData = GroupRow & {
   interest: Interest | null;
+  cities: CityOption[];
   memberCount: number;
   myStatus: GroupMemberStatus | null; // null = never a member
   myPendingJoinRequest: boolean;

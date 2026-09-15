@@ -9,6 +9,7 @@ import type { GroupInvitePermission, GroupMemberRole } from "@/lib/groups/types"
 import type { Interest } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
+import { GroupCitySelect } from "@/components/groups/group-city-select";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 
@@ -16,6 +17,7 @@ type FormState = {
   name: string;
   description: string;
   avatarUrl: string | null;
+  cityIds: number[];
   interestId: number | null;
   invitePermission: GroupInvitePermission;
 };
@@ -61,21 +63,22 @@ export function GroupSettingsForm({
       setNotice({ kind: "error", message: t("errors.nameRequired") });
       return;
     }
-    if (form.interestId == null) {
-      setNotice({ kind: "error", message: t("errors.interestRequired") });
-      return;
-    }
 
     setPending(true);
     try {
       const supabase = createClient();
-      await updateGroupSettings(supabase, groupId, {
-        name: form.name.trim(),
-        description: form.description.trim() || null,
-        avatar_url: form.avatarUrl,
-        interest_id: form.interestId,
-        invite_permission: form.invitePermission,
-      });
+      await updateGroupSettings(
+        supabase,
+        groupId,
+        {
+          name: form.name.trim(),
+          description: form.description.trim() || null,
+          avatar_url: form.avatarUrl,
+          interest_id: form.interestId,
+          invite_permission: form.invitePermission,
+        },
+        form.cityIds
+      );
       setNotice({ kind: "success", message: t("saveSuccess") });
       router.refresh();
     } catch {
@@ -136,11 +139,20 @@ export function GroupSettingsForm({
         </div>
 
         <div className="mt-4">
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">
+            {t("citiesStepTitle")}
+          </p>
+          <GroupCitySelect value={form.cityIds} onChange={(ids) => update("cityIds", ids)} />
+        </div>
+
+        <div className="mt-4">
           <GroupInterestSelect
             interests={interests}
             value={form.interestId}
             onChange={(id) => update("interestId", id)}
             userId={userId}
+            allowClear
+            clearLabel={t("noInterest")}
           />
         </div>
 

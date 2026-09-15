@@ -9,16 +9,18 @@ import type { GroupInvitePermission } from "@/lib/groups/types";
 import type { Interest } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
+import { GroupCitySelect } from "@/components/groups/group-city-select";
 
 type FormState = {
   name: string;
   description: string;
   avatarUrl: string | null;
+  cityIds: number[];
   interestId: number | null;
   invitePermission: GroupInvitePermission;
 };
 
-const STEP_COUNT = 3;
+const STEP_COUNT = 4;
 
 export function GroupCreationWizard({
   userId,
@@ -35,6 +37,7 @@ export function GroupCreationWizard({
     name: "",
     description: "",
     avatarUrl: null,
+    cityIds: [],
     interestId: null,
     invitePermission: "all_members",
   });
@@ -47,7 +50,6 @@ export function GroupCreationWizard({
 
   function validateStep(): string | null {
     if (step === 0 && !form.name.trim()) return t("errors.nameRequired");
-    if (step === 1 && form.interestId == null) return t("errors.interestRequired");
     return null;
   }
 
@@ -67,7 +69,6 @@ export function GroupCreationWizard({
   }
 
   async function handleCreate() {
-    if (form.interestId == null) return;
     setPending(true);
     setError(null);
     try {
@@ -82,7 +83,8 @@ export function GroupCreationWizard({
           interest_id: form.interestId,
           invite_permission: form.invitePermission,
         },
-        userId
+        userId,
+        form.cityIds
       );
       router.push(`/groups/${groupId}`);
     } catch {
@@ -91,7 +93,7 @@ export function GroupCreationWizard({
     }
   }
 
-  const stepTitles = [t("steps.basics"), t("steps.interest"), t("steps.review")];
+  const stepTitles = [t("steps.basics"), t("steps.cities"), t("steps.interest"), t("steps.review")];
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-8 bg-bg px-6 py-16">
@@ -144,15 +146,24 @@ export function GroupCreationWizard({
         )}
 
         {step === 1 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-muted">{t("citiesStepHint")}</p>
+            <GroupCitySelect value={form.cityIds} onChange={(ids) => update("cityIds", ids)} />
+          </div>
+        )}
+
+        {step === 2 && (
           <GroupInterestSelect
             interests={interests}
             value={form.interestId}
             onChange={(id) => update("interestId", id)}
             userId={userId}
+            allowClear
+            clearLabel={t("noInterest")}
           />
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="flex flex-col gap-4">
             <div>
               <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">

@@ -10,17 +10,20 @@ import {
   getMemberCountsByGroup,
   getMyMembershipMap,
   getMyPendingJoinRequestGroupIds,
+  getCitiesByGroup,
   requestToJoinGroup,
 } from "@/lib/groups/queries";
 import type { GroupRow, GroupCardData, GroupMemberStatus } from "@/lib/groups/types";
 import type { Database } from "@/types/supabase";
 import type { Interest } from "@/lib/profile/types";
+import { getCities, type CityOption } from "@/lib/search/cities";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
+import { GroupCitySelect } from "@/components/groups/group-city-select";
 import { GroupCard } from "@/components/groups/group-card";
 import { TabButton } from "@/components/ui/tab-button";
 
 type Tab = "discover" | "mine";
-type DiscoverFilterMode = "name" | "interest";
+type DiscoverFilterMode = "name" | "interest" | "city";
 
 type MyGroupItem = {
   group: GroupRow;
@@ -34,29 +37,37 @@ async function fetchDiscoverGroups(
   interests: Interest[],
   myInterestIds: number[],
   name: string,
-  interestId: number | null
+  interestId: number | null,
+  cityId: number | null
 ): Promise<GroupCardData[]> {
   const rows = await listGroups(supabase, {
     name: name.trim() || undefined,
     interestId: interestId ?? undefined,
+    cityId: cityId ?? undefined,
   });
   const ids = rows.map((g) => g.id);
-  const [counts, myMemberships, pendingIds] = await Promise.all([
+  const [counts, myMemberships, pendingIds, cityOptions, citiesByGroup] = await Promise.all([
     getMemberCountsByGroup(supabase, ids),
     getMyMembershipMap(supabase, ids, userId),
     getMyPendingJoinRequestGroupIds(supabase, ids, userId),
+    getCities(),
+    getCitiesByGroup(supabase, ids),
   ]);
   const interestById = new Map(interests.map((i) => [i.id, i]));
+  const cityById = new Map(cityOptions.map((c) => [c.id, c]));
 
   const cards: GroupCardData[] = rows.map((group) => ({
     ...group,
     interest: group.interest_id != null ? (interestById.get(group.interest_id) ?? null) : null,
+    cities: (citiesByGroup.get(group.id) ?? [])
+      .map((cid) => cityById.get(cid))
+      .filter((c): c is CityOption => !!c),
     memberCount: counts.get(group.id) ?? 0,
     myStatus: (myMemberships.get(group.id)?.status as GroupMemberStatus | undefined) ?? null,
     myPendingJoinRequest: pendingIds.has(group.id),
   }));
 
-  if (interestId != null) return cards;
+  if (interestId != null || cityId != null) return cards;
 
   // Default ranking (no explicit filter): a stable partition, not a numeric
   // sort — groups matching one of the viewer's own interests come first,
@@ -88,13 +99,15 @@ export function GroupsPageClient({
   const [filterMode, setFilterMode] = useState<DiscoverFilterMode>("name");
   const [name, setName] = useState("");
   const [interestId, setInterestId] = useState<number | null>(null);
+  const [cityId, setCityId] = useState<number | null>(null);
 
   // Only one filter is ever active at a time — switching tabs clears the
-  // other one instead of silently keeping it applied in the background.
+  // others instead of silently keeping them applied in the background.
   function handleFilterModeChange(mode: DiscoverFilterMode) {
     setFilterMode(mode);
-    if (mode === "name") setInterestId(null);
-    else setName("");
+    if (mode !== "name") setName("");
+    if (mode !== "interest") setInterestId(null);
+    if (mode !== "city") setCityId(null);
   }
   const [groups, setGroups] = useState<GroupCardData[]>(initialDiscoverGroups);
   const [loading, setLoading] = useState(false);
@@ -110,13 +123,13 @@ export function GroupsPageClient({
     const timeout = setTimeout(() => {
       setLoading(true);
       const supabase = createClient();
-      fetchDiscoverGroups(supabase, userId, interests, myInterestIds, name, interestId)
+      fetchDiscoverGroups(supabase, userId, interests, myInterestIds, name, interestId, cityId)
         .then(setGroups)
         .finally(() => setLoading(false));
     }, 400);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, name, interestId]);
+  }, [tab, name, interestId, cityId]);
 
   async function handleRequestJoin(groupId: string) {
     setRequestingId(groupId);
@@ -173,6 +186,12 @@ export function GroupsPageClient({
               >
                 🔍 {t("filterByInterestTab")}
               </FilterTabButton>
+              <FilterTabButton
+                active={filterMode === "city"}
+                onClick={() => handleFilterModeChange("city")}
+              >
+                🔍 {t("filterByCityTab")}
+              </FilterTabButton>
             </div>
 
             {filterMode === "name" ? (
@@ -183,13 +202,19 @@ export function GroupsPageClient({
                 placeholder={t("searchPlaceholder")}
                 className="w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm outline-none focus:border-teal2"
               />
-            ) : (
+            ) : filterMode === "interest" ? (
               <GroupInterestSelect
                 interests={interests}
                 value={interestId}
                 onChange={setInterestId}
                 userId={userId}
                 allowClear
+                collapsible
+              />
+            ) : (
+              <GroupCitySelect
+                value={cityId != null ? [cityId] : []}
+                onChange={(ids) => setCityId(ids.length > 0 ? ids[ids.length - 1] : null)}
                 collapsible
               />
             )}

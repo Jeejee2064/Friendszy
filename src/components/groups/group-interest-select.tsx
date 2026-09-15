@@ -32,6 +32,7 @@ export function GroupInterestSelect({
   onChange,
   userId,
   allowClear = false,
+  clearLabel,
   collapsible = false,
 }: {
   interests: Interest[];
@@ -41,6 +42,12 @@ export function GroupInterestSelect({
    * nothing) is filed under. */
   userId: string;
   allowClear?: boolean;
+  /** Label for the "no selection" option. Defaults to "Tous les intérêts"
+   * (allInterests), which reads correctly for the discover filter (no filter
+   * = show every group) but not for the creation/settings form, where a
+   * cleared value means "this group has no associated interest" — pass
+   * `tGroups("noInterest")` there instead. */
+  clearLabel?: string;
   // Closed-by-default, opens into a dropdown (desktop) / full-screen panel
   // (mobile) on click — same interaction as InterestPicker on /search.
   // Off by default: the creation wizard/settings form render this as the
@@ -152,9 +159,10 @@ export function GroupInterestSelect({
     .filter(([, items]) => items.length > 0);
 
   const selectedInterest = value != null ? interests.find((i) => i.id === value) : undefined;
+  const resolvedClearLabel = clearLabel ?? tGroups("allInterests");
   const closedLabel = selectedInterest
     ? `${selectedInterest.emoji ? `${selectedInterest.emoji} ` : ""}${labelFor(selectedInterest)}`
-    : tGroups("allInterests");
+    : resolvedClearLabel;
 
   const body = (
     <div className="flex flex-col gap-3">
@@ -183,7 +191,7 @@ export function GroupInterestSelect({
                 : undefined
             }
           >
-            {tGroups("allInterests")}
+            {resolvedClearLabel}
           </motion.button>
         </div>
       )}

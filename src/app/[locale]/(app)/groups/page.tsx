@@ -6,11 +6,13 @@ import {
   getMemberCountsByGroup,
   getMyMembershipMap,
   getMyPendingJoinRequestGroupIds,
+  getCitiesByGroup,
   listMyGroups,
   getGroupsByIds,
 } from "@/lib/groups/queries";
 import { getLatestMessagesByGroup } from "@/lib/groups/messages-queries";
 import type { GroupCardData, GroupMemberStatus } from "@/lib/groups/types";
+import { getCitiesList, type CityOption } from "@/lib/search/cities";
 import { GroupsPageClient } from "./groups-page-client";
 
 export default async function GroupsPage({
@@ -37,15 +39,21 @@ export default async function GroupsPage({
 
   const discoverRows = await listGroups(supabase, {});
   const discoverIds = discoverRows.map((g) => g.id);
-  const [counts, myMemberships, pendingIds] = await Promise.all([
+  const [counts, myMemberships, pendingIds, cityOptions, citiesByGroup] = await Promise.all([
     getMemberCountsByGroup(supabase, discoverIds),
     getMyMembershipMap(supabase, discoverIds, user.id),
     getMyPendingJoinRequestGroupIds(supabase, discoverIds, user.id),
+    getCitiesList(supabase),
+    getCitiesByGroup(supabase, discoverIds),
   ]);
+  const cityById = new Map(cityOptions.map((c) => [c.id, c]));
 
   const discoverCards: GroupCardData[] = discoverRows.map((group) => ({
     ...group,
     interest: group.interest_id != null ? (interestById.get(group.interest_id) ?? null) : null,
+    cities: (citiesByGroup.get(group.id) ?? [])
+      .map((cid) => cityById.get(cid))
+      .filter((c): c is CityOption => !!c),
     memberCount: counts.get(group.id) ?? 0,
     myStatus: (myMemberships.get(group.id)?.status as GroupMemberStatus | undefined) ?? null,
     myPendingJoinRequest: pendingIds.has(group.id),
