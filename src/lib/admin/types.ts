@@ -3,6 +3,7 @@ import type { MessageRow } from "@/lib/messages/queries";
 import type { ReportRow } from "@/lib/reports/queries";
 import type { PartnerListingRow } from "@/lib/partners/queries";
 import type { InterestSuggestionRow } from "@/lib/interest-suggestions/queries";
+import type { BetaFeedback } from "@/lib/beta-feedback/types";
 
 export type ModerationStatus = "active" | "suspended" | "banned";
 
@@ -19,4 +20,8 @@ export type ReportWithTarget = ReportRow & {
 
 export type InterestSuggestionWithProfile = InterestSuggestionRow & {
   suggesterProfile: ProfileSummary | null;
+};
+
+export type BetaFeedbackWithProfile = BetaFeedback & {
+  authorProfile: ProfileSummary | null;
 };

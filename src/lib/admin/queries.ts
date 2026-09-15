@@ -6,8 +6,14 @@ import { getMessagesByIds, type MessageRow } from "@/lib/messages/queries";
 import { listOpenReports, listAllReports, type ReportRow } from "@/lib/reports/queries";
 import { getPartnerListingsByIds, type PartnerListingRow } from "@/lib/partners/queries";
 import { listPendingInterestSuggestions } from "@/lib/interest-suggestions/queries";
-import type { Interest } from "@/lib/profile/types";
-import type { ModerationStatus, ReportWithTarget, InterestSuggestionWithProfile } from "./types";
+import { listBetaFeedback } from "@/lib/beta-feedback/queries";
+import type { City, Interest } from "@/lib/profile/types";
+import type {
+  ModerationStatus,
+  ReportWithTarget,
+  InterestSuggestionWithProfile,
+  BetaFeedbackWithProfile,
+} from "./types";
 
 type Client = SupabaseClient<Database>;
 
@@ -182,6 +188,21 @@ export async function listPendingInterestSuggestionsWithProfiles(
   }));
 }
 
+export async function listBetaFeedbackWithProfiles(
+  supabase: Client,
+  filters?: { status?: "new" | "read" | "resolved"; category?: "bug" | "idea" | "other" }
+): Promise<BetaFeedbackWithProfile[]> {
+  const feedback = await listBetaFeedback(supabase, filters);
+  const authorIds = [...new Set(feedback.map((f) => f.user_id))];
+  const authorProfiles = await getProfilesByIds(supabase, authorIds);
+  const authorById = new Map(authorProfiles.map((p) => [p.id, p]));
+
+  return feedback.map((f) => ({
+    ...f,
+    authorProfile: authorById.get(f.user_id) ?? null,
+  }));
+}
+
 export type AdminActionRow = Database["public"]["Tables"]["admin_actions"]["Row"];
 export type AdminActionWithNames = AdminActionRow & {
   adminProfile: ProfileSummary | null;
@@ -334,5 +355,45 @@ export async function updateInterest(
  */
 export async function deleteInterest(supabase: Client, interestId: number) {
   const { error } = await supabase.from("interests").delete().eq("id", interestId);
+  if (error) throw error;
+}
+
+// Cities catalogue: admin-only add/edit/delete (see
+// 20260914140000_cities_catalogue.sql — cities_insert_admin/
+// cities_update_admin/cities_delete_admin). No suggestion queue here, unlike
+// interests — admins add missing cities directly.
+//
+// `cities` isn't in the generated Database type yet (see City in
+// profile/types.ts) — `as any` needed until `npm run supabase:types` is
+// re-run post-migration.
+export async function createCity(supabase: Client, name: string): Promise<City> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { data, error } = await (supabase as any)
+    .from("cities")
+    .insert({ name })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateCity(supabase: Client, cityId: number, name: string): Promise<City> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { data, error } = await (supabase as any)
+    .from("cities")
+    .update({ name })
+    .eq("id", cityId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// cities is not a foreign key target (profiles.city etc. stay free text, see
+// the migration) — nothing else in the schema can block this delete with a
+// 23503 the way deleteInterest's comment above describes.
+export async function deleteCity(supabase: Client, cityId: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { error } = await (supabase as any).from("cities").delete().eq("id", cityId);
   if (error) throw error;
 }
