@@ -74,53 +74,55 @@ export function EventMessageBubble({
           <span className="text-xs font-semibold text-muted">{senderName}</span>
         </div>
       )}
-      <MessageContextMenu
-        align={isMine ? "end" : "start"}
-        canDelete={isMine && !isRemoved}
-        onReply={onReply}
-        onReact={onToggleReaction}
-        onDelete={onDelete}
-        replyLabel={replyLabel}
-        deleteLabel={deleteLabel}
-      >
-        <div className="group/bubble relative max-w-[75%]">
-          <div
-            className={`rounded-2xl px-4 py-2 text-sm ${
-              isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
-            }`}
-            style={
-              isRemoved
-                ? { background: "var(--bg)" }
-                : isMine
-                  ? { backgroundImage: "var(--grad)" }
-                  : { background: "var(--bg)" }
-            }
-          >
-            {!isRemoved && repliedMessage && (
-              <QuotedMessage
-                senderLabel={repliedMessage.isMine ? youLabel : repliedMessage.senderName}
-                content={repliedMessage.content ?? removedLabel}
-                tone={isMine ? "mine" : "theirs"}
-                onClick={() => onJumpToMessage(message.reply_to_id!)}
-              />
-            )}
-            {isRemoved ? removedLabel : message.content}
-          </div>
-          {canRemove && !isRemoved && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(message.id);
-              }}
-              aria-label={removeLabel}
-              className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
+      <div className="max-w-[75%]">
+        <MessageContextMenu
+          align={isMine ? "end" : "start"}
+          canDelete={isMine && !isRemoved}
+          onReply={onReply}
+          onReact={onToggleReaction}
+          onDelete={onDelete}
+          replyLabel={replyLabel}
+          deleteLabel={deleteLabel}
+        >
+          <div className="group/bubble relative">
+            <div
+              className={`rounded-2xl px-4 py-2 text-sm ${
+                isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
+              }`}
+              style={
+                isRemoved
+                  ? { background: "var(--bg)" }
+                  : isMine
+                    ? { backgroundImage: "var(--grad)" }
+                    : { background: "var(--bg)" }
+              }
             >
-              🗑️
-            </button>
-          )}
-        </div>
-      </MessageContextMenu>
+              {!isRemoved && repliedMessage && (
+                <QuotedMessage
+                  senderLabel={repliedMessage.isMine ? youLabel : repliedMessage.senderName}
+                  content={repliedMessage.content ?? removedLabel}
+                  tone={isMine ? "mine" : "theirs"}
+                  onClick={() => onJumpToMessage(message.reply_to_id!)}
+                />
+              )}
+              {isRemoved ? removedLabel : message.content}
+            </div>
+            {canRemove && !isRemoved && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(message.id);
+                }}
+                aria-label={removeLabel}
+                className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs group-hover/bubble:flex"
+              >
+                🗑️
+              </button>
+            )}
+          </div>
+        </MessageContextMenu>
+      </div>
       {!isRemoved && (
         <ReactionPills reactions={reactions} myUserId={myUserId} onToggle={onToggleReaction} />
       )}

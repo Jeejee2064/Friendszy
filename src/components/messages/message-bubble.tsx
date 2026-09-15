@@ -3,6 +3,7 @@ import { MessageStatusTicks } from "@/components/messages/message-status-ticks";
 import { MessageContextMenu } from "@/components/chat/message-context-menu";
 import { ReactionPills } from "@/components/chat/reaction-pills";
 import { QuotedMessage } from "@/components/chat/quoted-message";
+import { splitByQuery } from "@/lib/messages/highlight";
 
 export function MessageBubble({
   message,
@@ -21,6 +22,7 @@ export function MessageBubble({
   deleteLabel,
   youLabel,
   removedLabel,
+  highlightQuery,
 }: {
   message: MessageRow;
   isMine: boolean;
@@ -38,43 +40,58 @@ export function MessageBubble({
   deleteLabel: string;
   youLabel: string;
   removedLabel: string;
+  highlightQuery?: string;
 }) {
   const isRemoved = !!message.removed_at;
 
   return (
     <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
-      <MessageContextMenu
-        align={isMine ? "end" : "start"}
-        canDelete={isMine && !isRemoved}
-        onReply={onReply}
-        onReact={onToggleReaction}
-        onDelete={onDelete}
-        replyLabel={replyLabel}
-        deleteLabel={deleteLabel}
-      >
-        <div
-          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-            isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
-          }`}
-          style={
-            isRemoved
-              ? { background: "var(--bg)" }
-              : isMine
-                ? { backgroundImage: "var(--grad)" }
-                : { background: "var(--bg)" }
-          }
+      <div className="max-w-[75%]">
+        <MessageContextMenu
+          align={isMine ? "end" : "start"}
+          canDelete={isMine && !isRemoved}
+          onReply={onReply}
+          onReact={onToggleReaction}
+          onDelete={onDelete}
+          replyLabel={replyLabel}
+          deleteLabel={deleteLabel}
         >
-          {!isRemoved && repliedMessage && (
-            <QuotedMessage
-              senderLabel={repliedMessage.isMine ? youLabel : repliedMessage.senderName}
-              content={repliedMessage.content ?? removedLabel}
-              tone={isMine ? "mine" : "theirs"}
-              onClick={() => onJumpToMessage(message.reply_to_id!)}
-            />
-          )}
-          {isRemoved ? removedLabel : message.content}
-        </div>
-      </MessageContextMenu>
+          <div
+            className={`rounded-2xl px-4 py-2 text-sm ${
+              isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
+            }`}
+            style={
+              isRemoved
+                ? { background: "var(--bg)" }
+                : isMine
+                  ? { backgroundImage: "var(--grad)" }
+                  : { background: "var(--bg)" }
+            }
+          >
+            {!isRemoved && repliedMessage && (
+              <QuotedMessage
+                senderLabel={repliedMessage.isMine ? youLabel : repliedMessage.senderName}
+                content={repliedMessage.content ?? removedLabel}
+                tone={isMine ? "mine" : "theirs"}
+                onClick={() => onJumpToMessage(message.reply_to_id!)}
+              />
+            )}
+            {isRemoved
+              ? removedLabel
+              : highlightQuery
+                ? splitByQuery(message.content ?? "", highlightQuery).map((segment, i) =>
+                    segment.match ? (
+                      <mark key={i} className="rounded-sm text-inherit" style={{ background: "#f59e0b66" }}>
+                        {segment.text}
+                      </mark>
+                    ) : (
+                      <span key={i}>{segment.text}</span>
+                    )
+                  )
+                : message.content}
+          </div>
+        </MessageContextMenu>
+      </div>
       {!isRemoved && (
         <ReactionPills reactions={reactions} myUserId={myUserId} onToggle={onToggleReaction} />
       )}
