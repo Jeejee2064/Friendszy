@@ -84,6 +84,53 @@ export type Database = {
           },
         ]
       }
+      beta_feedback: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          locale: string | null
+          message: string
+          page_url: string | null
+          screenshot_path: string | null
+          status: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          locale?: string | null
+          message: string
+          page_url?: string | null
+          screenshot_path?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          locale?: string | null
+          message?: string
+          page_url?: string | null
+          screenshot_path?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocks: {
         Row: {
           blocked_id: string
