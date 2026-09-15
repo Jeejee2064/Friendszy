@@ -470,6 +470,9 @@ function ConversationPane({
   const [reactions, setReactions] = useState<MessageReactionRow[]>(initialReactions);
   const [replyingTo, setReplyingTo] = useState<MessageRow | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [matchIndex, setMatchIndex] = useState(0);
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
   const closingRef = useRef(false);
@@ -496,6 +499,40 @@ function ConversationPane({
     messageRefs.current.get(messageId)?.scrollIntoView({ behavior: "smooth", block: "center" });
     setHighlightedId(messageId);
     setTimeout(() => setHighlightedId((prev) => (prev === messageId ? null : prev)), 1500);
+  }
+
+  const searchMatches = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return messages
+      .filter((m) => !m.removed_at && m.content?.toLowerCase().includes(query))
+      .map((m) => m.id);
+  }, [messages, searchQuery]);
+
+  // Recentre sur le premier résultat à chaque nouvelle recherche, en même
+  // temps que le changement de valeur plutôt que dans un effet séparé —
+  // sans ça, matchIndex resterait bloqué sur un index qui n'existe plus
+  // dans la nouvelle liste de correspondances.
+  function handleSearchQueryChange(value: string) {
+    setSearchQuery(value);
+    setMatchIndex(0);
+    const query = value.trim().toLowerCase();
+    if (!query) return;
+    const firstMatch = messages.find((m) => !m.removed_at && m.content?.toLowerCase().includes(query));
+    if (firstMatch) jumpToMessage(firstMatch.id);
+  }
+
+  function goToMatch(offset: number) {
+    if (searchMatches.length === 0) return;
+    const next = (matchIndex + offset + searchMatches.length) % searchMatches.length;
+    setMatchIndex(next);
+    jumpToMessage(searchMatches[next]);
+  }
+
+  function closeSearch() {
+    setSearchOpen(false);
+    setSearchQuery("");
+    setMatchIndex(0);
   }
 
   async function toggleReaction(messageId: string, emoji: string) {
@@ -690,18 +727,9 @@ function ConversationPane({
       );
     }
 
-    function syncTyping(current: RealtimeChannel) {
-      const state = current.presenceState<{ typing?: boolean }>();
-      const entries = state[otherProfile.id] ?? [];
-      setOtherTyping(entries.some((entry) => entry.typing));
-    }
-
     function subscribe() {
       channel = supabase
-        .channel(`conversation:${conversationId}`, { config: { presence: { key: userId } } })
-        .on("presence", { event: "sync" }, () => {
-          if (channel) syncTyping(channel);
-        })
+        .channel(`conversation:${conversationId}`)
         .on(
           "postgres_changes",
           {
@@ -778,8 +806,6 @@ function ConversationPane({
           if (cancelled) return;
 
           if (status === "SUBSCRIBED") {
-            channelRef.current = channel;
-            channel?.track({ typing: false });
             catchUp();
             return;
           }
@@ -788,7 +814,6 @@ function ConversationPane({
           // etc.) — without this, INSERT/UPDATE events (new messages, read
           // ticks) silently stop arriving until the page is refreshed.
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            if (channelRef.current === channel) channelRef.current = null;
             if (channel) {
               supabase.removeChannel(channel);
               channel = null;
@@ -825,9 +850,71 @@ function ConversationPane({
     return () => {
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [conversationId, userId]);
+
+  // Présence "en train d'écrire" — sur un channel SÉPARÉ de celui des
+  // postgres_changes ci-dessus. Les deux étaient mélangés sur un seul
+  // channel au départ ; en pratique ça a fini par bloquer la réception des
+  // nouveaux messages sur ce channel (INSERT plus reçu, indicateur de
+  // frappe resté figé) sans qu'un statut CHANNEL_ERROR/CLOSED ne se
+  // déclenche pour le signaler — donc jamais de reconnexion automatique.
+  // Un channel dédié à la présence, sans souscription DB dessus, retire ce
+  // risque : si lui a un souci, ça n'affecte plus la réception des
+  // messages.
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    function syncTyping(current: RealtimeChannel) {
+      const state = current.presenceState<{ typing?: boolean }>();
+      const entries = state[otherProfile.id] ?? [];
+      setOtherTyping(entries.some((entry) => entry.typing));
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`conversation-typing:${conversationId}`, {
+          config: { presence: { key: userId } },
+        })
+        .on("presence", { event: "sync" }, () => {
+          if (channel) syncTyping(channel);
+        })
+        .subscribe((status) => {
+          if (cancelled) return;
+
+          if (status === "SUBSCRIBED") {
+            channelRef.current = channel;
+            channel?.track({ typing: false });
+            return;
+          }
+
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channelRef.current === channel) channelRef.current = null;
+            if (channel) {
+              supabase.removeChannel(channel);
+              channel = null;
+            }
+            retryTimeout = setTimeout(() => {
+              retryTimeout = null;
+              if (!cancelled) subscribe();
+            }, 2000);
+          }
+        });
+    }
+
+    subscribe();
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       channelRef.current = null;
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      setOtherTyping(false);
       if (channel) supabase.removeChannel(channel);
     };
   }, [conversationId, userId, otherProfile.id]);
@@ -898,6 +985,17 @@ function ConversationPane({
           </div>
         </Link>
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
+            title={t("searchInConversation")}
+            aria-label={t("searchInConversation")}
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors ${
+              searchOpen ? "bg-bg text-teal2" : "text-muted hover:bg-bg"
+            }`}
+          >
+            🔍
+          </button>
           <ReportButton
             reporterId={userId}
             targetType="profile"
@@ -913,6 +1011,56 @@ function ConversationPane({
           />
         </div>
       </div>
+
+      {searchOpen && (
+        <div className="flex items-center gap-2 border-b border-border bg-bg px-4 py-2">
+          <input
+            type="text"
+            autoFocus
+            value={searchQuery}
+            onChange={(e) => handleSearchQueryChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") goToMatch(e.shiftKey ? -1 : 1);
+              if (e.key === "Escape") closeSearch();
+            }}
+            placeholder={t("searchInConversationPlaceholder")}
+            className="min-w-0 flex-1 rounded-lg border border-border bg-card px-3 py-1.5 text-sm outline-none focus:border-teal2"
+          />
+          <span className="shrink-0 text-xs text-muted">
+            {searchQuery.trim()
+              ? searchMatches.length > 0
+                ? t("matchCount", { current: matchIndex + 1, total: searchMatches.length })
+                : t("noMatchesInConversation")
+              : ""}
+          </span>
+          <button
+            type="button"
+            onClick={() => goToMatch(-1)}
+            disabled={searchMatches.length === 0}
+            aria-label={t("previousMatch")}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card disabled:opacity-40"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            onClick={() => goToMatch(1)}
+            disabled={searchMatches.length === 0}
+            aria-label={t("nextMatch")}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card disabled:opacity-40"
+          >
+            ↓
+          </button>
+          <button
+            type="button"
+            onClick={closeSearch}
+            aria-label={t("closeSearch")}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {messages.length === 0 ? (
@@ -977,6 +1125,7 @@ function ConversationPane({
                   }
                   reactions={reactionsByMessageId.get(message.id) ?? []}
                   myUserId={userId}
+                  highlightQuery={searchQuery.trim() || undefined}
                   onReply={() => setReplyingTo(message)}
                   onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
                   onJumpToMessage={jumpToMessage}

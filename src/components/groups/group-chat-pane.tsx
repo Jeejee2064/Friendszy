@@ -180,35 +180,9 @@ export function GroupChatPane({
       }
     }
 
-    // Reads who's currently tracked as typing (excluding myself) from
-    // presence state, and lazily fetches profiles for anyone not already
-    // known from a prior message (someone can be typing without having
-    // sent a single message yet).
-    function syncTyping(current: RealtimeChannel) {
-      const state = current.presenceState<{ typing?: boolean }>();
-      const ids = Object.keys(state).filter(
-        (id) => id !== userId && (state[id] ?? []).some((entry) => entry.typing)
-      );
-      setTypingUserIds(ids);
-      const unseen = ids.filter((id) => !senderById.has(id));
-      if (unseen.length > 0) {
-        getProfilesByIds(supabase, unseen).then((profiles) => {
-          if (cancelled) return;
-          setSenderById((prev) => {
-            const next = new Map(prev);
-            for (const profile of profiles) next.set(profile.id, profile);
-            return next;
-          });
-        });
-      }
-    }
-
     function subscribe() {
       channel = supabase
-        .channel(`group-chat:${groupId}`, { config: { presence: { key: userId } } })
-        .on("presence", { event: "sync" }, () => {
-          if (channel) syncTyping(channel);
-        })
+        .channel(`group-chat:${groupId}`)
         .on(
           "postgres_changes",
           {
@@ -286,8 +260,6 @@ export function GroupChatPane({
           if (cancelled) return;
 
           if (status === "SUBSCRIBED") {
-            channelRef.current = channel;
-            channel?.track({ typing: false });
             catchUp();
             return;
           }
@@ -296,7 +268,6 @@ export function GroupChatPane({
           // etc.) — without this, new/removed messages silently stop
           // arriving until the page is refreshed.
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            if (channelRef.current === channel) channelRef.current = null;
             if (channel) {
               supabase.removeChannel(channel);
               channel = null;
@@ -330,9 +301,85 @@ export function GroupChatPane({
     return () => {
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (channel) supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, userId]);
+
+  // Présence "en train d'écrire" — sur un channel SÉPARÉ de celui des
+  // postgres_changes ci-dessus. Les deux étaient mélangés sur un seul
+  // channel au départ ; en pratique ça a fini par bloquer la réception des
+  // nouveaux messages sur ce channel (voir le même correctif sur la
+  // messagerie privée) sans déclencher de CHANNEL_ERROR/CLOSED pour le
+  // signaler — donc jamais de reconnexion automatique. Un channel dédié à
+  // la présence, sans souscription DB dessus, retire ce risque.
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    // Reads who's currently tracked as typing (excluding myself) from
+    // presence state, and lazily fetches profiles for anyone not already
+    // known from a prior message (someone can be typing without having
+    // sent a single message yet).
+    function syncTyping(current: RealtimeChannel) {
+      const state = current.presenceState<{ typing?: boolean }>();
+      const ids = Object.keys(state).filter(
+        (id) => id !== userId && (state[id] ?? []).some((entry) => entry.typing)
+      );
+      setTypingUserIds(ids);
+      const unseen = ids.filter((id) => !senderById.has(id));
+      if (unseen.length > 0) {
+        getProfilesByIds(supabase, unseen).then((profiles) => {
+          if (cancelled) return;
+          setSenderById((prev) => {
+            const next = new Map(prev);
+            for (const profile of profiles) next.set(profile.id, profile);
+            return next;
+          });
+        });
+      }
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`group-chat-typing:${groupId}`, { config: { presence: { key: userId } } })
+        .on("presence", { event: "sync" }, () => {
+          if (channel) syncTyping(channel);
+        })
+        .subscribe((status) => {
+          if (cancelled) return;
+
+          if (status === "SUBSCRIBED") {
+            channelRef.current = channel;
+            channel?.track({ typing: false });
+            return;
+          }
+
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            if (channelRef.current === channel) channelRef.current = null;
+            if (channel) {
+              supabase.removeChannel(channel);
+              channel = null;
+            }
+            retryTimeout = setTimeout(() => {
+              retryTimeout = null;
+              if (!cancelled) subscribe();
+            }, 2000);
+          }
+        });
+    }
+
+    subscribe();
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       channelRef.current = null;
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      setTypingUserIds([]);
       if (channel) supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
