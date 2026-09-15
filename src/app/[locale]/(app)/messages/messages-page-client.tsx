@@ -478,9 +478,11 @@ function ConversationPane({
   const closingRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const messageInputRef = useRef<HTMLInputElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const isTypingRef = useRef(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const otherTypingStaleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [otherTyping, setOtherTyping] = useState(false);
 
   const otherDisplayName = displayName(otherProfile, tCommon("deletedUser"));
@@ -856,14 +858,12 @@ function ConversationPane({
   }, [conversationId, userId]);
 
   // Présence "en train d'écrire" — sur un channel SÉPARÉ de celui des
-  // postgres_changes ci-dessus. Les deux étaient mélangés sur un seul
-  // channel au départ ; en pratique ça a fini par bloquer la réception des
-  // nouveaux messages sur ce channel (INSERT plus reçu, indicateur de
-  // frappe resté figé) sans qu'un statut CHANNEL_ERROR/CLOSED ne se
-  // déclenche pour le signaler — donc jamais de reconnexion automatique.
-  // Un channel dédié à la présence, sans souscription DB dessus, retire ce
-  // risque : si lui a un souci, ça n'affecte plus la réception des
-  // messages.
+  // postgres_changes ci-dessus, pour qu'un souci dessus n'affecte jamais
+  // la réception des messages (voir le channel `conversation:${id}`
+  // ci-dessus). Filet de sécurité en plus : otherTyping se réinitialise
+  // tout seul après STALE_TYPING_MS sans confirmation fraîche — même si un
+  // événement "typing: false" se perd en route, l'indicateur ne peut pas
+  // rester bloqué indéfiniment.
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
@@ -873,7 +873,16 @@ function ConversationPane({
     function syncTyping(current: RealtimeChannel) {
       const state = current.presenceState<{ typing?: boolean }>();
       const entries = state[otherProfile.id] ?? [];
-      setOtherTyping(entries.some((entry) => entry.typing));
+      const typing = entries.some((entry) => entry.typing);
+      setOtherTyping(typing);
+
+      if (otherTypingStaleTimeoutRef.current) {
+        clearTimeout(otherTypingStaleTimeoutRef.current);
+        otherTypingStaleTimeoutRef.current = null;
+      }
+      if (typing) {
+        otherTypingStaleTimeoutRef.current = setTimeout(() => setOtherTyping(false), 6000);
+      }
     }
 
     function subscribe() {
@@ -913,6 +922,7 @@ function ConversationPane({
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (otherTypingStaleTimeoutRef.current) clearTimeout(otherTypingStaleTimeoutRef.current);
       channelRef.current = null;
       setOtherTyping(false);
       if (channel) supabase.removeChannel(channel);
@@ -922,6 +932,13 @@ function ConversationPane({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
+
+  // Focus direct sur le champ de saisie quand on choisit de répondre à un
+  // message — évite d'avoir à cliquer une seconde fois juste pour pouvoir
+  // écrire.
+  useEffect(() => {
+    if (replyingTo) messageInputRef.current?.focus();
+  }, [replyingTo]);
 
   async function handleSend(e: FormEvent) {
     e.preventDefault();
@@ -1163,6 +1180,7 @@ function ConversationPane({
 
       <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-4">
         <input
+          ref={messageInputRef}
           type="text"
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}

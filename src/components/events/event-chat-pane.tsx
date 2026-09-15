@@ -65,9 +65,11 @@ export function EventChatPane({
   const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const messageInputRef = useRef<HTMLInputElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const isTypingRef = useRef(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingStaleTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const messagesById = useMemo(() => new Map(messages.map((m) => [m.id, m])), [messages]);
   const reactionsByMessageId = useMemo(() => {
@@ -328,17 +330,40 @@ export function EventChatPane({
     let cancelled = false;
     let channel: RealtimeChannel | null = null;
     let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    const staleTimeouts = typingStaleTimeoutsRef.current;
 
     // Reads who's currently tracked as typing (excluding myself) from
     // presence state, and lazily fetches profiles for anyone not already
     // known from a prior message (someone can be typing without having
-    // sent a single message yet).
+    // sent a single message yet). Also arms a per-user stale timer: if no
+    // fresher sync confirms someone is still typing within 6s, they're
+    // dropped locally — a lost "typing: false" event (or a channel that
+    // silently stops delivering) can never leave them stuck forever.
     function syncTyping(current: RealtimeChannel) {
       const state = current.presenceState<{ typing?: boolean }>();
       const ids = Object.keys(state).filter(
         (id) => id !== userId && (state[id] ?? []).some((entry) => entry.typing)
       );
       setTypingUserIds(ids);
+
+      for (const [id, timeout] of staleTimeouts) {
+        if (!ids.includes(id)) {
+          clearTimeout(timeout);
+          staleTimeouts.delete(id);
+        }
+      }
+      for (const id of ids) {
+        const existing = staleTimeouts.get(id);
+        if (existing) clearTimeout(existing);
+        staleTimeouts.set(
+          id,
+          setTimeout(() => {
+            staleTimeouts.delete(id);
+            setTypingUserIds((prev) => prev.filter((x) => x !== id));
+          }, 6000)
+        );
+      }
+
       const unseen = ids.filter((id) => !senderById.has(id));
       if (unseen.length > 0) {
         getProfilesByIds(supabase, unseen).then((profiles) => {
@@ -387,6 +412,8 @@ export function EventChatPane({
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      for (const timeout of staleTimeouts.values()) clearTimeout(timeout);
+      staleTimeouts.clear();
       channelRef.current = null;
       setTypingUserIds([]);
       if (channel) supabase.removeChannel(channel);
@@ -397,6 +424,13 @@ export function EventChatPane({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
+
+  // Focus direct sur le champ de saisie quand on choisit de répondre à un
+  // message — évite d'avoir à cliquer une seconde fois juste pour pouvoir
+  // écrire.
+  useEffect(() => {
+    if (replyingTo) messageInputRef.current?.focus();
+  }, [replyingTo]);
 
   async function handleSend(e: FormEvent) {
     e.preventDefault();
@@ -536,6 +570,7 @@ export function EventChatPane({
 
       <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-4">
         <input
+          ref={messageInputRef}
           type="text"
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
