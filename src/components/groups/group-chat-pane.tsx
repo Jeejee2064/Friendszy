@@ -284,6 +284,15 @@ export function GroupChatPane({
 
     subscribe();
 
+    // Filet de sécurité : un channel Realtime peut arrêter de livrer des
+    // événements sans jamais lever CHANNEL_ERROR/TIMED_OUT/CLOSED (socket
+    // à moitié mort — le client le croit toujours "joined"), ce qui a
+    // laissé des messages invisibles jusqu'au rechargement de la page.
+    // Un re-fetch complet toutes les 5s, indépendant du statut du channel,
+    // garantit qu'un message manqué apparaît quand même sous peu — sans
+    // avoir à diagnostiquer la cause exacte côté Realtime.
+    const pollInterval = setInterval(catchUp, 5000);
+
     // Background tabs get their sockets throttled by the browser; make sure
     // we're still actually connected (and caught up) once it's foregrounded.
     function handleVisibilityChange() {
@@ -302,6 +311,7 @@ export function GroupChatPane({
 
     return () => {
       cancelled = true;
+      clearInterval(pollInterval);
       if (retryTimeout) clearTimeout(retryTimeout);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (channel) supabase.removeChannel(channel);
