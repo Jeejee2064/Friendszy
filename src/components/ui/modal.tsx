@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 export function Modal({
   open,
@@ -13,6 +14,8 @@ export function Modal({
   title?: string;
   children: ReactNode;
 }) {
+  const t = useTranslations("Common");
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -32,10 +35,18 @@ export function Modal({
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-lg"
+        className="relative w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        {title && <h2 className="mb-4 text-lg font-extrabold text-text">{title}</h2>}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("close")}
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-lg text-muted transition-colors hover:bg-bg hover:text-text"
+        >
+          ✕
+        </button>
+        {title && <h2 className="mb-4 pr-8 text-lg font-extrabold text-text">{title}</h2>}
         {children}
       </div>
     </div>

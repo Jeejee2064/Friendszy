@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { href: "/admin/members", key: "members", icon: "👥" },
   { href: "/admin/partners", key: "partners", icon: "🤝" },
   { href: "/admin/interest-suggestions", key: "interestSuggestions", icon: "💡" },
+  { href: "/admin/cities", key: "cities", icon: "🏙️" },
+  { href: "/admin/beta-feedback", key: "betaFeedback", icon: "🗣️" },
   { href: "/admin/logs", key: "logs", icon: "📋" },
 ] as const;
 
@@ -17,10 +19,12 @@ export function AdminSidebar({
   pendingReportsCount,
   pendingPartnersCount,
   pendingInterestSuggestionsCount,
+  pendingNewFeedbackCount,
 }: {
   pendingReportsCount: number;
   pendingPartnersCount: number;
   pendingInterestSuggestionsCount: number;
+  pendingNewFeedbackCount: number;
 }) {
   const pathname = usePathname();
   const t = useTranslations("Admin.nav");
@@ -29,6 +33,7 @@ export function AdminSidebar({
     moderation: pendingReportsCount,
     partners: pendingPartnersCount,
     interestSuggestions: pendingInterestSuggestionsCount,
+    betaFeedback: pendingNewFeedbackCount,
   };
 
   return (

@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { CookieConsentBanner } from "@/components/consent/cookie-consent-banner";
+import { BetaFeedbackButton } from "@/components/beta-feedback/beta-feedback-button";
 import { PresenceProvider } from "@/lib/presence/presence-context";
 import { NotificationsProvider } from "@/lib/notifications/notifications-context";
 import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
@@ -87,6 +88,7 @@ export default async function LocaleLayout({
                       {children}
                       <ServiceWorkerRegister />
                       <CookieConsentBanner />
+                      <BetaFeedbackButton />
                       <AnalyticsSessionPing />
                     </UnreadMessagesProvider>
                   </NotificationsProvider>
