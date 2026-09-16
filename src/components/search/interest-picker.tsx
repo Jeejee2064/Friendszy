@@ -12,16 +12,24 @@ export function InterestPicker({
   onChange,
   myInterestIds,
   userId,
+  collapsible = true,
 }: {
   interests: Interest[];
   selectedIds: number[];
   onChange: (ids: number[]) => void;
   myInterestIds: number[];
   userId: string;
+  // Closed-by-default, opens into a dropdown (desktop) / full-screen panel
+  // (mobile) on click. Off in the discover wizard's own "interests" step,
+  // where the picker is the sole content of the step: an always-visible
+  // grid (select-all included) avoids hiding the only action behind a
+  // click on what reads as a plain search field (same reasoning as
+  // GroupInterestSelect's `collapsible`).
+  collapsible?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("Search");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!collapsible);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const byId = useMemo(() => new Map(interests.map((i) => [i.id, i])), [interests]);
@@ -49,7 +57,7 @@ export function InterestPicker({
     .filter((interest): interest is Interest => !!interest && !selectedIds.includes(interest.id));
 
   useEffect(() => {
-    if (!open) return;
+    if (!collapsible || !open) return;
     function handleOutsideClick(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -57,7 +65,28 @@ export function InterestPicker({
     }
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [open]);
+  }, [collapsible, open]);
+
+  const selectAllButton = (
+    <button
+      type="button"
+      onClick={toggleSelectAll}
+      className="text-xs font-semibold text-teal2 hover:underline"
+    >
+      {allSelected ? t("deselectAllInterests") : t("selectAllInterests")}
+    </button>
+  );
+
+  const grid = (
+    <InterestsGrid
+      interests={interests}
+      selectedIds={selectedIds}
+      onChange={onChange}
+      userId={userId}
+      flatSearchResults
+      autoFocus
+    />
+  );
 
   return (
     <div ref={wrapperRef} className="flex flex-col gap-2">
@@ -106,76 +135,51 @@ export function InterestPicker({
         </p>
       )}
 
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-left text-sm text-muted outline-none focus:border-teal2"
-        >
-          {t("interestsPlaceholder")}
-        </button>
+      {!collapsible ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-end">{selectAllButton}</div>
+          {grid}
+        </div>
+      ) : (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-left text-sm text-muted outline-none focus:border-teal2"
+          >
+            {t("interestsPlaceholder")}
+          </button>
 
-        {open && (
-          <>
-            {/* Desktop: compact dropdown anchored below the field */}
-            <div className="absolute z-10 mt-1 hidden w-full rounded-lg border border-border bg-card p-3 shadow-lg md:block">
-              <div className="mb-2 flex justify-end">
-                <button
-                  type="button"
-                  onClick={toggleSelectAll}
-                  className="text-xs font-semibold text-teal2 hover:underline"
-                >
-                  {allSelected ? t("deselectAllInterests") : t("selectAllInterests")}
-                </button>
+          {open && (
+            <>
+              {/* Desktop: compact dropdown anchored below the field */}
+              <div className="absolute z-10 mt-1 hidden w-full rounded-lg border border-border bg-card p-3 shadow-lg md:block">
+                <div className="mb-2 flex justify-end">{selectAllButton}</div>
+                <div className="max-h-80 overflow-y-auto">{grid}</div>
               </div>
-              <div className="max-h-80 overflow-y-auto">
-                <InterestsGrid
-                  interests={interests}
-                  selectedIds={selectedIds}
-                  onChange={onChange}
-                  userId={userId}
-                  flatSearchResults
-                  autoFocus
-                />
-              </div>
-            </div>
 
-            {/* Mobile: full-screen panel */}
-            <div className="fixed inset-0 z-50 flex flex-col bg-card md:hidden">
-              <div className="flex items-center justify-between border-b border-border p-4">
-                <span className="font-bold text-text">{t("interestsStepTitle")}</span>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label={t("close")}
-                  className="text-lg text-muted hover:text-text"
-                >
-                  ✕
-                </button>
+              {/* Mobile: full-screen panel */}
+              <div className="fixed inset-0 z-50 flex flex-col bg-card md:hidden">
+                <div className="flex items-center justify-between border-b border-border p-4">
+                  <span className="font-bold text-text">{t("interestsStepTitle")}</span>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    aria-label={t("close")}
+                    className="text-lg text-muted hover:text-text"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex items-center justify-end border-b border-border px-4 py-2">
+                  {selectAllButton}
+                </div>
+                <div className="flex-1 overflow-y-auto p-4">{grid}</div>
               </div>
-              <div className="flex items-center justify-end border-b border-border px-4 py-2">
-                <button
-                  type="button"
-                  onClick={toggleSelectAll}
-                  className="text-xs font-semibold text-teal2 hover:underline"
-                >
-                  {allSelected ? t("deselectAllInterests") : t("selectAllInterests")}
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                <InterestsGrid
-                  interests={interests}
-                  selectedIds={selectedIds}
-                  onChange={onChange}
-                  userId={userId}
-                  flatSearchResults
-                  autoFocus
-                />
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

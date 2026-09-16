@@ -252,7 +252,6 @@
     "cityExample": "E.g.: Montreal, QC",
     "cityStepTitle": "Which city?",
     "interestsStepTitle": "Interests",
-    "interestsRequiredHint": "Pick at least 1 interest to launch the search.",
     "ageGenderStepTitle": "Age & gender (optional)",
     "skip": "Skip this step",
     "next": "Next",

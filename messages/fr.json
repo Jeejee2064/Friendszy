@@ -252,7 +252,6 @@
     "cityExample": "Ex : Montréal, QC",
     "cityStepTitle": "Dans quelle ville ?",
     "interestsStepTitle": "Centres d'intérêt",
-    "interestsRequiredHint": "Choisis au moins 1 intérêt pour lancer la recherche.",
     "ageGenderStepTitle": "Âge et genre (optionnel)",
     "skip": "Passer cette étape",
     "next": "Suivant",

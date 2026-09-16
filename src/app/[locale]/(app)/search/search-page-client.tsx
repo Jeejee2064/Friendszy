@@ -368,10 +368,8 @@ export function SearchPageClient({
             onChange={setInterestIds}
             myInterestIds={myInterestIds}
             userId={userId}
+            collapsible={false}
           />
-          {interestIds.length === 0 && (
-            <p className="mt-2 text-xs text-muted">{t("interestsRequiredHint")}</p>
-          )}
           <div className="mt-5 flex gap-3">
             <button
               type="button"
@@ -382,7 +380,6 @@ export function SearchPageClient({
             </button>
             <button
               type="button"
-              disabled={interestIds.length === 0}
               onClick={() => setStep("ageGender")}
               className="flex-1 rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               style={{ backgroundImage: "var(--grad)" }}
@@ -475,9 +472,6 @@ export function SearchPageClient({
                   myInterestIds={myInterestIds}
                   userId={userId}
                 />
-                {interestIds.length === 0 && (
-                  <p className="mt-2 text-xs text-muted">{t("interestsRequiredHint")}</p>
-                )}
               </div>
 
               <AgeGenderFilters
@@ -494,7 +488,7 @@ export function SearchPageClient({
 
             <button
               type="button"
-              disabled={!city.trim() || interestIds.length === 0}
+              disabled={!city.trim()}
               onClick={() => {
                 setChangeSearchOpen(false);
                 runDiscoverSearch();
