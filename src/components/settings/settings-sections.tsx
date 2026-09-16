@@ -28,7 +28,11 @@ export function SettingsSections({ locale }: { locale: string }) {
   const goOffline = useGoOffline();
   const localeForPush = useLocale();
   const { platform, alreadyInstalled, deferredPrompt, promptInstall } = usePwaInstall();
-  const isMobile = platform === "ios" || platform === "android";
+  // Install is offered on iOS, Android *and* desktop (Chrome/Edge support
+  // `beforeinstallprompt` there too) — only "other" (unrecognized mobile
+  // browsers, e.g. in-app browsers) is excluded, since installability
+  // there isn't reliable.
+  const canInstall = platform !== "other";
   const [iosInstructionsOpen, setIosInstructionsOpen] = useState(false);
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission | null>(null);
@@ -124,7 +128,7 @@ export function SettingsSections({ locale }: { locale: string }) {
   return (
     <>
       <div className="flex w-full max-w-sm flex-col gap-4">
-        {isMobile && (
+        {canInstall && (
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="mb-2 font-bold text-text">{t("pwaTitle")}</h2>
             {alreadyInstalled ? (
@@ -135,7 +139,7 @@ export function SettingsSections({ locale }: { locale: string }) {
                 <button
                   type="button"
                   onClick={handleInstallClick}
-                  disabled={platform === "android" && !deferredPrompt}
+                  disabled={platform !== "ios" && !deferredPrompt}
                   className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
                   style={{ backgroundImage: "var(--grad)" }}
                 >
@@ -175,7 +179,7 @@ export function SettingsSections({ locale }: { locale: string }) {
           </div>
         )}
 
-        {isMobile && (
+        {canInstall && (
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="mb-2 font-bold text-text">{t("pushHowToTitle")}</h2>
             {platform === "ios" ? (
@@ -188,7 +192,7 @@ export function SettingsSections({ locale }: { locale: string }) {
                 </>
               )
             ) : (
-              <p className="text-sm text-muted">{t("pushHowToAndroid")}</p>
+              <p className="text-sm text-muted">{t("pushHowToOther")}</p>
             )}
           </div>
         )}

@@ -1045,7 +1045,7 @@
     "pushIosNeedsInstallBody": "On iPhone/iPad, notifications only work if Friendszy is added to your home screen.",
     "pushHowToTitle": "How do I get notifications?",
     "pushHowToIosInstalled": "Your device is ready: turn on notifications with the button above.",
-    "pushHowToAndroid": "On Android, notifications work right away, no install needed — turn them on with the button above.",
+    "pushHowToOther": "On this device, notifications work right away, no install needed — turn them on with the button above.",
     "exportTitle": "Download my data",
     "exportBody": "Get a copy of your Friendszy data (profile, interests, friends, sent messages) as JSON.",
     "exportButton": "Download my data",

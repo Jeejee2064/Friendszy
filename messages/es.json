@@ -1045,7 +1045,7 @@
     "pushIosNeedsInstallBody": "En iPhone/iPad, las notificaciones solo funcionan si Friendszy está agregado a tu pantalla de inicio.",
     "pushHowToTitle": "¿Cómo recibir notificaciones?",
     "pushHowToIosInstalled": "Tu dispositivo está listo: activa las notificaciones con el botón de arriba.",
-    "pushHowToAndroid": "En Android, las notificaciones funcionan directamente, sin instalación — actívalas con el botón de arriba.",
+    "pushHowToOther": "En este dispositivo, las notificaciones funcionan directamente, sin instalación — actívalas con el botón de arriba.",
     "exportTitle": "Descargar mis datos",
     "exportBody": "Recibe una copia de tus datos de Friendszy (perfil, intereses, amigos, mensajes enviados) en formato JSON.",
     "exportButton": "Descargar mis datos",
