@@ -233,23 +233,20 @@ export function SearchPageClient({
               // not against the searcher's own profile interests — the "Par
               // nom" tab has no search interests, so it keeps the classic
               // "shared with me" line via PersonCard's own prop instead.
+              const sharedSearchInterestIds = interestIds.filter((id) =>
+                resultInterestIds.includes(id)
+              );
               const searchInterestBadges =
-                tab === "discover" && interestIds.length > 0 ? (
+                tab === "discover" && sharedSearchInterestIds.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
-                    {interestIds.map((id) => {
-                      const has = resultInterestIds.includes(id);
-                      return (
-                        <span
-                          key={id}
-                          className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                            has ? "border-teal2 text-teal2" : "border-border text-muted"
-                          }`}
-                        >
-                          {has ? "✓ " : ""}
-                          {interestLabel(id)}
-                        </span>
-                      );
-                    })}
+                    {sharedSearchInterestIds.map((id) => (
+                      <span
+                        key={id}
+                        className="rounded-full border border-teal2 px-2.5 py-1 text-xs font-semibold text-teal2"
+                      >
+                        ✓ {interestLabel(id)}
+                      </span>
+                    ))}
                   </div>
                 ) : null;
 

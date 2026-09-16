@@ -71,7 +71,12 @@ export function InterestPicker({
     <button
       type="button"
       onClick={toggleSelectAll}
-      className="text-xs font-semibold text-teal2 hover:underline"
+      className={
+        allSelected
+          ? "rounded-full px-3 py-1 text-xs font-bold text-white"
+          : "text-xs font-semibold text-teal2 hover:underline"
+      }
+      style={allSelected ? { backgroundImage: "var(--grad)" } : undefined}
     >
       {allSelected ? t("deselectAllInterests") : t("selectAllInterests")}
     </button>
@@ -90,7 +95,7 @@ export function InterestPicker({
 
   return (
     <div ref={wrapperRef} className="flex flex-col gap-2">
-      {selectedIds.length > 0 && (
+      {selectedIds.length > 0 && !allSelected && (
         <div className="flex flex-wrap gap-2">
           {selectedIds.map((id) => {
             const interest = byId.get(id);
