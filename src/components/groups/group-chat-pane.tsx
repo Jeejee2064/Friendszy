@@ -551,6 +551,8 @@ export function GroupChatPane({
                   replyLabel={t("reply")}
                   deleteLabel={t("deleteMessage")}
                   youLabel={tCommon("you")}
+                  viewEventLabel={tCommon("viewEvent")}
+                  viewPartnerLabel={tCommon("viewPartner")}
                 />
               </div>
             );

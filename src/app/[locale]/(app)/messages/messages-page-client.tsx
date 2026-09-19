@@ -1342,6 +1342,8 @@ function ConversationPane({
                   deleteLabel={t("deleteMessage")}
                   youLabel={tCommon("you")}
                   removedLabel={t("messageRemovedPlaceholder")}
+                  viewEventLabel={tCommon("viewEvent")}
+                  viewPartnerLabel={tCommon("viewPartner")}
                 />
               </div>
             );

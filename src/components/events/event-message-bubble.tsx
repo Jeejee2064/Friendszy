@@ -3,6 +3,8 @@ import type { ProfileSummary } from "@/lib/profile/types";
 import { MessageContextMenu } from "@/components/chat/message-context-menu";
 import { ReactionPills } from "@/components/chat/reaction-pills";
 import { QuotedMessage } from "@/components/chat/quoted-message";
+import { SharedLinkCard } from "@/components/chat/shared-link-card";
+import { extractSharedLink } from "@/lib/chat/shared-link";
 
 export function EventMessageBubble({
   message,
@@ -26,6 +28,8 @@ export function EventMessageBubble({
   replyLabel,
   deleteLabel,
   youLabel,
+  viewEventLabel,
+  viewPartnerLabel,
 }: {
   message: EventMessageRow;
   isMine: boolean;
@@ -48,8 +52,11 @@ export function EventMessageBubble({
   replyLabel: string;
   deleteLabel: string;
   youLabel: string;
+  viewEventLabel: string;
+  viewPartnerLabel: string;
 }) {
   const isRemoved = !!message.removed_at;
+  const sharedLink = !isRemoved ? extractSharedLink(message.content) : null;
   const senderName = sender?.full_name
     ? [sender.full_name, sender.last_name].filter(Boolean).join(" ")
     : deletedUserLabel;
@@ -105,7 +112,16 @@ export function EventMessageBubble({
                   onClick={() => onJumpToMessage(message.reply_to_id!)}
                 />
               )}
-              {isRemoved ? removedLabel : message.content}
+              {isRemoved ? removedLabel : sharedLink?.text || message.content}
+              {!isRemoved && sharedLink && (
+                <div>
+                  <SharedLinkCard
+                    href={`/${sharedLink.kind}/${sharedLink.id}`}
+                    label={sharedLink.kind === "events" ? viewEventLabel : viewPartnerLabel}
+                    isMine={isMine}
+                  />
+                </div>
+              )}
             </div>
             {canRemove && !isRemoved && (
               <button

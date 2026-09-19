@@ -582,7 +582,13 @@
       "openNow": "Abierto ahora",
       "closedNow": "Cerrado",
       "hoursTitle": "Horario de apertura",
-      "hoursClosed": "Cerrado"
+      "hoursClosed": "Cerrado",
+      "shareButton": "Compartir",
+      "shareTitle": "Compartir esta actividad",
+      "shareNoFriends": "Agrega amigos para poder compartirles esta actividad.",
+      "shareSendButton": "Enviar",
+      "shareSentNotice": "¡Actividad compartida!",
+      "shareMessage": "Mira esta actividad: {title}\n{url}"
     }
   },
   "Events": {
@@ -1058,7 +1064,9 @@
     "loading": "Cargando...",
     "lightboxClose": "Cerrar",
     "lightboxPrev": "Foto anterior",
-    "lightboxNext": "Foto siguiente"
+    "lightboxNext": "Foto siguiente",
+    "viewEvent": "Ver el evento",
+    "viewPartner": "Ver la actividad"
   },
   "Settings": {
     "title": "Configuración",

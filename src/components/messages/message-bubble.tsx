@@ -3,7 +3,9 @@ import { MessageStatusTicks } from "@/components/messages/message-status-ticks";
 import { MessageContextMenu } from "@/components/chat/message-context-menu";
 import { ReactionPills } from "@/components/chat/reaction-pills";
 import { QuotedMessage } from "@/components/chat/quoted-message";
+import { SharedLinkCard } from "@/components/chat/shared-link-card";
 import { splitByQuery } from "@/lib/messages/highlight";
+import { extractSharedLink } from "@/lib/chat/shared-link";
 
 export function MessageBubble({
   message,
@@ -23,6 +25,8 @@ export function MessageBubble({
   youLabel,
   removedLabel,
   highlightQuery,
+  viewEventLabel,
+  viewPartnerLabel,
 }: {
   message: MessageRow;
   isMine: boolean;
@@ -41,8 +45,11 @@ export function MessageBubble({
   youLabel: string;
   removedLabel: string;
   highlightQuery?: string;
+  viewEventLabel: string;
+  viewPartnerLabel: string;
 }) {
   const isRemoved = !!message.removed_at;
+  const sharedLink = !isRemoved ? extractSharedLink(message.content) : null;
 
   return (
     <div className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
@@ -79,7 +86,7 @@ export function MessageBubble({
             {isRemoved
               ? removedLabel
               : highlightQuery
-                ? splitByQuery(message.content ?? "", highlightQuery).map((segment, i) =>
+                ? splitByQuery(sharedLink?.text ?? message.content ?? "", highlightQuery).map((segment, i) =>
                     segment.match ? (
                       <mark key={i} className="rounded-sm text-inherit" style={{ background: "#f59e0b66" }}>
                         {segment.text}
@@ -88,7 +95,16 @@ export function MessageBubble({
                       <span key={i}>{segment.text}</span>
                     )
                   )
-                : message.content}
+                : (sharedLink?.text || message.content)}
+            {!isRemoved && sharedLink && (
+              <div>
+                <SharedLinkCard
+                  href={`/${sharedLink.kind}/${sharedLink.id}`}
+                  label={sharedLink.kind === "events" ? viewEventLabel : viewPartnerLabel}
+                  isMine={isMine}
+                />
+              </div>
+            )}
           </div>
         </MessageContextMenu>
       </div>

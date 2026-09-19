@@ -52,7 +52,10 @@ export function MessageContextMenu({
       <div
         role="button"
         tabIndex={0}
-        onClick={() => setOpen((v) => !v)}
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("a,button")) return;
+          setOpen((v) => !v);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();

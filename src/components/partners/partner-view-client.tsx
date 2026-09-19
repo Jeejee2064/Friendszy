@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { MapPin, Phone, Globe } from "lucide-react";
+import { MapPin, Phone, Globe, Share2 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { PartnerListingRow } from "@/lib/partners/queries";
 import type { Interest } from "@/lib/profile/types";
@@ -10,6 +10,7 @@ import { localizedInterestLabel } from "@/lib/interests/label";
 import { PageHeader } from "@/components/layout/page-header";
 import { MapView, type MapPoint } from "@/components/map/map-view";
 import { PhotoLightbox } from "@/components/media/photo-lightbox";
+import { ShareToFriendModal } from "@/components/social/share-to-friend-modal";
 import {
   OPENING_HOURS_DAYS,
   dayKeyForDate,
@@ -19,10 +20,12 @@ import {
 } from "@/lib/partners/opening-hours";
 
 export function PartnerViewClient({
+  userId,
   listing,
   interest,
   isOwn,
 }: {
+  userId: string;
   listing: PartnerListingRow;
   interest: Interest | null;
   isOwn: boolean;
@@ -34,6 +37,7 @@ export function PartnerViewClient({
   const router = useRouter();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const hours = listing.opening_hours as OpeningHours | null;
   const openNow = isOpenNow(hours);
@@ -154,6 +158,14 @@ export function PartnerViewClient({
                 {t("contactWebsite")}
               </a>
             )}
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+            >
+              <Share2 className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t("shareButton")}
+            </button>
           </div>
 
           {isOwn && (
@@ -215,6 +227,20 @@ export function PartnerViewClient({
           nextLabel={tCommon("lightboxNext")}
         />
       )}
+
+      <ShareToFriendModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        userId={userId}
+        path={`/partners/${listing.id}`}
+        buildMessage={(url) => t("shareMessage", { title: listing.name, url })}
+        title={t("shareTitle")}
+        noFriendsLabel={t("shareNoFriends")}
+        sendLabel={t("shareSendButton")}
+        sentLabel={t("shareSentNotice")}
+        loadingLabel={tCommon("loading")}
+        deletedUserLabel={tCommon("deletedUser")}
+      />
     </div>
   );
 }
