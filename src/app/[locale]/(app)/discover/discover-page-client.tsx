@@ -276,6 +276,15 @@ export function DiscoverPageClient({
             t={t}
           />
 
+          <button
+            type="button"
+            onClick={() => setView("map")}
+            className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-md transition-transform hover:scale-105"
+            style={{ backgroundImage: "var(--grad)" }}
+          >
+            🗺️ {t("viewMap")}
+          </button>
+
           <div className="flex flex-col gap-8">
             {(typeFilter === "both" || typeFilter === "events") && (
               <section>
@@ -394,14 +403,16 @@ export function DiscoverPageClient({
         </button>
       )}
 
-      <button
-        type="button"
-        onClick={() => setView((v) => (v === "map" ? "list" : "map"))}
-        className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
-        style={{ backgroundImage: "var(--grad)" }}
-      >
-        {view === "map" ? `📋 ${t("viewList")}` : `🗺️ ${t("viewMap")}`}
-      </button>
+      {view === "map" && (
+        <button
+          type="button"
+          onClick={() => setView("list")}
+          className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
+          style={{ backgroundImage: "var(--grad)" }}
+        >
+          📋 {t("viewList")}
+        </button>
+      )}
 
       <DiscoverFab />
     </div>

@@ -11,6 +11,7 @@
       "password": "Contraseña",
       "submit": "Crear una cuenta",
       "success": "Cuenta creada. Revisa tu correo para confirmar tu dirección.",
+      "successSpamHint": "¿No lo ves? Revisa también la carpeta de correo no deseado (spam).",
       "error": "Se produjo un error durante el registro.",
       "welcomeTitle": "¡Bienvenido/a! 👋",
       "welcomeSubtitle": "Únete a Friendszy y haz nuevos amigos",
@@ -63,7 +64,7 @@
     "home": "Inicio",
     "notifications": "Notificaciones",
     "messages": "Mensajes",
-    "friends": "Mis amigos",
+    "friends": "Círculo de amigos",
     "groups": "Grupos",
     "search": "Buscar",
     "discover": "Descubrir",
@@ -106,6 +107,8 @@
       "messagesSubtitle": "{count} no leídos",
       "friendsTitle": "Círculo de amigos",
       "friendsSubtitle": "{count} amigos",
+      "groupsTitle": "Grupos",
+      "groupsSubtitle": "{count} grupos",
       "profileTitle": "Mi perfil",
       "profileSubtitle": "Editar mi ficha"
     },
@@ -135,6 +138,10 @@
     "photosAdd": "Agregar",
     "photosError": "La subida falló. Inténtalo de nuevo.",
     "photoRemove": "Quitar esta foto",
+    "cropTitle": "Recortar la foto",
+    "cropZoom": "Zoom",
+    "cropCancel": "Cancelar",
+    "cropConfirm": "Guardar",
     "fullNameLabel": "Nombre",
     "fullNamePlaceholder": "Nombre",
     "lastNameLabel": "Apellido",
@@ -274,7 +281,7 @@
     "removeInterest": "Quitar"
   },
   "Friends": {
-    "title": "Mis amigos",
+    "title": "Círculo de amigos",
     "loading": "Cargando...",
     "myFriends": "Amigos",
     "blockedTab": "Bloqueados",
@@ -283,7 +290,8 @@
     "message": "Mensaje",
     "remove": "Quitar",
     "addFriend": "Agregar",
-    "friendsBadge": "Amigo"
+    "friendsBadge": "Amigo",
+    "interestedEventsTitle": "Eventos que le interesan"
   },
   "Groups": {
     "title": "Grupos",
@@ -419,7 +427,12 @@
     "messagePlaceholder": "Escribe un mensaje...",
     "send": "Enviar",
     "blockedByYou": "Bloqueaste a {name}. Esta conversación ahora está cerrada.",
-    "blockedByThem": "Esta conversación ya no está disponible."
+    "blockedByThem": "Esta conversación ya no está disponible.",
+    "hideConversation": "Eliminar conversación",
+    "confirmHideTitle": "¿Eliminar esta conversación?",
+    "confirmHideBody": "Desaparecerá de tu mensajería, pero no se pierde nada: si {name} vuelve a escribirte, o tú le escribes de nuevo, encontrarán todo el historial.",
+    "hideError": "Se produjo un error. Inténtalo de nuevo.",
+    "cancel": "Cancelar"
   },
   "Report": {
     "action": "Denunciar este perfil",
@@ -476,7 +489,7 @@
   },
   "Discover": {
     "title": "Descubrir",
-    "toggleBoth": "Ambos",
+    "toggleBoth": "Ver todo",
     "toggleEvents": "Eventos",
     "togglePartners": "Actividades",
     "hideFilters": "Ocultar filtros",
@@ -594,6 +607,9 @@
       "capacityLabel": "Capacidad máxima",
       "capacityPlaceholder": "Ilimitada si está vacío",
       "capacityHint": "Déjalo vacío para una capacidad ilimitada.",
+      "websiteLabel": "Sitio web oficial (opcional)",
+      "websitePlaceholder": "https://...",
+      "createWithoutOrganizerLabel": "Crear sin quedar como organizador/a",
       "photosLabel": "Fotos",
       "photosAdd": "Agregar",
       "photosError": "La subida falló. Inténtalo de nuevo.",
@@ -613,6 +629,7 @@
         "categoryRequired": "Elige una categoría.",
         "cityRequired": "La ciudad es obligatoria.",
         "datesInvalid": "La fecha de fin debe ser posterior a la fecha de inicio.",
+        "websiteInvalid": "El enlace debe empezar por http:// o https://.",
         "saveFailed": "Se produjo un error. Inténtalo de nuevo."
       }
     },
@@ -633,6 +650,18 @@
       "endedNotice": "Este evento ya terminó.",
       "contactOrganizer": "Contactar al organizador",
       "messaging": "…",
+      "websiteLink": "Sitio web oficial del evento",
+      "interestedButton": "☆ Interesado/a",
+      "interestedActiveButton": "★ Interesado/a",
+      "attendeesButton": "Ver inscritos",
+      "attendeesTitle": "Inscritos al evento",
+      "attendeesEmpty": "Todavía nadie se ha inscrito.",
+      "shareButton": "Compartir",
+      "shareTitle": "Compartir este evento",
+      "shareNoFriends": "Agrega amigos para poder compartirles este evento.",
+      "shareSendButton": "Enviar",
+      "shareSentNotice": "¡Evento compartido!",
+      "shareMessage": "Mira este evento: {title}\n{url}",
       "chatTitle": "Chat",
       "chatLockedNotice": "Inscríbete para acceder al chat.",
       "cancel": "Cancelar",
@@ -1026,6 +1055,7 @@
     "you": "Tú",
     "back": "Volver",
     "close": "Cerrar",
+    "loading": "Cargando...",
     "lightboxClose": "Cerrar",
     "lightboxPrev": "Foto anterior",
     "lightboxNext": "Foto siguiente"
@@ -1064,9 +1094,10 @@
     "installBody": "Accede a Friendszy más rápido desde tu pantalla de inicio.",
     "installButton": "Instalar",
     "dismissButton": "Más tarde",
-    "iosStep1": "Toca el ícono Compartir (el cuadrado con la flecha hacia arriba), en la parte inferior de la pantalla (arriba en iPad).",
-    "iosStep2": "Desplázate por el menú y toca \"Agregar a pantalla de inicio\".",
-    "iosStep3": "Toca \"Agregar\" en la esquina superior derecha."
+    "iosStep1": "Toca la burbuja con los 3 puntos, en la parte inferior derecha.",
+    "iosStep2": "Toca el ícono Compartir (el cuadrado con la flecha hacia arriba), en la parte inferior de la pantalla (arriba en iPad).",
+    "iosStep3": "Desplázate por el menú hacia abajo hasta que veas «Agregar a pantalla de inicio».",
+    "iosStep4": "Toca «Agregar» en la esquina superior derecha."
   },
   "Push": {
     "bannerTitle": "Activa las notificaciones",

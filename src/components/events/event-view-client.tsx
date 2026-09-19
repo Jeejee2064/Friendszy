@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
-import { MapPin, Calendar, MessageCircle } from "lucide-react";
+import { MapPin, Calendar, MessageCircle, Link as LinkIcon, Share2, Users } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getOrCreateConversation } from "@/lib/messages/queries";
+import { getOrCreateConversation, sendMessage } from "@/lib/messages/queries";
+import { listFriends } from "@/lib/friends/queries";
 import {
   EventEndedError,
   EventFullError,
   deleteEvent,
   registerForEvent,
   unregisterFromEvent,
+  markEventInterest,
+  unmarkEventInterest,
+  getEventRegistrants,
 } from "@/lib/events/queries";
 import type {
   EventRow,
@@ -25,6 +29,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { MapView, type MapPoint } from "@/components/map/map-view";
 import { EventChatPane } from "@/components/events/event-chat-pane";
 import { PhotoLightbox } from "@/components/media/photo-lightbox";
+import { PersonCard } from "@/components/social/person-card";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 
@@ -35,6 +40,7 @@ export function EventViewClient({
   organizer,
   registrationCount: initialRegistrationCount,
   isRegistered: initialIsRegistered,
+  isInterested: initialIsInterested,
   isOrganizer,
   photos,
   initialMessages,
@@ -47,6 +53,7 @@ export function EventViewClient({
   organizer: ProfileSummary | null;
   registrationCount: number;
   isRegistered: boolean;
+  isInterested: boolean;
   isOrganizer: boolean;
   photos: EventPhotoRow[];
   initialMessages: EventMessageRow[];
@@ -62,10 +69,22 @@ export function EventViewClient({
 
   const [registered, setRegistered] = useState(initialIsRegistered);
   const [registrationCount, setRegistrationCount] = useState(initialRegistrationCount);
+  const [interested, setInterested] = useState(initialIsInterested);
+  const [interestPending, setInterestPending] = useState(false);
   const [pending, setPending] = useState(false);
   const [messaging, setMessaging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const [attendeesOpen, setAttendeesOpen] = useState(false);
+  const [attendees, setAttendees] = useState<ProfileSummary[] | null>(null);
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
+
+  const [shareOpen, setShareOpen] = useState(false);
+  const [friends, setFriends] = useState<ProfileSummary[] | null>(null);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [sharedNotice, setSharedNotice] = useState(false);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -85,6 +104,9 @@ export function EventViewClient({
   const organizerName = organizer?.full_name
     ? [organizer.full_name, organizer.last_name].filter(Boolean).join(" ")
     : null;
+  // Admin-seeded events (creator_id null) never had an organizer — distinct
+  // from a real organizer whose profile was later deleted.
+  const hasNoOrganizer = event.creator_id === null;
 
   async function handleRegister() {
     setPending(true);
@@ -148,6 +170,61 @@ export function EventViewClient({
       router.push(`/messages?c=${conversationId}`);
     } finally {
       setMessaging(false);
+    }
+  }
+
+  async function handleToggleInterest() {
+    setInterestPending(true);
+    try {
+      const supabase = createClient();
+      if (interested) {
+        await unmarkEventInterest(supabase, event.id, userId);
+        setInterested(false);
+      } else {
+        await markEventInterest(supabase, event.id, userId);
+        setInterested(true);
+      }
+    } finally {
+      setInterestPending(false);
+    }
+  }
+
+  function openAttendees() {
+    setAttendeesOpen(true);
+    if (attendees !== null) return;
+    setAttendeesLoading(true);
+    const supabase = createClient();
+    getEventRegistrants(supabase, event.id)
+      .then(setAttendees)
+      .finally(() => setAttendeesLoading(false));
+  }
+
+  function openShare() {
+    setShareOpen(true);
+    setSharedNotice(false);
+    if (friends !== null) return;
+    setFriendsLoading(true);
+    const supabase = createClient();
+    listFriends(supabase, userId)
+      .then(setFriends)
+      .finally(() => setFriendsLoading(false));
+  }
+
+  async function handleShare(friendId: string) {
+    setSharingId(friendId);
+    try {
+      const supabase = createClient();
+      const conversationId = await getOrCreateConversation(supabase, userId, friendId);
+      const url = `${window.location.origin}/events/${event.id}`;
+      await sendMessage(
+        supabase,
+        conversationId,
+        userId,
+        t("shareMessage", { title: event.title, url })
+      );
+      setSharedNotice(true);
+    } finally {
+      setSharingId(null);
     }
   }
 
@@ -243,9 +320,53 @@ export function EventViewClient({
               </p>
               {organizerName ? (
                 <p className="text-muted">{t("organizerLabel", { name: organizerName })}</p>
-              ) : (
+              ) : hasNoOrganizer ? null : (
                 <p className="text-muted">{t("deletedOrganizer")}</p>
               )}
+              {event.website_url && (
+                <a
+                  href={event.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 font-semibold text-teal2 hover:underline"
+                >
+                  <LinkIcon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+                  {t("websiteLink")}
+                </a>
+              )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleToggleInterest}
+                disabled={interestPending}
+                className={`rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
+                  interested
+                    ? "border-teal2 bg-teal2/10 text-teal2"
+                    : "border-border text-text hover:border-teal2 hover:text-teal2"
+                }`}
+              >
+                {interested ? t("interestedActiveButton") : t("interestedButton")}
+              </button>
+              {registered && (
+                <button
+                  type="button"
+                  onClick={openAttendees}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+                >
+                  <Users className="h-4 w-4" strokeWidth={2} aria-hidden />
+                  {t("attendeesButton")}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={openShare}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+              >
+                <Share2 className="h-4 w-4" strokeWidth={2} aria-hidden />
+                {t("shareButton")}
+              </button>
             </div>
 
             {hasEnded ? (
@@ -387,6 +508,55 @@ export function EventViewClient({
           nextLabel={tCommon("lightboxNext")}
         />
       )}
+
+      <Modal open={attendeesOpen} onClose={() => setAttendeesOpen(false)} title={t("attendeesTitle")}>
+        <div className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto pr-1">
+          {attendeesLoading ? (
+            <p className="text-center text-sm text-muted">{tCommon("loading")}</p>
+          ) : !attendees || attendees.length === 0 ? (
+            <p className="text-center text-sm text-muted">{t("attendeesEmpty")}</p>
+          ) : (
+            attendees.map((profile) => (
+              <PersonCard
+                key={profile.id}
+                profile={profile}
+                href={`/profile/${profile.id}`}
+                deletedUserLabel={tCommon("deletedUser")}
+              />
+            ))
+          )}
+        </div>
+      </Modal>
+
+      <Modal open={shareOpen} onClose={() => setShareOpen(false)} title={t("shareTitle")}>
+        {sharedNotice && <Notice kind="success" message={t("shareSentNotice")} />}
+        <div className="mt-3 flex max-h-[60vh] flex-col gap-3 overflow-y-auto pr-1">
+          {friendsLoading ? (
+            <p className="text-center text-sm text-muted">{tCommon("loading")}</p>
+          ) : !friends || friends.length === 0 ? (
+            <p className="text-center text-sm text-muted">{t("shareNoFriends")}</p>
+          ) : (
+            friends.map((profile) => (
+              <PersonCard
+                key={profile.id}
+                profile={profile}
+                deletedUserLabel={tCommon("deletedUser")}
+                footer={
+                  <button
+                    type="button"
+                    onClick={() => handleShare(profile.id)}
+                    disabled={sharingId === profile.id}
+                    className="w-full rounded-full px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                    style={{ backgroundImage: "var(--grad)" }}
+                  >
+                    {sharingId === profile.id ? "…" : t("shareSendButton")}
+                  </button>
+                }
+              />
+            ))
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

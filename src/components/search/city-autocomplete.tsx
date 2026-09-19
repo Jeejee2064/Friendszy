@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { normalizeForSearch } from "@/lib/text";
-import { getCityNames } from "@/lib/search/cities";
+import { getCityNames, normalizeCityForSearch } from "@/lib/search/cities";
 
 const MAX_SUGGESTIONS = 6;
 
@@ -31,10 +30,10 @@ export function CityAutocomplete({
   }, []);
 
   const suggestions = useMemo(() => {
-    const normalizedQuery = normalizeForSearch(value);
+    const normalizedQuery = normalizeCityForSearch(value);
     if (!normalizedQuery) return [];
     return cityNames
-      .filter((city) => normalizeForSearch(city).includes(normalizedQuery))
+      .filter((city) => normalizeCityForSearch(city).includes(normalizedQuery))
       .slice(0, MAX_SUGGESTIONS);
   }, [value, cityNames]);
 

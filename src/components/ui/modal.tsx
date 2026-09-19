@@ -8,11 +8,16 @@ export function Modal({
   onClose,
   title,
   children,
+  // "top" is for content the user needs to keep reading while acting
+  // outside the page (e.g. the OS share sheet covering the bottom of the
+  // screen) — centering it would put it right where that sheet slides in.
+  align = "center",
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  align?: "center" | "top";
 }) {
   const t = useTranslations("Common");
 
@@ -29,7 +34,9 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/40 p-4 ${
+        align === "top" ? "items-start pt-10 sm:pt-16" : "items-center"
+      }`}
       onClick={onClose}
     >
       <div

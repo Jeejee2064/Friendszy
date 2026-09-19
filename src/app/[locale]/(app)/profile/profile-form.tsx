@@ -154,16 +154,7 @@ export function ProfileForm({
           info: t("tabInfo"),
           photos: t("tabPhotos"),
           interests: t("tabInterests"),
-          // Texte seul pour les 3 autres onglets, mais "Paramètres" est le
-          // mot le plus long et fait déborder la barre à largeur mobile —
-          // on garde juste l'icône ici (avec un libellé accessible caché
-          // pour les lecteurs d'écran).
-          settings: (
-            <>
-              <span aria-hidden>⚙️</span>
-              <span className="sr-only">{t("tabSettings")}</span>
-            </>
-          ),
+          settings: t("tabSettings"),
         }}
       />
 

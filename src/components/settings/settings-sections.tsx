@@ -254,7 +254,12 @@ export function SettingsSections({ locale }: { locale: string }) {
         </div>
       </div>
 
-      <Modal open={iosInstructionsOpen} onClose={() => setIosInstructionsOpen(false)} title={t("pwaTitle")}>
+      <Modal
+        open={iosInstructionsOpen}
+        onClose={() => setIosInstructionsOpen(false)}
+        title={t("pwaTitle")}
+        align="top"
+      >
         <IosInstallSteps />
       </Modal>
 

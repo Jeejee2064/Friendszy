@@ -9,11 +9,13 @@ import { addFriend, type FriendshipInfo } from "@/lib/friends/queries";
 import type { Interest } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import type { Database } from "@/types/supabase";
+import type { EventCardData } from "@/lib/events/types";
 import { PageHeader } from "@/components/layout/page-header";
 import { OnlineDot } from "@/components/social/online-dot";
 import { ReportButton } from "@/components/social/report-button";
 import { BlockButton } from "@/components/social/block-button";
 import { PhotoLightbox } from "@/components/media/photo-lightbox";
+import { EventCard } from "@/components/events/event-card";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -25,6 +27,7 @@ export function PublicProfileClient({
   myInterestIds,
   friendshipInfo,
   photos,
+  interestedEvents,
 }: {
   userId: string;
   profile: ProfileRow;
@@ -33,6 +36,7 @@ export function PublicProfileClient({
   myInterestIds: number[];
   friendshipInfo: FriendshipInfo | null;
   photos: string[];
+  interestedEvents: EventCardData[];
 }) {
   const t = useTranslations("Friends");
   const tCommon = useTranslations("Common");
@@ -237,6 +241,19 @@ export function PublicProfileClient({
             </div>
           )}
         </div>
+
+        {interestedEvents.length > 0 && (
+          <div className="mx-auto mt-6 max-w-lg">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">
+              {t("interestedEventsTitle")}
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {interestedEvents.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {lightboxIndex !== null && (

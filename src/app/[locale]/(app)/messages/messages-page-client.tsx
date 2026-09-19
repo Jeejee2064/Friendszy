@@ -3,14 +3,18 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useFormatter, useNow, useTranslations } from "next-intl";
+import { X } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { pastRelativeTime } from "@/lib/intl/relative-time";
 import {
   sendMessage,
   removeMessage,
   markConversationRead,
   getOrCreateConversation,
   getUnreadCountsByConversation,
+  getLatestMessagesByConversation,
+  hideConversation,
   listMessages,
   listMessageReactions,
   setMessageReaction,
@@ -32,6 +36,7 @@ import { BlockButton } from "@/components/social/block-button";
 import { ReportButton } from "@/components/social/report-button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Modal } from "@/components/ui/modal";
+import { Notice } from "@/components/ui/notice";
 import { usePresence } from "@/lib/presence/presence-context";
 import { useSetActiveConversationId } from "@/lib/messages/active-conversation-context";
 import { useToast } from "@/components/ui/toast-context";
@@ -106,10 +111,14 @@ export function MessagesPageClient({
   const tCommon = useTranslations("Common");
   const format = useFormatter();
   const now = useNow({ updateInterval: 60000 });
+  const router = useRouter();
   const hasSelection = !!selectedConversationId && !!selectedOtherProfile;
   const [search, setSearch] = useState("");
   const [newConversationOpen, setNewConversationOpen] = useState(false);
   const [conversations, setConversations] = useState(initialConversations);
+  const [hideTarget, setHideTarget] = useState<ConversationSummary | null>(null);
+  const [hidePending, setHidePending] = useState(false);
+  const [hideError, setHideError] = useState(false);
   // Re-sync from the server on every navigation (e.g. opening a different
   // conversation re-fetches this list with fresh unread counts) — the
   // realtime subscription below only carries updates from here forward.
@@ -125,58 +134,138 @@ export function MessagesPageClient({
   // live — without this, only the sidebar's unread badge (a separate
   // subscription) updated in real time, while this list stayed frozen
   // until a refresh or opening the conversation.
+  const conversationsRef = useRef(conversations);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    const channel = supabase
-      .channel(`messages:list:${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        (payload) => {
-          const m = payload.new as MessageRow;
-          setConversations((prev) => {
-            const idx = prev.findIndex((c) => c.id === m.conversation_id);
-            if (idx === -1) return prev;
-            const updated = [...prev];
-            const conv = updated[idx];
-            updated[idx] = {
-              ...conv,
-              preview: m.content,
-              lastMessageAt: m.created_at,
-              unreadCount:
-                m.sender_id === userId ? conv.unreadCount : conv.unreadCount + 1,
+    // Re-tire preview/horodatage/compteur non-lu pour chaque conversation de
+    // la liste — rattrape le cas où le canal arrête de livrer des
+    // événements sans jamais lever CHANNEL_ERROR/TIMED_OUT/CLOSED (même
+    // constat que `catchUp` dans ConversationPane, un peu plus bas).
+    async function resync() {
+      const ids = conversationsRef.current.map((c) => c.id);
+      if (ids.length === 0 || cancelled) return;
+      try {
+        const [counts, latest] = await Promise.all([
+          getUnreadCountsByConversation(supabase, ids, userId),
+          getLatestMessagesByConversation(supabase, ids),
+        ]);
+        if (cancelled) return;
+        setConversations((prev) => {
+          const updated = prev.map((c) => {
+            const lastMessage = latest.get(c.id);
+            return {
+              ...c,
+              unreadCount: counts.get(c.id) ?? 0,
+              preview: lastMessage?.content ?? c.preview,
+              lastMessageAt: lastMessage?.created_at ?? c.lastMessageAt,
             };
-            updated.sort((a, b) =>
-              (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? "")
-            );
-            return updated;
           });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "messages" },
-        async (payload) => {
-          const conversationId = (payload.new as MessageRow).conversation_id;
-          const counts = await getUnreadCountsByConversation(
-            supabase,
-            [conversationId],
-            userId
-          );
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.id === conversationId
-                ? { ...c, unreadCount: counts.get(conversationId) ?? 0 }
-                : c
-            )
-          );
-        }
-      )
-      .subscribe();
+          updated.sort((a, b) => (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""));
+          return updated;
+        });
+      } catch {
+        // ignore transient errors, next poll/reconnect retries
+      }
+    }
+
+    function subscribe() {
+      channel = supabase
+        .channel(`messages:list:${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages" },
+          (payload) => {
+            const m = payload.new as MessageRow;
+            setConversations((prev) => {
+              const idx = prev.findIndex((c) => c.id === m.conversation_id);
+              if (idx === -1) return prev;
+              const updated = [...prev];
+              const conv = updated[idx];
+              updated[idx] = {
+                ...conv,
+                preview: m.content,
+                lastMessageAt: m.created_at,
+                unreadCount:
+                  m.sender_id === userId ? conv.unreadCount : conv.unreadCount + 1,
+              };
+              updated.sort((a, b) =>
+                (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? "")
+              );
+              return updated;
+            });
+          }
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "messages" },
+          async (payload) => {
+            const conversationId = (payload.new as MessageRow).conversation_id;
+            const counts = await getUnreadCountsByConversation(
+              supabase,
+              [conversationId],
+              userId
+            );
+            setConversations((prev) =>
+              prev.map((c) =>
+                c.id === conversationId
+                  ? { ...c, unreadCount: counts.get(conversationId) ?? 0 }
+                  : c
+              )
+            );
+          }
+        )
+        .subscribe((status) => {
+          if (cancelled) return;
+
+          if (status === "SUBSCRIBED") {
+            resync();
+            return;
+          }
+
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            // Nuller channel AVANT removeChannel : removeChannel peut
+            // ré-invoquer ce même callback de statut de façon synchrone
+            // (avec CLOSED) avant même de retourner, et sans ce nullage
+            // préalable l'appel ré-entrant rappellerait removeChannel sur
+            // l'ancien channel indéfiniment -> RangeError (stack overflow).
+            const closingChannel = channel;
+            channel = null;
+            if (closingChannel) {
+              supabase.removeChannel(closingChannel);
+            }
+            retryTimeout = setTimeout(() => {
+              retryTimeout = null;
+              if (!cancelled) subscribe();
+            }, 2000);
+          }
+        });
+    }
+
+    subscribe();
+
+    // Filet de sécurité, indépendant du statut du canal (voir resync
+    // ci-dessus).
+    const pollInterval = setInterval(resync, 10000);
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible" && !cancelled) resync();
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      clearInterval(pollInterval);
+      if (retryTimeout) clearTimeout(retryTimeout);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [userId]);
 
@@ -192,48 +281,83 @@ export function MessagesPageClient({
   const readConversations = filtered.filter((c) => c.unreadCount === 0);
   const totalUnread = unreadConversations.length;
 
+  function closeHideModal() {
+    if (hidePending) return;
+    setHideTarget(null);
+    setHideError(false);
+  }
+
+  async function handleHideConfirm() {
+    if (!hideTarget) return;
+    setHidePending(true);
+    setHideError(false);
+    try {
+      const supabase = createClient();
+      await hideConversation(supabase, userId, hideTarget.id);
+      setConversations((prev) => prev.filter((c) => c.id !== hideTarget.id));
+      if (selectedConversationId === hideTarget.id) {
+        router.push("/messages");
+      }
+      setHideTarget(null);
+      setHidePending(false);
+    } catch {
+      setHideError(true);
+      setHidePending(false);
+    }
+  }
+
   function renderConversationRow(c: ConversationSummary) {
     const name = displayName(c.otherProfile, tCommon("deletedUser"));
     const isUnread = c.unreadCount > 0;
     return (
-      <Link
-        key={c.id}
-        href={`/messages?c=${c.id}`}
-        className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-bg ${
-          selectedConversationId === c.id ? "bg-bg" : ""
-        }`}
-      >
-        <div className="relative shrink-0">
-          <Avatar profile={c.otherProfile} size="md" deletedUserLabel={tCommon("deletedUser")} />
-          <OnlineDot
-            userId={c.otherProfile.id}
-            className="absolute bottom-0 right-0 h-3 w-3"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <p className={`truncate ${isUnread ? "font-extrabold text-text" : "font-bold text-text"}`}>
-              {name}
-            </p>
-            {c.lastMessageAt && (
-              <span className="shrink-0 text-xs text-muted">
-                {format.relativeTime(new Date(c.lastMessageAt), now)}
-              </span>
-            )}
+      <div key={c.id} className="flex items-center">
+        <Link
+          href={`/messages?c=${c.id}`}
+          className={`flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-bg ${
+            selectedConversationId === c.id ? "bg-bg" : ""
+          }`}
+        >
+          <div className="relative shrink-0">
+            <Avatar profile={c.otherProfile} size="md" deletedUserLabel={tCommon("deletedUser")} />
+            <OnlineDot
+              userId={c.otherProfile.id}
+              className="absolute bottom-0 right-0 h-3 w-3"
+            />
           </div>
-          <p className={`truncate text-sm ${isUnread ? "font-bold text-text" : "text-muted"}`}>
-            {c.preview ?? t("noMessagesYet")}
-          </p>
-        </div>
-        {isUnread && (
-          <span
-            className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
-            style={{ backgroundImage: "var(--grad)" }}
-          >
-            {c.unreadCount}
-          </span>
-        )}
-      </Link>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className={`truncate ${isUnread ? "font-extrabold text-text" : "font-bold text-text"}`}>
+                {name}
+              </p>
+              {c.lastMessageAt && (
+                <span className="shrink-0 text-xs text-muted">
+                  {pastRelativeTime(format, new Date(c.lastMessageAt), now)}
+                </span>
+              )}
+            </div>
+            <p className={`truncate text-sm ${isUnread ? "font-bold text-text" : "text-muted"}`}>
+              {c.preview ?? t("noMessagesYet")}
+            </p>
+          </div>
+          {isUnread && (
+            <span
+              className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              {c.unreadCount}
+            </span>
+          )}
+        </Link>
+        <button
+          type="button"
+          onClick={() => setHideTarget(c)}
+          title={t("hideConversation")}
+          aria-label={t("hideConversation")}
+          className="mr-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-[#e55]"
+        >
+          <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+        </button>
+      </div>
     );
   }
 
@@ -325,6 +449,38 @@ export function MessagesPageClient({
         onClose={() => setNewConversationOpen(false)}
         userId={userId}
       />
+
+      <Modal open={!!hideTarget} onClose={closeHideModal} title={t("confirmHideTitle")}>
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-muted">
+            {t("confirmHideBody", {
+              name: hideTarget ? displayName(hideTarget.otherProfile, tCommon("deletedUser")) : "",
+            })}
+          </p>
+
+          {hideError && <Notice kind="error" message={t("hideError")} />}
+
+          <div className="mt-1 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={closeHideModal}
+              disabled={hidePending}
+              className="rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-muted disabled:opacity-60"
+            >
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleHideConfirm}
+              disabled={hidePending}
+              className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+              style={{ background: "#e55" }}
+            >
+              {hidePending ? "…" : t("hideConversation")}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -823,9 +979,15 @@ function ConversationPane({
           // etc.) — without this, INSERT/UPDATE events (new messages, read
           // ticks) silently stop arriving until the page is refreshed.
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            if (channel) {
-              supabase.removeChannel(channel);
-              channel = null;
+            // Nuller channel AVANT removeChannel : removeChannel peut
+            // ré-invoquer ce même callback de statut de façon synchrone
+            // (avec CLOSED) avant même de retourner, et sans ce nullage
+            // préalable l'appel ré-entrant rappellerait removeChannel sur
+            // l'ancien channel indéfiniment -> RangeError (stack overflow).
+            const closingChannel = channel;
+            channel = null;
+            if (closingChannel) {
+              supabase.removeChannel(closingChannel);
             }
             retryTimeout = setTimeout(() => {
               retryTimeout = null;
@@ -927,9 +1089,15 @@ function ConversationPane({
 
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
             if (channelRef.current === channel) channelRef.current = null;
-            if (channel) {
-              supabase.removeChannel(channel);
-              channel = null;
+            // Nuller channel AVANT removeChannel : removeChannel peut
+            // ré-invoquer ce même callback de statut de façon synchrone
+            // (avec CLOSED) avant même de retourner, et sans ce nullage
+            // préalable l'appel ré-entrant rappellerait removeChannel sur
+            // l'ancien channel indéfiniment -> RangeError (stack overflow).
+            const closingChannel = channel;
+            channel = null;
+            if (closingChannel) {
+              supabase.removeChannel(closingChannel);
             }
             retryTimeout = setTimeout(() => {
               retryTimeout = null;

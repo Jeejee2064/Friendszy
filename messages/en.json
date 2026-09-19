@@ -11,6 +11,7 @@
       "password": "Password",
       "submit": "Create an account",
       "success": "Account created. Check your email to confirm your address.",
+      "successSpamHint": "Don't see it? Check your spam/junk folder too.",
       "error": "Something went wrong during sign up.",
       "welcomeTitle": "Welcome! 👋",
       "welcomeSubtitle": "Join Friendszy and make new friends",
@@ -63,7 +64,7 @@
     "home": "Home",
     "notifications": "Notifications",
     "messages": "Messages",
-    "friends": "My friends",
+    "friends": "Friend circle",
     "groups": "Groups",
     "search": "Search",
     "discover": "Discover",
@@ -106,6 +107,8 @@
       "messagesSubtitle": "{count} unread",
       "friendsTitle": "Friend circle",
       "friendsSubtitle": "{count} friends",
+      "groupsTitle": "Groups",
+      "groupsSubtitle": "{count} groups",
       "profileTitle": "My profile",
       "profileSubtitle": "Edit my profile"
     },
@@ -135,6 +138,10 @@
     "photosAdd": "Add",
     "photosError": "Upload failed. Try again.",
     "photoRemove": "Remove this photo",
+    "cropTitle": "Crop your photo",
+    "cropZoom": "Zoom",
+    "cropCancel": "Cancel",
+    "cropConfirm": "Save",
     "fullNameLabel": "First name",
     "fullNamePlaceholder": "First name",
     "lastNameLabel": "Last name",
@@ -274,7 +281,7 @@
     "removeInterest": "Remove"
   },
   "Friends": {
-    "title": "My friends",
+    "title": "Friend circle",
     "loading": "Loading...",
     "myFriends": "Friends",
     "blockedTab": "Blocked",
@@ -283,7 +290,8 @@
     "message": "Message",
     "remove": "Remove",
     "addFriend": "Add",
-    "friendsBadge": "Friend"
+    "friendsBadge": "Friend",
+    "interestedEventsTitle": "Events they're interested in"
   },
   "Groups": {
     "title": "Groups",
@@ -419,7 +427,12 @@
     "messagePlaceholder": "Type a message...",
     "send": "Send",
     "blockedByYou": "You blocked {name}. This conversation is now closed.",
-    "blockedByThem": "This conversation is no longer available."
+    "blockedByThem": "This conversation is no longer available.",
+    "hideConversation": "Delete conversation",
+    "confirmHideTitle": "Delete this conversation?",
+    "confirmHideBody": "It will disappear from your messages, but nothing is lost: if {name} writes to you again, or you write to them again, you'll find the whole history.",
+    "hideError": "Something went wrong. Try again.",
+    "cancel": "Cancel"
   },
   "Report": {
     "action": "Report this profile",
@@ -476,7 +489,7 @@
   },
   "Discover": {
     "title": "Discover",
-    "toggleBoth": "Both",
+    "toggleBoth": "View all",
     "toggleEvents": "Events",
     "togglePartners": "Activities",
     "hideFilters": "Hide filters",
@@ -594,6 +607,9 @@
       "capacityLabel": "Max capacity",
       "capacityPlaceholder": "Unlimited if left blank",
       "capacityHint": "Leave blank for unlimited capacity.",
+      "websiteLabel": "Official website (optional)",
+      "websitePlaceholder": "https://...",
+      "createWithoutOrganizerLabel": "Create without being listed as the organizer",
       "photosLabel": "Photos",
       "photosAdd": "Add",
       "photosError": "Upload failed. Try again.",
@@ -613,6 +629,7 @@
         "categoryRequired": "Choose a category.",
         "cityRequired": "City is required.",
         "datesInvalid": "The end date must be after the start date.",
+        "websiteInvalid": "The link must start with http:// or https://.",
         "saveFailed": "Something went wrong. Try again."
       }
     },
@@ -633,6 +650,18 @@
       "endedNotice": "This event has ended.",
       "contactOrganizer": "Contact the organizer",
       "messaging": "…",
+      "websiteLink": "Event's official website",
+      "interestedButton": "☆ Interested",
+      "interestedActiveButton": "★ Interested",
+      "attendeesButton": "See attendees",
+      "attendeesTitle": "Event attendees",
+      "attendeesEmpty": "No one has registered yet.",
+      "shareButton": "Share",
+      "shareTitle": "Share this event",
+      "shareNoFriends": "Add friends to be able to share this event with them.",
+      "shareSendButton": "Send",
+      "shareSentNotice": "Event shared!",
+      "shareMessage": "Check out this event: {title}\n{url}",
       "chatTitle": "Chat",
       "chatLockedNotice": "Register to access the chat.",
       "cancel": "Cancel",
@@ -1026,6 +1055,7 @@
     "you": "You",
     "back": "Back",
     "close": "Close",
+    "loading": "Loading...",
     "lightboxClose": "Close",
     "lightboxPrev": "Previous photo",
     "lightboxNext": "Next photo"
@@ -1064,9 +1094,10 @@
     "installBody": "Get to Friendszy faster from your home screen.",
     "installButton": "Install",
     "dismissButton": "Later",
-    "iosStep1": "Tap the Share icon (the square with an arrow pointing up), at the bottom of the screen (top on iPad).",
-    "iosStep2": "Scroll down the menu and tap \"Add to Home Screen\".",
-    "iosStep3": "Tap \"Add\" in the top-right corner."
+    "iosStep1": "Tap the bubble with the 3 dots, at the bottom right.",
+    "iosStep2": "Tap the Share icon (the square with an arrow pointing up), at the bottom of the screen (top on iPad).",
+    "iosStep3": "Scroll down the menu until you see \"Add to Home Screen\".",
+    "iosStep4": "Tap \"Add\" in the top-right corner."
   },
   "Push": {
     "bannerTitle": "Turn on notifications",

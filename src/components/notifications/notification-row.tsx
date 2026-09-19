@@ -7,6 +7,7 @@ import {
   markNotificationRead,
   type EnrichedNotification,
 } from "@/lib/notifications/queries";
+import { pastRelativeTime } from "@/lib/intl/relative-time";
 
 export function NotificationRow({
   notification,
@@ -105,7 +106,7 @@ export function NotificationRow({
       <div className="min-w-0 flex-1">
         <p className={`text-sm ${isUnread ? "font-bold text-text" : "text-muted"}`}>{label}</p>
         <span className="text-xs text-muted">
-          {format.relativeTime(new Date(notification.created_at), now)}
+          {pastRelativeTime(format, new Date(notification.created_at), now)}
         </span>
       </div>
       <span className="shrink-0 self-center text-muted">→</span>

@@ -1,9 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { EventRow, EventPhotoRow, EventRegistrationRow } from "./types";
+import type { ProfileSummary } from "@/lib/profile/types";
+import { getProfilesByIds } from "@/lib/profile/queries";
 
 type Client = SupabaseClient<Database>;
 
+// creatorId is null for events an admin pre-seeds without becoming their
+// organizer (see events_insert RLS: only an admin may insert creator_id
+// null). Such an event has no auto-registered participant either.
 export async function createEvent(
   supabase: Client,
   fields: {
@@ -18,8 +23,9 @@ export async function createEvent(
     starts_at: string;
     ends_at: string;
     capacity: number | null;
+    website_url: string | null;
   },
-  creatorId: string
+  creatorId: string | null
 ): Promise<EventRow> {
   const { data: event, error: eventError } = await supabase
     .from("events")
@@ -28,13 +34,15 @@ export async function createEvent(
     .single();
   if (eventError) throw eventError;
 
-  // Mirrors createGroup: the creator becomes the event's first participant
-  // (counts toward capacity, shows up in the attendee list, and gets chat
-  // access via is_event_participant like everyone else).
-  const { error: registrationError } = await supabase
-    .from("event_registrations")
-    .insert({ event_id: event.id, profile_id: creatorId });
-  if (registrationError) throw registrationError;
+  if (creatorId) {
+    // Mirrors createGroup: the creator becomes the event's first participant
+    // (counts toward capacity, shows up in the attendee list, and gets chat
+    // access via is_event_participant like everyone else).
+    const { error: registrationError } = await supabase
+      .from("event_registrations")
+      .insert({ event_id: event.id, profile_id: creatorId });
+    if (registrationError) throw registrationError;
+  }
 
   return event;
 }
@@ -318,4 +326,79 @@ export async function removeEventMessage(
     .update({ removed_at: new Date().toISOString(), removed_by: removedById })
     .eq("id", messageId);
   if (error) throw error;
+}
+
+// event_registrations_select lets any participant/organizer/admin see every
+// registration row for their own event (not just their own row) — a
+// non-participant querying this gets zero rows back, same as
+// getRegistrationCountsByEvent's underlying table.
+export async function getEventRegistrants(
+  supabase: Client,
+  eventId: string
+): Promise<ProfileSummary[]> {
+  const { data, error } = await supabase
+    .from("event_registrations")
+    .select("profile_id")
+    .eq("event_id", eventId);
+  if (error) throw error;
+  const ids = (data ?? []).map((row) => row.profile_id);
+  return getProfilesByIds(supabase, ids);
+}
+
+// "Intéressé" is a separate, lighter signal than event_registrations: it
+// doesn't count toward capacity and doesn't unlock the event chat, so it
+// lives in its own table (event_interests) rather than reusing registration.
+export async function markEventInterest(
+  supabase: Client,
+  eventId: string,
+  profileId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("event_interests")
+    .insert({ event_id: eventId, profile_id: profileId });
+  if (error) throw error;
+}
+
+export async function unmarkEventInterest(
+  supabase: Client,
+  eventId: string,
+  profileId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("event_interests")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("profile_id", profileId);
+  if (error) throw error;
+}
+
+export async function getMyInterestedEventIds(
+  supabase: Client,
+  eventIds: string[],
+  myId: string
+): Promise<Set<string>> {
+  if (eventIds.length === 0) return new Set();
+  const { data, error } = await supabase
+    .from("event_interests")
+    .select("event_id")
+    .eq("profile_id", myId)
+    .in("event_id", eventIds);
+  if (error) throw error;
+  return new Set((data ?? []).map((row) => row.event_id));
+}
+
+// For showing "events this person is interested in" on their profile —
+// event_interests_select allows this for any non-blocked viewer, same
+// openness as profile_interests.
+export async function getInterestedEventIds(
+  supabase: Client,
+  profileId: string
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("event_interests")
+    .select("event_id")
+    .eq("profile_id", profileId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => row.event_id);
 }

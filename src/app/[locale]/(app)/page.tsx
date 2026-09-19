@@ -124,6 +124,13 @@ export default async function DashboardPage({
                 subtitle={t("cards.friendsSubtitle", { count: stats.friendsCount })}
               />
               <QuickAccessCard
+                href="/groups"
+                icon="🎉"
+                iconBg="var(--grad)"
+                title={t("cards.groupsTitle")}
+                subtitle={t("cards.groupsSubtitle", { count: stats.groupsCount })}
+              />
+              <QuickAccessCard
                 href="/profile"
                 icon="✏️"
                 iconBg="#f59e0b"
@@ -188,7 +195,7 @@ function QuickAccessCard({
   title,
   subtitle,
 }: {
-  href: "/search" | "/discover" | "/messages" | "/friends" | "/profile";
+  href: "/search" | "/discover" | "/messages" | "/friends" | "/groups" | "/profile";
   icon: ReactNode;
   iconBg: string;
   title: string;
@@ -201,7 +208,7 @@ function QuickAccessCard({
     >
       <span
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
-        style={{ backgroundColor: iconBg }}
+        style={{ background: iconBg }}
       >
         {icon}
       </span>

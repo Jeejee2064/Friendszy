@@ -1,6 +1,23 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { normalizeForSearch } from "@/lib/text";
 import type { Database } from "@/types/supabase";
+
+// Wraps normalizeForSearch with two quirks specific to (Québec) city names:
+// hyphens in compound names ("St-Constant") shouldn't block a match against
+// a query typed with a space ("St Constant") or vice versa, and "St"/"Ste"
+// are near-universally understood as "Saint"/"Sainte" abbreviations — but
+// the catalogue stores the full form, so "St-Constant" wouldn't otherwise
+// match "Saint-Constant". Kept out of the generic normalizeForSearch (used
+// for interests, admin search, etc.) since the abbreviation expansion only
+// makes sense for place names.
+export function normalizeCityForSearch(value: string): string {
+  return normalizeForSearch(value)
+    .replace(/-/g, " ")
+    .replace(/\./g, "")
+    .replace(/\bste\b/g, "sainte")
+    .replace(/\bst\b/g, "saint");
+}
 
 // The city list used to be hardcoded here (CITY_SUGGESTIONS); it now lives in
 // the `cities` table (supabase/migrations/20260914140000_cities_catalogue.sql)

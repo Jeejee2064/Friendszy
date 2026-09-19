@@ -17,7 +17,7 @@ async function canvasToBlob(
   });
 }
 
-export async function processAvatarImage(file: File): Promise<Blob> {
+export async function processAvatarImage(file: Blob): Promise<Blob> {
   const bitmap = await createImageBitmap(file, {
     imageOrientation: "from-image",
   });

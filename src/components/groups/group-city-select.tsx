@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { normalizeForSearch } from "@/lib/text";
-import { getCities, type CityOption } from "@/lib/search/cities";
+import { getCities, normalizeCityForSearch, type CityOption } from "@/lib/search/cities";
 
 // Multi-select, catalogue-only (no free text — city ids need to be stable
 // FK targets for group_cities, unlike the free-text city fields elsewhere,
@@ -59,9 +58,9 @@ export function GroupCitySelect({
     .map((id) => byId.get(id))
     .filter((c): c is CityOption => !!c);
 
-  const normalizedQuery = normalizeForSearch(query);
+  const normalizedQuery = normalizeCityForSearch(query);
   const visibleCities = normalizedQuery
-    ? cities.filter((c) => normalizeForSearch(c.name).includes(normalizedQuery))
+    ? cities.filter((c) => normalizeCityForSearch(c.name).includes(normalizedQuery))
     : cities;
 
   function renderPill(city: CityOption) {

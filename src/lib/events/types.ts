@@ -8,6 +8,7 @@ export type EventRegistrationRow =
 export type EventMessageRow = Database["public"]["Tables"]["event_messages"]["Row"];
 export type EventMessageReactionRow =
   Database["public"]["Tables"]["event_message_reactions"]["Row"];
+export type EventInterestRow = Database["public"]["Tables"]["event_interests"]["Row"];
 
 // Composed client-side — this codebase never does embedded-relationship queries.
 export type EventCardData = EventRow & {

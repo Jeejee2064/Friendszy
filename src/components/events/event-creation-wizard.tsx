@@ -31,17 +31,21 @@ type EventFormState = {
   startsAt: string; // <input type="datetime-local"> value
   endsAt: string;
   capacity: string; // raw input; "" = unlimited
+  websiteUrl: string;
   photoUrls: string[];
   city: string;
   address: string;
+  createWithoutOrganizer: boolean;
 };
 
 export function EventCreationWizard({
   userId,
   interests,
+  isAdmin,
 }: {
   userId: string;
   interests: Interest[];
+  isAdmin: boolean;
 }) {
   const t = useTranslations("Events.form");
   const format = useFormatter();
@@ -56,9 +60,11 @@ export function EventCreationWizard({
     startsAt: "",
     endsAt: "",
     capacity: "",
+    websiteUrl: "",
     photoUrls: [],
     city: "",
     address: "",
+    createWithoutOrganizer: false,
   });
   const [coords, setCoords] = useState<{ latitude: number | null; longitude: number | null }>({
     latitude: null,
@@ -77,6 +83,9 @@ export function EventCreationWizard({
       if (form.interestId == null) return t("errors.categoryRequired");
       if (!form.startsAt || !form.endsAt || new Date(form.endsAt) < new Date(form.startsAt)) {
         return t("errors.datesInvalid");
+      }
+      if (form.websiteUrl.trim() && !/^https?:\/\//i.test(form.websiteUrl.trim())) {
+        return t("errors.websiteInvalid");
       }
     }
     if (step === 1 && !form.city.trim()) return t("errors.cityRequired");
@@ -117,8 +126,9 @@ export function EventCreationWizard({
           starts_at: new Date(form.startsAt).toISOString(),
           ends_at: new Date(form.endsAt).toISOString(),
           capacity: form.capacity.trim() ? Number(form.capacity) : null,
+          website_url: form.websiteUrl.trim() || null,
         },
-        userId
+        isAdmin && form.createWithoutOrganizer ? null : userId
       );
       await attachEventPhotos(supabase, event.id, form.photoUrls);
       router.push(`/events/${event.id}`);
@@ -232,6 +242,30 @@ export function EventCreationWizard({
               />
               <p className="mt-1 text-xs text-muted">{t("capacityHint")}</p>
             </div>
+            <div>
+              <label htmlFor="event-website" className={fieldLabelClass}>
+                {t("websiteLabel")}
+              </label>
+              <input
+                id="event-website"
+                type="url"
+                placeholder={t("websitePlaceholder")}
+                value={form.websiteUrl}
+                onChange={(e) => update("websiteUrl", e.target.value)}
+                className={fieldInputClass}
+              />
+            </div>
+            {isAdmin && (
+              <label className="flex items-start gap-2 text-sm text-text">
+                <input
+                  type="checkbox"
+                  checked={form.createWithoutOrganizer}
+                  onChange={(e) => update("createWithoutOrganizer", e.target.checked)}
+                  className="mt-0.5"
+                />
+                {t("createWithoutOrganizerLabel")}
+              </label>
+            )}
             <div>
               <p className={fieldLabelClass}>{t("photosLabel")}</p>
               <PhotoPicker

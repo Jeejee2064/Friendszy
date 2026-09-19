@@ -19,7 +19,7 @@ type Mode = "signIn" | "signUp" | "forgot";
 
 type FormNotice =
   | { kind: "error"; message: string; raw?: string }
-  | { kind: "success"; message: string };
+  | { kind: "success"; message: string; hint?: string };
 
 function initialsFromEmail(email: string | null | undefined) {
   return (email ?? "?").charAt(0).toUpperCase();
@@ -148,7 +148,11 @@ export default function LoginPage() {
     if (error) {
       reportError(t("signUp.error"), error);
     } else {
-      setNotice({ kind: "success", message: t("signUp.success") });
+      setNotice({
+        kind: "success",
+        message: t("signUp.success"),
+        hint: t("signUp.successSpamHint"),
+      });
     }
   }
 
@@ -402,11 +406,16 @@ export default function LoginPage() {
             className="mt-4 rounded-lg border p-3 text-sm"
             style={
               notice.kind === "success"
-                ? { background: "#e8f8f5", borderColor: "var(--border)", color: "var(--dark)" }
+                ? { background: "#fffbeb", borderColor: "#fcd34d", color: "#92400e" }
                 : { background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }
             }
           >
-            <p>{notice.message}</p>
+            <p className={notice.kind === "success" ? "text-base font-semibold" : undefined}>
+              {notice.message}
+            </p>
+            {notice.kind === "success" && notice.hint && (
+              <p className="mt-1 text-xs opacity-80">{notice.hint}</p>
+            )}
             {notice.kind === "error" && notice.raw && (
               <p className="mt-1 text-xs opacity-70">
                 {t("errorDetail")}: {notice.raw}

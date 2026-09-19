@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { getProfilesByIds } from "@/lib/profile/queries";
+import { isBlockedBetween } from "@/lib/blocks/queries";
 
 type Client = SupabaseClient<Database>;
 export type ConversationRow = Database["public"]["Tables"]["conversations"]["Row"];
@@ -40,13 +41,62 @@ export async function listConversations(
   supabase: Client,
   myId: string
 ): Promise<ConversationRow[]> {
-  const { data, error } = await supabase
-    .from("conversations")
-    .select("*")
-    .or(`user_a.eq.${myId},user_b.eq.${myId}`)
-    .order("last_message_at", { ascending: false, nullsFirst: false });
+  const [{ data, error }, hiddenAtById] = await Promise.all([
+    supabase
+      .from("conversations")
+      .select("*")
+      .or(`user_a.eq.${myId},user_b.eq.${myId}`)
+      .order("last_message_at", { ascending: false, nullsFirst: false }),
+    getHiddenConversations(supabase, myId),
+  ]);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).filter((c) => isConversationVisible(c, hiddenAtById));
+}
+
+// Conversations que myId a masquées (voir hideConversation) et la date à
+// laquelle il l'a fait, pour que listConversations()/getUnreadConversationsCount()
+// puissent en exclure celles sans activité depuis.
+async function getHiddenConversations(
+  supabase: Client,
+  myId: string
+): Promise<Map<string, string>> {
+  const { data, error } = await supabase
+    .from("conversation_hides")
+    .select("conversation_id, hidden_at")
+    .eq("user_id", myId);
+  if (error) throw error;
+  return new Map((data ?? []).map((h) => [h.conversation_id, h.hidden_at]));
+}
+
+// Une conversation masquée réapparaît d'elle-même dès qu'un message plus
+// récent que le masquage existe (envoyé ou reçu) — voir la migration
+// conversation_hides.
+function isConversationVisible(
+  conversation: Pick<ConversationRow, "id" | "last_message_at">,
+  hiddenAtById: Map<string, string>
+): boolean {
+  const hiddenAt = hiddenAtById.get(conversation.id);
+  if (!hiddenAt) return true;
+  return (
+    !!conversation.last_message_at &&
+    new Date(conversation.last_message_at).getTime() > new Date(hiddenAt).getTime()
+  );
+}
+
+// Masquage "pour moi seulement" d'une conversation (n'affecte ni
+// `conversations` ni `messages` — voir la migration conversation_hides).
+// Upsert : remasquer une conversation déjà masquée ne fait que rafraîchir
+// hidden_at.
+export async function hideConversation(
+  supabase: Client,
+  userId: string,
+  conversationId: string
+) {
+  const { error } = await supabase.from("conversation_hides").upsert(
+    { user_id: userId, conversation_id: conversationId, hidden_at: new Date().toISOString() },
+    { onConflict: "user_id,conversation_id" }
+  );
+  if (error) throw error;
 }
 
 export async function getUnreadCountsByConversation(
@@ -88,24 +138,38 @@ export async function getUnreadConversationsCount(
   // A conversation whose other participant deleted their account (profiles
   // row anonymized, full_name → null) is hidden from the list entirely
   // (see messages/page.tsx) — the unread badge shouldn't count it either.
-  const { data: conversations, error: conversationsError } = await supabase
-    .from("conversations")
-    .select("id, user_a, user_b")
-    .in("id", conversationIds);
+  // Same for one myId has hidden with no activity since (see hideConversation).
+  const [{ data: conversations, error: conversationsError }, hiddenAtById] = await Promise.all([
+    supabase.from("conversations").select("id, user_a, user_b, last_message_at").in("id", conversationIds),
+    getHiddenConversations(supabase, myId),
+  ]);
   if (conversationsError) throw conversationsError;
 
+  const visibleConversations = (conversations ?? []).filter((c) =>
+    isConversationVisible(c, hiddenAtById)
+  );
   const otherIdByConversation = new Map(
-    (conversations ?? []).map((c) => [c.id, c.user_a === myId ? c.user_b : c.user_a])
+    visibleConversations.map((c) => [c.id, c.user_a === myId ? c.user_b : c.user_a])
   );
   const otherIds = [...new Set(otherIdByConversation.values())];
-  const profiles = await getProfilesByIds(supabase, otherIds);
+  const [profiles, blockedFlags] = await Promise.all([
+    getProfilesByIds(supabase, otherIds),
+    // A conversation with someone blocked (by either side) can never be
+    // opened and marked read again — RLS keeps its messages frozen at
+    // read_at IS NULL forever, which would otherwise leave the badge stuck
+    // permanently. Exclude it the same way a deleted account already is.
+    Promise.all(otherIds.map((id) => isBlockedBetween(supabase, myId, id))),
+  ]);
   const liveOtherIds = new Set(
     profiles.filter((p) => p.full_name !== null).map((p) => p.id)
+  );
+  const blockedOtherIds = new Set(
+    otherIds.filter((_, index) => blockedFlags[index])
   );
 
   return conversationIds.filter((id) => {
     const otherId = otherIdByConversation.get(id);
-    return !!otherId && liveOtherIds.has(otherId);
+    return !!otherId && liveOtherIds.has(otherId) && !blockedOtherIds.has(otherId);
   }).length;
 }
 

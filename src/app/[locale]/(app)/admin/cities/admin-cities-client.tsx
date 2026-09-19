@@ -6,7 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { logAdminAction, createCity, updateCity, deleteCity } from "@/lib/admin/queries";
 import type { City } from "@/lib/profile/types";
-import { normalizeForSearch } from "@/lib/text";
+import { normalizeCityForSearch } from "@/lib/search/cities";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
 
@@ -43,9 +43,9 @@ export function AdminCitiesClient({
   const [deleting, setDeleting] = useState(false);
 
   const filteredCities = useMemo(() => {
-    const query = normalizeForSearch(search);
+    const query = normalizeCityForSearch(search);
     if (!query) return cities;
-    return cities.filter((city) => normalizeForSearch(city.name).includes(query));
+    return cities.filter((city) => normalizeCityForSearch(city.name).includes(query));
   }, [cities, search]);
 
   function openCreate() {

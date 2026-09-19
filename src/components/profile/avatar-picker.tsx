@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent } from "react";
 import { useTranslations } from "next-intl";
 import { processAvatarImage } from "@/lib/image/process-avatar";
+import { AvatarCropModal } from "@/components/profile/avatar-crop-modal";
 
 export function AvatarPicker({
   upload,
@@ -17,19 +18,32 @@ export function AvatarPicker({
   const [preview, setPreview] = useState<string | null>(value);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
-  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
 
     setError(false);
+    setCropSrc(URL.createObjectURL(file));
+  }
+
+  function handleCropCancel() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  }
+
+  async function handleCropConfirm(croppedBlob: Blob) {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+
     setPending(true);
-    const localUrl = URL.createObjectURL(file);
+    const localUrl = URL.createObjectURL(croppedBlob);
     setPreview(localUrl);
 
     try {
-      const blob = await processAvatarImage(file);
+      const blob = await processAvatarImage(croppedBlob);
       const url = await upload(blob);
       onChange(url);
       setPreview(url);
@@ -67,6 +81,12 @@ export function AvatarPicker({
         />
       </label>
       {error && <p className="text-xs" style={{ color: "#e55" }}>{t("photoError")}</p>}
+      <AvatarCropModal
+        imageUrl={cropSrc}
+        open={!!cropSrc}
+        onCancel={handleCropCancel}
+        onConfirm={handleCropConfirm}
+      />
     </div>
   );
 }

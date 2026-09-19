@@ -277,9 +277,15 @@ export function GroupChatPane({
           // etc.) — without this, new/removed messages silently stop
           // arriving until the page is refreshed.
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            if (channel) {
-              supabase.removeChannel(channel);
-              channel = null;
+            // Nuller channel AVANT removeChannel : removeChannel peut
+            // ré-invoquer ce même callback de statut de façon synchrone
+            // (avec CLOSED) avant même de retourner, et sans ce nullage
+            // préalable l'appel ré-entrant rappellerait removeChannel sur
+            // l'ancien channel indéfiniment -> RangeError (stack overflow).
+            const closingChannel = channel;
+            channel = null;
+            if (closingChannel) {
+              supabase.removeChannel(closingChannel);
             }
             retryTimeout = setTimeout(() => {
               retryTimeout = null;
@@ -411,9 +417,15 @@ export function GroupChatPane({
 
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
             if (channelRef.current === channel) channelRef.current = null;
-            if (channel) {
-              supabase.removeChannel(channel);
-              channel = null;
+            // Nuller channel AVANT removeChannel : removeChannel peut
+            // ré-invoquer ce même callback de statut de façon synchrone
+            // (avec CLOSED) avant même de retourner, et sans ce nullage
+            // préalable l'appel ré-entrant rappellerait removeChannel sur
+            // l'ancien channel indéfiniment -> RangeError (stack overflow).
+            const closingChannel = channel;
+            channel = null;
+            if (closingChannel) {
+              supabase.removeChannel(closingChannel);
             }
             retryTimeout = setTimeout(() => {
               retryTimeout = null;

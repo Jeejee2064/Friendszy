@@ -182,6 +182,39 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_hides: {
+        Row: {
+          conversation_id: string
+          hidden_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          hidden_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          hidden_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_hides_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_hides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_presence: {
         Row: {
           conversation_id: string
@@ -248,6 +281,39 @@ export type Database = {
           {
             foreignKeyName: "conversations_user_b_fkey"
             columns: ["user_b"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_interests: {
+        Row: {
+          created_at: string
+          event_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_interests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_interests_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -446,6 +512,7 @@ export type Database = {
           starts_at: string
           title: string
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           address?: string | null
@@ -462,6 +529,7 @@ export type Database = {
           starts_at: string
           title: string
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           address?: string | null
@@ -478,6 +546,7 @@ export type Database = {
           starts_at?: string
           title?: string
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: [
           {
@@ -534,6 +603,39 @@ export type Database = {
             columns: ["requester_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_cities: {
+        Row: {
+          city_id: number
+          created_at: string
+          group_id: string
+        }
+        Insert: {
+          city_id: number
+          created_at?: string
+          group_id: string
+        }
+        Update: {
+          city_id?: number
+          created_at?: string
+          group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_cities_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_cities_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
         ]

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 // in Settings. Keep both in sync by editing here, not in each caller.
 export function IosInstallSteps({ className = "" }: { className?: string }) {
   const t = useTranslations("Pwa");
-  const steps = [t("iosStep1"), t("iosStep2"), t("iosStep3")];
+  const steps = [t("iosStep1"), t("iosStep2"), t("iosStep3"), t("iosStep4")];
 
   return (
     <ol className={`space-y-2 text-left text-sm text-muted ${className}`}>

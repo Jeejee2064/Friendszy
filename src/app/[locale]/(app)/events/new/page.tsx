@@ -19,7 +19,16 @@ export default async function NewEventPage({
     return null;
   }
 
-  const interests = await getInterests(supabase);
+  const [interests, { data: profile }] = await Promise.all([
+    getInterests(supabase),
+    supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle(),
+  ]);
 
-  return <EventCreationWizard userId={user.id} interests={interests} />;
+  return (
+    <EventCreationWizard
+      userId={user.id}
+      interests={interests}
+      isAdmin={profile?.is_admin ?? false}
+    />
+  );
 }

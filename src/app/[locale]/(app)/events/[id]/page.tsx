@@ -7,6 +7,7 @@ import {
   getRegistrationCountsByEvent,
   getMyRegistration,
   listEventPhotos,
+  getMyInterestedEventIds,
 } from "@/lib/events/queries";
 import { listEventMessages, listEventMessageReactions } from "@/lib/events/messages-queries";
 import { EventViewClient } from "@/components/events/event-view-client";
@@ -30,16 +31,19 @@ export default async function EventPage({
   const event = await getEventById(supabase, id);
   if (!event) notFound();
 
-  const [interests, myRegistration, registrationCounts, photos] = await Promise.all([
-    getInterests(supabase),
-    getMyRegistration(supabase, id, user.id),
-    getRegistrationCountsByEvent(supabase, [id]),
-    listEventPhotos(supabase, id),
-  ]);
+  const [interests, myRegistration, registrationCounts, photos, myInterestedIds] =
+    await Promise.all([
+      getInterests(supabase),
+      getMyRegistration(supabase, id, user.id),
+      getRegistrationCountsByEvent(supabase, [id]),
+      listEventPhotos(supabase, id),
+      getMyInterestedEventIds(supabase, [id], user.id),
+    ]);
   const interest = interests.find((i) => i.id === event.interest_id) ?? null;
   const isRegistered = myRegistration !== null;
   const isOrganizer = event.creator_id === user.id;
   const registrationCount = registrationCounts.get(id) ?? 0;
+  const isInterested = myInterestedIds.has(id);
 
   const organizerProfiles = event.creator_id
     ? await getProfilesByIds(supabase, [event.creator_id])
@@ -66,6 +70,7 @@ export default async function EventPage({
       organizer={organizer}
       registrationCount={registrationCount}
       isRegistered={isRegistered}
+      isInterested={isInterested}
       isOrganizer={isOrganizer}
       photos={photos}
       initialMessages={initialMessages}

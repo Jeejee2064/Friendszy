@@ -106,6 +106,20 @@ body {
   background: rgba(13, 36, 32, 0.7);
 }
 
+/* Les navigateurs mobiles (Safari iOS surtout) zooment automatiquement la
+   page quand on touche un champ dont la taille de police est < 16px — nos
+   champs utilisent `text-sm` (14px), d'où le "ça ouvre trop grand, faut
+   dézoomer" à chaque clic sur un champ en navigation web (hors PWA installée).
+   On force 16px uniquement sous le seuil desktop pour ne pas perdre le look
+   `text-sm` sur grand écran. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
