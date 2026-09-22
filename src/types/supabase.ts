@@ -1256,6 +1256,41 @@ export type Database = {
           },
         ]
       }
+      profile_locations: {
+        Row: {
+          created_at: string
+          latitude: number | null
+          longitude: number | null
+          profile_id: string
+          updated_at: string | null
+          visible_to_others: boolean
+        }
+        Insert: {
+          created_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          profile_id: string
+          updated_at?: string | null
+          visible_to_others?: boolean
+        }
+        Update: {
+          created_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          profile_id?: string
+          updated_at?: string | null
+          visible_to_others?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_locations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_photos: {
         Row: {
           created_at: string
@@ -1468,6 +1503,7 @@ export type Database = {
     Functions: {
       activate_due_temporary_cities: { Args: never; Returns: undefined }
       can_invite_to_group: { Args: { p_group_id: string }; Returns: boolean }
+      clear_map_location: { Args: never; Returns: undefined }
       clear_temporary_city: { Args: never; Returns: undefined }
       get_blocked_profiles: {
         Args: never
@@ -1492,6 +1528,16 @@ export type Database = {
         Returns: {
           group_id: string
           member_count: number
+        }[]
+      }
+      get_nearby_visible_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          latitude: number
+          longitude: number
         }[]
       }
       get_public_map_points: {
@@ -1546,6 +1592,10 @@ export type Database = {
         }[]
       }
       revert_expired_temporary_cities: { Args: never; Returns: undefined }
+      set_map_location: {
+        Args: { p_latitude: number; p_longitude: number }
+        Returns: undefined
+      }
       set_temporary_city: {
         Args: { p_city: string; p_from: string; p_until: string }
         Returns: undefined

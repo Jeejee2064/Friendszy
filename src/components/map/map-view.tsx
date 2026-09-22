@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Map, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useTranslations } from "next-intl";
-import { ArrowRight, Calendar, MapPin, X, type LucideIcon } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, User, X, type LucideIcon } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 
 // Swap this one constant to change the map's visual style later (e.g. a
@@ -26,7 +26,7 @@ const CITY_ZOOM = 11;
 // the pin for its popup, which always opens downward.
 const RECENTER_TOP_BIAS = 60;
 
-export type MapPointKind = "event" | "partner";
+export type MapPointKind = "event" | "partner" | "person";
 
 export type MapPoint = {
   id: string;
@@ -64,6 +64,7 @@ const MARKER_STYLE: Record<
 > = {
   event: { icon: Calendar, style: { backgroundImage: "var(--grad)" }, borderColor: "var(--teal1)" },
   partner: { icon: MapPin, style: { backgroundColor: "var(--blue)" }, borderColor: "var(--blue)" },
+  person: { icon: User, style: { backgroundColor: "var(--teal2)" }, borderColor: "var(--teal2)" },
 };
 
 function MarkerPin({ point, active }: { point: MapPoint; active: boolean }) {
@@ -337,7 +338,13 @@ export function MapView({
                   )
                 )}
                 <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
-                  {t(activePopup.kind === "event" ? "kindEvent" : "kindPartner")}
+                  {t(
+                    activePopup.kind === "event"
+                      ? "kindEvent"
+                      : activePopup.kind === "partner"
+                        ? "kindPartner"
+                        : "kindPerson"
+                  )}
                 </span>
                 {activePopup.isOpenNow != null && (
                   <span

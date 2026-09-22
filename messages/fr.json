@@ -472,8 +472,23 @@
     "close": "Fermer",
     "kindEvent": "Événement",
     "kindPartner": "Partenaire",
+    "kindPerson": "Membre",
     "openNow": "Ouvert maintenant",
     "closedNow": "Fermé"
+  },
+  "MapLocation": {
+    "locateButtonAriaLabel": "Me localiser",
+    "locateButtonAriaLabelSharing": "Gérer le partage de ma position",
+    "consentTitle": "Partager votre position sur la carte ?",
+    "consentBody": "Vous pouvez utiliser votre position pour vous repérer vous-même sur la carte, ou accepter qu'elle soit aussi visible (de façon approximative) par les autres utilisateurs. Rien n'est jamais partagé sans votre accord, et vous pouvez arrêter à tout moment.",
+    "selfOnlyButton": "Me repérer, sans être vu·e",
+    "visibleButton": "Me repérer et être visible par les autres",
+    "cancelButton": "Annuler",
+    "sharingTitle": "Vous êtes visible sur la carte",
+    "sharingBody": "Les autres utilisateurs voient votre position approximative (jamais exacte). Vous pouvez l'actualiser ou arrêter le partage à tout moment.",
+    "refreshButton": "Actualiser ma position",
+    "stopButton": "Arrêter de partager",
+    "error": "Impossible d'obtenir votre position. Vérifiez que la localisation est autorisée pour votre navigateur."
   },
   "PublicLanding": {
     "tagline": "Rencontre des gens qui partagent tes centres d'intérêt — pour créer des amitiés, pas pour dater.",

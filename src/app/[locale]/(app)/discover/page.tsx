@@ -11,6 +11,7 @@ import {
 } from "@/lib/events/queries";
 import type { EventCardData } from "@/lib/events/types";
 import { listPartnerListings } from "@/lib/partners/queries";
+import { getMyMapVisibility } from "@/lib/map/queries";
 import { DiscoverPageClient } from "./discover-page-client";
 
 export default async function DiscoverPage({
@@ -29,11 +30,12 @@ export default async function DiscoverPage({
     return null;
   }
 
-  const [interests, events, listings, profile] = await Promise.all([
+  const [interests, events, listings, profile, mapVisible] = await Promise.all([
     getInterests(supabase),
     listEvents(supabase, {}),
     listPartnerListings(supabase, {}),
     getMyProfile(supabase, user.id),
+    getMyMapVisibility(supabase, user.id),
   ]);
   // Centers the map on the viewer's own city by default — never blocks the
   // page on it, and silently falls back to the province-wide default view
@@ -81,6 +83,7 @@ export default async function DiscoverPage({
       initialEvents={initialEvents}
       initialListings={initialListings}
       initialCenter={initialCenter}
+      initialMapVisible={mapVisible}
     />
   );
 }

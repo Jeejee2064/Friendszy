@@ -472,8 +472,23 @@
     "close": "Close",
     "kindEvent": "Event",
     "kindPartner": "Partner",
+    "kindPerson": "Member",
     "openNow": "Open now",
     "closedNow": "Closed"
+  },
+  "MapLocation": {
+    "locateButtonAriaLabel": "Locate me",
+    "locateButtonAriaLabelSharing": "Manage my location sharing",
+    "consentTitle": "Share your location on the map?",
+    "consentBody": "You can use your location to find yourself on the map, or agree to also make it visible (approximately) to other users. Nothing is ever shared without your consent, and you can stop at any time.",
+    "selfOnlyButton": "Find myself, without being seen",
+    "visibleButton": "Find myself and be visible to others",
+    "cancelButton": "Cancel",
+    "sharingTitle": "You're visible on the map",
+    "sharingBody": "Other users see your approximate location (never exact). You can refresh it or stop sharing at any time.",
+    "refreshButton": "Refresh my location",
+    "stopButton": "Stop sharing",
+    "error": "Couldn't get your location. Check that location access is allowed for your browser."
   },
   "PublicLanding": {
     "tagline": "Meet people who love the same things you do — just friends, not dating.",

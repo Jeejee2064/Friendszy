@@ -43,7 +43,7 @@ from unnest(array[
   'event_registrations', 'events', 'friendships', 'group_cities', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
-  'profile_interests', 'profile_photos', 'profiles', 'reports'
+  'profile_interests', 'profile_locations', 'profile_photos', 'profiles', 'reports'
 ]) as t;
 
 select ok(
@@ -56,7 +56,7 @@ from unnest(array[
   'event_registrations', 'events', 'friendships', 'group_cities', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
-  'profile_interests', 'profile_photos', 'profiles', 'reports'
+  'profile_interests', 'profile_locations', 'profile_photos', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================
@@ -242,6 +242,16 @@ select col_default_is('public', 'profiles', 'locale', 'fr', 'profiles.locale def
 select col_default_is('public', 'profiles', 'plan', 'free', 'profiles.plan defaults to free');
 select col_default_is('public', 'profiles', 'moderation_status', 'active', 'profiles.moderation_status defaults to active');
 select col_default_is('public', 'profiles', 'is_admin', 'false', 'profiles.is_admin defaults to false');
+
+-- profile_locations
+select has_column('public', 'profile_locations', 'profile_id', 'profile_locations.profile_id exists');
+select has_column('public', 'profile_locations', 'visible_to_others', 'profile_locations.visible_to_others exists');
+select has_column('public', 'profile_locations', 'latitude', 'profile_locations.latitude exists');
+select has_column('public', 'profile_locations', 'longitude', 'profile_locations.longitude exists');
+select has_column('public', 'profile_locations', 'updated_at', 'profile_locations.updated_at exists');
+select has_column('public', 'profile_locations', 'created_at', 'profile_locations.created_at exists');
+select col_is_pk('public', 'profile_locations', array['profile_id'], 'profile_locations PK is (profile_id)');
+select col_default_is('public', 'profile_locations', 'visible_to_others', 'false', 'profile_locations.visible_to_others defaults to false (opt-in)');
 select col_default_is('public', 'profiles', 'has_seen_nav_tour', 'false', 'profiles.has_seen_nav_tour defaults to false');
 
 -- reports
@@ -372,6 +382,7 @@ select col_is_fk('public', 'event_registrations', 'profile_id', 'event_registrat
 select col_is_fk('public', 'event_messages', 'event_id', 'event_messages.event_id is a FK');
 select col_is_fk('public', 'event_messages', 'sender_id', 'event_messages.sender_id is a FK');
 select col_is_fk('public', 'event_messages', 'removed_by', 'event_messages.removed_by is a FK');
+select col_is_fk('public', 'profile_locations', 'profile_id', 'profile_locations.profile_id is a FK');
 
 -- Cascade behaviour that matters for account deletion (Loi 25 compliance):
 -- deleting a profile must cascade-clean everything that references it.
@@ -390,6 +401,10 @@ select ok(
 select ok(
   (select confdeltype from pg_constraint where conname = 'profile_photos_profile_id_fkey') = 'c',
   'profile_photos.profile_id -> profiles(id) is ON DELETE CASCADE'
+);
+select ok(
+  (select confdeltype from pg_constraint where conname = 'profile_locations_profile_id_fkey') = 'c',
+  'profile_locations.profile_id -> profiles(id) is ON DELETE CASCADE'
 );
 select ok(
   (select confdeltype from pg_constraint where conname = 'groups_creator_id_fkey') = 'n',
@@ -708,10 +723,12 @@ select has_trigger('public', 'profile_photos', 'enforce_profile_photos_limit', '
 
 select has_function('public', f, 'function public.' || f || ' exists')
 from unnest(array[
-  'can_invite_to_group', 'enforce_event_photos_limit',
+  'can_invite_to_group', 'clear_map_location', 'enforce_event_photos_limit',
   'enforce_event_registration_capacity', 'enforce_profile_photos_limit', 'get_blocked_profiles',
   'get_event_registration_counts', 'get_group_member_counts',
+  'get_nearby_visible_profiles',
   'get_public_map_points',
+  'set_map_location',
   'handle_creator_leaving', 'handle_interest_suggestion_resolution',
   'handle_group_join_request_approval', 'handle_new_user', 'is_active_user',
   'is_admin', 'is_banned_from_group', 'is_blocked_between',
@@ -747,10 +764,24 @@ select is_definer('public', 'can_invite_to_group', 'can_invite_to_group() is SEC
 select is_definer('public', 'is_banned_from_group', 'is_banned_from_group() is SECURITY DEFINER');
 select is_definer('public', 'get_blocked_profiles', 'get_blocked_profiles() is SECURITY DEFINER');
 select is_definer('public', 'get_group_member_counts', 'get_group_member_counts() is SECURITY DEFINER (counts are public even though group_members rows are not)');
+select is_definer('public', 'set_map_location', 'set_map_location() is SECURITY DEFINER (authenticated has no INSERT/UPDATE grant on profile_locations at all — every write goes through this function, which fuzzes the raw GPS position before storing it)');
+select is_definer('public', 'clear_map_location', 'clear_map_location() is SECURITY DEFINER (same reasoning as set_map_location)');
 
 select ok(
   has_function_privilege('authenticated', 'public.get_group_member_counts(uuid[])', 'EXECUTE'),
   'authenticated can execute get_group_member_counts'
+);
+select ok(
+  has_function_privilege('authenticated', 'public.get_nearby_visible_profiles()', 'EXECUTE'),
+  'authenticated can execute get_nearby_visible_profiles'
+);
+select ok(
+  has_function_privilege('authenticated', 'public.set_map_location(double precision, double precision)', 'EXECUTE'),
+  'authenticated can execute set_map_location'
+);
+select ok(
+  has_function_privilege('authenticated', 'public.clear_map_location()', 'EXECUTE'),
+  'authenticated can execute clear_map_location'
 );
 
 -- Regression test for the reported bug: a plain SELECT against
@@ -1120,6 +1151,10 @@ select policies_are('public', 'profile_interests', array[
   'profile_interests_delete_own', 'profile_interests_insert_own', 'profile_interests_select'
 ], 'profile_interests has exactly the expected policies');
 
+select policies_are('public', 'profile_locations', array[
+  'profile_locations_select'
+], 'profile_locations has exactly the expected policies (no insert/update/delete policy — every write goes through set_map_location/clear_map_location, which run as SECURITY DEFINER and so aren''t subject to RLS at all)');
+
 select policies_are('public', 'profile_photos', array[
   'profile_photos_delete', 'profile_photos_insert', 'profile_photos_select', 'profile_photos_select_admin'
 ], 'profile_photos has exactly the expected policies');
@@ -1159,6 +1194,13 @@ select ok(
   (select qual from pg_policies where schemaname = 'public' and tablename = 'profiles' and policyname = 'profiles_select')
     = '(NOT is_blocked_between(auth.uid(), id))',
   'profiles_select correctly hides blocked profiles from each other'
+);
+select ok(
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'profile_locations' and policyname = 'profile_locations_select')
+    like '%visible_to_others%' and
+  (select qual from pg_policies where schemaname = 'public' and tablename = 'profile_locations' and policyname = 'profile_locations_select')
+    like '%is_blocked_between%',
+  'profile_locations_select lets the owner always see their own row, and others only when visible_to_others and not blocked'
 );
 select ok(
   (select with_check from pg_policies where schemaname = 'public' and tablename = 'friendships' and policyname = 'friendships_insert')
@@ -1329,6 +1371,9 @@ select table_privs_are('public', 'profile_interests', 'authenticated',
 select table_privs_are('public', 'profile_photos', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
   'authenticated has expected privileges on profile_photos');
+select table_privs_are('public', 'profile_locations', 'authenticated',
+  array['REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE'],
+  'authenticated has expected privileges on profile_locations (no INSERT/UPDATE/DELETE — every write goes through set_map_location/clear_map_location so the raw GPS position is always fuzzed server-side)');
 select table_privs_are('public', 'profiles', 'authenticated',
   array['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE'],
   'authenticated has expected privileges on profiles');
@@ -1364,7 +1409,7 @@ from unnest(array[
   'event_registrations', 'events', 'friendships', 'group_cities', 'group_join_requests',
   'group_members', 'group_messages', 'groups', 'interest_suggestions',
   'interests', 'messages', 'notifications', 'partner_listings',
-  'profile_interests', 'profile_photos', 'profiles', 'reports'
+  'profile_interests', 'profile_locations', 'profile_photos', 'profiles', 'reports'
 ]) as t;
 
 -- ============================================================

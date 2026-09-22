@@ -24,6 +24,8 @@ import { EventCard } from "@/components/events/event-card";
 import { PartnerCard } from "@/components/partners/partner-card";
 import { DiscoverFab } from "@/components/discover/discover-fab";
 import { MapView, type MapPoint } from "@/components/map/map-view";
+import { MapLocationControl } from "@/components/map/map-location-control";
+import { getNearbyVisibleProfiles, type NearbyProfile } from "@/lib/map/queries";
 
 type TypeFilter = "both" | "events" | "partners";
 
@@ -33,12 +35,14 @@ export function DiscoverPageClient({
   initialEvents,
   initialListings,
   initialCenter,
+  initialMapVisible,
 }: {
   userId: string;
   interests: Interest[];
   initialEvents: EventCardData[];
   initialListings: PartnerListingRow[];
   initialCenter: { latitude: number; longitude: number } | null;
+  initialMapVisible: boolean;
 }) {
   const t = useTranslations("Discover");
   const tEvents = useTranslations("Events.discovery");
@@ -64,6 +68,22 @@ export function DiscoverPageClient({
   const [events, setEvents] = useState<EventCardData[]>(initialEvents);
   const [listings, setListings] = useState<PartnerListingRow[]>(initialListings);
   const [loading, setLoading] = useState(false);
+
+  // Other users who opted into sharing their (fuzzed) position — see
+  // get_nearby_visible_profiles — independent of the events/partners
+  // filters above, fetched once rather than re-run on every filter change.
+  const [nearbyProfiles, setNearbyProfiles] = useState<NearbyProfile[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    getNearbyVisibleProfiles(createClient())
+      .then((rows) => {
+        if (!cancelled) setNearbyProfiles(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // In map mode the filter bar floats on top of the full-screen map instead
   // of pushing it down — MapView needs to know its real rendered height
@@ -253,7 +273,19 @@ export function DiscoverPageClient({
           })
       : [];
 
-  const mapPoints: MapPoint[] = [...eventPoints, ...partnerPoints];
+  // Shown regardless of the events/partners typeFilter — people aren't an
+  // "activity" type, they're a different kind of thing to find on the map.
+  const personPoints: MapPoint[] = nearbyProfiles.map((profile) => ({
+    id: profile.id,
+    kind: "person",
+    latitude: profile.latitude,
+    longitude: profile.longitude,
+    title: profile.full_name ?? "",
+    imageUrl: profile.avatar_url,
+    href: `/profile/${profile.id}`,
+  }));
+
+  const mapPoints: MapPoint[] = [...eventPoints, ...partnerPoints, ...personPoints];
 
   return (
     <div className="p-6 md:p-10">
@@ -412,6 +444,10 @@ export function DiscoverPageClient({
         >
           📋 {t("viewList")}
         </button>
+      )}
+
+      {view === "map" && (
+        <MapLocationControl initialSharing={initialMapVisible} onLocate={setFocusCenter} />
       )}
 
       <DiscoverFab />
