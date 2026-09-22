@@ -145,7 +145,17 @@ export async function getUnreadConversationsCount(
   ]);
   if (conversationsError) throw conversationsError;
 
-  const visibleConversations = (conversations ?? []).filter((c) =>
+  // Ne pas se fier uniquement à RLS pour restreindre aux conversations de
+  // myId : messages_select_admin laisse un admin lire tous les messages de
+  // la plateforme (modération), donc le select ci-dessus renverrait aussi
+  // des conversations où myId n'est ni user_a ni user_b — jamais visibles
+  // dans son propre /messages et donc jamais marquables comme lues, ce qui
+  // bloquerait le badge à un nombre non nul en permanence.
+  const myConversations = (conversations ?? []).filter(
+    (c) => c.user_a === myId || c.user_b === myId
+  );
+
+  const visibleConversations = myConversations.filter((c) =>
     isConversationVisible(c, hiddenAtById)
   );
   const otherIdByConversation = new Map(

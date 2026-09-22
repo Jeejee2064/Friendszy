@@ -63,17 +63,22 @@ export function InstallPromptBanner() {
   return (
     <Modal open={open} onClose={close} align="top">
       <div className="flex flex-col items-center text-center">
-        <span
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl"
-          style={{ backgroundImage: "var(--grad)" }}
-        >
-          📲
-        </span>
-        <p className="mt-4 text-lg font-extrabold text-text">{t("installTitle")}</p>
         {ios ? (
-          <IosInstallSteps className="mt-2 w-full" />
+          <>
+            <p className="text-lg font-extrabold text-text">{t("installTitle")}</p>
+            <IosInstallSteps className="mt-2 w-full" />
+          </>
         ) : (
-          <p className="mt-1 text-sm text-muted">{t("installBody")}</p>
+          <>
+            <span
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl"
+              style={{ backgroundImage: "var(--grad)" }}
+            >
+              📲
+            </span>
+            <p className="mt-4 text-lg font-extrabold text-text">{t("installTitle")}</p>
+            <p className="mt-1 text-sm text-muted">{t("installBody")}</p>
+          </>
         )}
         <div className="mt-6 flex w-full items-center gap-2">
           {!ios && (

@@ -29,6 +29,9 @@
     "signOut": {
       "submit": "Cerrar sesión"
     },
+    "emailConfirmed": {
+      "success": "¡Tu correo electrónico ha sido confirmado! Inicia sesión para continuar."
+    },
     "switchToSignUp": "¿Aún no tienes una cuenta?",
     "switchToSignUpLink": "Crea una",
     "switchToSignIn": "¿Ya tienes una cuenta?",

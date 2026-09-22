@@ -10,6 +10,12 @@ import { Modal } from "@/components/ui/modal";
 const CANVAS_SIZE = 280;
 const OUTPUT_SIZE = 640;
 const MAX_ZOOM = 3;
+// Marge appliquée au-delà du "cover fit" strict : sans elle, la dimension qui
+// touche exactement les bords du cadre (largeur pour une photo portrait,
+// hauteur pour une photo paysage) a une plage de déplacement de 0 au zoom
+// minimal — l'utilisateur peut alors glisser dans un sens mais pas l'autre
+// tant qu'il n'a pas d'abord zoomé.
+const MIN_OVERSCAN = 1.2;
 
 export function AvatarCropModal({
   imageUrl,
@@ -81,7 +87,7 @@ function AvatarCropContent({
   }
 
   const baseScale = naturalSize
-    ? Math.max(CANVAS_SIZE / naturalSize.w, CANVAS_SIZE / naturalSize.h)
+    ? Math.max(CANVAS_SIZE / naturalSize.w, CANVAS_SIZE / naturalSize.h) * MIN_OVERSCAN
     : 1;
   const scale = baseScale * zoom;
 

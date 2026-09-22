@@ -14,6 +14,7 @@ import {
   updatePassword,
 } from "@/lib/auth";
 import { useGoOffline } from "@/lib/presence/presence-context";
+import { track } from "@/lib/analytics/track";
 
 type Mode = "signIn" | "signUp" | "forgot";
 
@@ -60,6 +61,20 @@ export default function LoginPage() {
     const errorCode = params.get("error");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isRecoveryLink) setIsRecovery(true);
+    // auth/callback/route.ts redirects here with "?confirmed=1" (and "uid=")
+    // right after confirming the signup email — it deliberately signs the
+    // session back out first, so the only thing left to do here is greet
+    // the user and let them log in for real. Consumed once, then stripped
+    // from the URL so a refresh doesn't re-fire the analytics event.
+    if (params.get("confirmed") === "1") {
+      const uid = params.get("uid") ?? undefined;
+      track("signup_completed", undefined, uid);
+      setNotice({ kind: "success", message: t("emailConfirmed.success") });
+      const url = new URL(window.location.href);
+      url.searchParams.delete("confirmed");
+      url.searchParams.delete("uid");
+      window.history.replaceState({}, "", url);
+    }
     // Public landing page's "S'inscrire" CTAs (src/components/landing/
     // public-landing.tsx) and the intent-capture route (src/app/[locale]/i/
     // [kind]/[id]/route.ts) both link here with ?mode=signUp so a visitor
@@ -73,12 +88,9 @@ export default function LoginPage() {
     // src/app/auth/callback/recovery/route.ts). Surface that instead of
     // silently dropping the user on a plain sign-in screen.
     if (errorCode === "reset-expired") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode("forgot");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNotice({ kind: "error", message: t("resetPassword.linkExpired") });
     } else if (errorCode === "auth") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNotice({ kind: "error", message: t("genericError") });
     }
 

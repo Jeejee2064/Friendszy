@@ -29,6 +29,9 @@
     "signOut": {
       "submit": "Se déconnecter"
     },
+    "emailConfirmed": {
+      "success": "Ton adresse courriel est confirmée ! Connecte-toi pour continuer."
+    },
     "switchToSignUp": "Pas encore de compte ?",
     "switchToSignUpLink": "Crée-en un",
     "switchToSignIn": "Déjà un compte ?",

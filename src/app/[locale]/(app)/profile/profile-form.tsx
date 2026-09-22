@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { upsertMyProfile, setMyInterests } from "@/lib/profile/queries";
 import type { Gender, Interest } from "@/lib/profile/types";
@@ -48,6 +50,7 @@ export function ProfileForm({
   photos: string[];
 }) {
   const t = useTranslations("Profile");
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [form, setForm] = useState<FormState>(initial);
@@ -136,6 +139,10 @@ export function ProfileForm({
       setSavedInterestIds(form.interestIds);
       setNotice({ kind: "success", message: t("saveSuccess") });
       setCollapseSignal((v) => v + 1);
+      // Le layout parent (bulle d'avatar, nom, etc.) est un composant serveur
+      // qui a reçu le profil en prop au premier chargement — sans ce refresh,
+      // il continue d'afficher les anciennes valeurs après une sauvegarde.
+      router.refresh();
     } catch {
       setNotice({ kind: "error", message: t("saveError") });
     } finally {
@@ -154,7 +161,13 @@ export function ProfileForm({
           info: t("tabInfo"),
           photos: t("tabPhotos"),
           interests: t("tabInterests"),
-          settings: t("tabSettings"),
+          settings: (
+            <>
+              <Settings className="mx-auto h-4 w-4 md:hidden" aria-hidden="true" />
+              <span className="sr-only md:hidden">{t("tabSettings")}</span>
+              <span className="hidden md:inline">{t("tabSettings")}</span>
+            </>
+          ),
         }}
       />
 

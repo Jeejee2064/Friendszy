@@ -35,7 +35,7 @@ export function Modal({
   return (
     <div
       className={`fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/40 p-4 ${
-        align === "top" ? "items-start pt-10 sm:pt-16" : "items-center"
+        align === "top" ? "items-start pt-3 sm:pt-6" : "items-center"
       }`}
       onClick={onClose}
     >

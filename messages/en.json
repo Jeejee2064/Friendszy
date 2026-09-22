@@ -29,6 +29,9 @@
     "signOut": {
       "submit": "Sign out"
     },
+    "emailConfirmed": {
+      "success": "Your email address is confirmed! Sign in to continue."
+    },
     "switchToSignUp": "Don't have an account?",
     "switchToSignUpLink": "Create one",
     "switchToSignIn": "Already have an account?",

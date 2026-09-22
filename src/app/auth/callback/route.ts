@@ -9,18 +9,29 @@ import { createClient } from "@/lib/supabase/server";
 // "?next=..." en plus faisait échouer ce match même avec une entrée
 // wildcard — il retombait alors silencieusement sur le Site URL nu (le lien
 // de confirmation ramenait sur la page d'inscription plutôt que la page de
-// connexion).
+// connexion). Les paramètres ajoutés plus bas au "/login" de destination
+// n'ont pas ce problème : ils sont posés par notre propre redirect, pas par
+// celui de Supabase.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      // Marqueur consommé une fois par onboarding-wizard.tsx pour logger
-      // signup_completed, seulement à la toute première confirmation réussie.
-      return NextResponse.redirect(`${origin}/?confirmed=1`);
+      // exchangeCodeForSession confirme le courriel ET ouvre une session —
+      // mais celle-ci vit dans le navigateur qui a exécuté cette requête,
+      // qui n'est pas forcément celui de l'utilisateur (scanner anti-hameçonnage
+      // côté client courriel, lien ouvert sur un autre appareil...). On la
+      // referme aussitôt et on renvoie vers /login : la confirmation ne
+      // fait que valider l'adresse, la connexion reste un geste explicite.
+      const userId = data.user?.id;
+      await supabase.auth.signOut();
+      const redirectUrl = new URL("/login", origin);
+      redirectUrl.searchParams.set("confirmed", "1");
+      if (userId) redirectUrl.searchParams.set("uid", userId);
+      return NextResponse.redirect(redirectUrl);
     }
     // Le code PKCE peut échouer pour plusieurs raisons courantes : lien déjà
     // utilisé, expiré, "pré-cliqué" par un scanner anti-hameçonnage côté
