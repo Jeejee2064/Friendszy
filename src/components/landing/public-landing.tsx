@@ -425,6 +425,12 @@ export function PublicLanding({
                 >
                   {t("signUp")}
                 </Link>
+                <Link
+                  href="/login"
+                  className="rounded-full border border-border px-5 py-2.5 text-sm font-bold text-text transition-colors hover:border-teal2"
+                >
+                  {t("logIn")}
+                </Link>
                 <button
                   type="button"
                   onClick={handleDiscover}

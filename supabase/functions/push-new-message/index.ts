@@ -54,6 +54,35 @@ function conversationPath(locale: "fr" | "en", conversationId: string): string {
   return `${prefix}/messages?c=${conversationId}`;
 }
 
+// Feeds the app-icon badge (navigator.setAppBadge, called from sw.js's
+// push handler) — the count of conversations with at least one unread
+// message for this recipient. Deliberately a simplified version of
+// getUnreadConversationsCount (src/lib/messages/queries.ts): it skips the
+// conversation_hides exclusion that function applies, since this runs with
+// service_role and re-deriving that logic here risks drifting out of sync.
+// A conversation hidden with an unread message left in it would overcount
+// by one until the app is next opened, where the client-side effect in
+// unread-context.tsx recomputes the exact count and corrects the badge —
+// good enough for a background badge that's inherently a snapshot.
+async function getUnreadConversationCount(userId: string): Promise<number> {
+  const { data: conversations } = await admin
+    .from("conversations")
+    .select("id")
+    .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+
+  const conversationIds = (conversations ?? []).map((c) => c.id as string);
+  if (conversationIds.length === 0) return 0;
+
+  const { data: unread } = await admin
+    .from("messages")
+    .select("conversation_id")
+    .in("conversation_id", conversationIds)
+    .neq("sender_id", userId)
+    .is("read_at", null);
+
+  return new Set((unread ?? []).map((m) => m.conversation_id as string)).size;
+}
+
 type NotifyRequestBody = {
   notification_id?: string;
   user_id?: string;
@@ -110,12 +139,13 @@ Deno.serve(async (req) => {
     return new Response("recipient viewing conversation, push skipped", { status: 200 });
   }
 
-  const [{ data: sender }, { data: subscriptions }] = await Promise.all([
+  const [{ data: sender }, { data: subscriptions }, unreadCount] = await Promise.all([
     admin.from("profiles").select("full_name").eq("id", senderId).maybeSingle(),
     admin
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth, locale")
       .eq("user_id", userId),
+    getUnreadConversationCount(userId),
   ]);
 
   if (!subscriptions || subscriptions.length === 0) {
@@ -133,7 +163,7 @@ Deno.serve(async (req) => {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify({ title, url })
+          JSON.stringify({ title, url, unreadCount })
         );
         await admin
           .from("push_subscriptions")

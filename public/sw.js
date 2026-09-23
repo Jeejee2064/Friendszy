@@ -111,13 +111,39 @@ self.addEventListener("push", (event) => {
   const url = data.url || "/";
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-badge.png",
-      data: { url },
-    })
+    Promise.all([
+      self.registration.showNotification(title, {
+        icon: "/icons/icon-192.png",
+        badge: "/icons/icon-badge.png",
+        data: { url },
+      }),
+      setAppIconBadge(data.unreadCount),
+    ])
   );
 });
+
+// App icon badge (the little number on the home-screen icon, like
+// Messenger) — navigator.setAppBadge/clearAppBadge, callable from a service
+// worker while it's handling a push event, which is what lets the badge
+// update even with the app fully closed. Support: iOS/iPadOS 16.4+ (home
+// screen web apps only, requires notification permission — already true
+// here since this only runs inside a push event), Chrome/Edge on Windows/
+// macOS for installed PWAs. Not supported on Android Chrome or Linux, but
+// those get an equivalent unread dot from the OS itself, driven by the
+// showNotification() call above — nothing extra needed there. See the
+// foreground/open-app counterpart in unread-context.tsx.
+async function setAppIconBadge(unreadCount) {
+  if (!("setAppBadge" in navigator) || typeof unreadCount !== "number") return;
+  try {
+    if (unreadCount > 0) {
+      await navigator.setAppBadge(unreadCount);
+    } else {
+      await navigator.clearAppBadge();
+    }
+  } catch {
+    // Unsupported/denied in this context — no visual regression either way.
+  }
+}
 
 // Click → focus an already-open tab and navigate it to the conversation,
 // or open a new one. Falling back to clients.openWindow() covers browsers

@@ -43,6 +43,18 @@ export function UnreadMessagesProvider({ children }: { children: ReactNode }) {
     openConversationIdRef.current = activeConversationId;
   }, [activeConversationId]);
 
+  // App icon badge (iOS 16.4+ home-screen web apps, Chrome/Edge desktop
+  // installed PWAs) — foreground/open-app counterpart of the setAppBadge
+  // call in sw.js's push handler, which covers the app-closed case. This
+  // one is the source of truth once the app is open: it reflects the exact
+  // count (including the conversation_hides exclusion the push-time count
+  // skips) and clears the badge as soon as messages are read.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("setAppBadge" in navigator)) return;
+    const apply = count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge();
+    apply.catch(() => {});
+  }, [count]);
+
   useEffect(() => {
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
