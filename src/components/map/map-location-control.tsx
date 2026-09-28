@@ -121,10 +121,13 @@ export function MapLocationControl({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={t(sharing ? "locateButtonAriaLabelSharing" : "locateButtonAriaLabel")}
-        className="fixed bottom-24 right-6 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-card/95 shadow-md backdrop-blur-sm transition-transform hover:scale-105"
+        className="fixed bottom-24 right-6 z-30 flex h-11 items-center gap-2 rounded-full bg-card/95 px-4 shadow-md backdrop-blur-sm transition-transform hover:scale-105"
         style={{ color: sharing ? "var(--teal2)" : "var(--text)" }}
       >
-        <LocateFixed className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+        <LocateFixed className="h-[18px] w-[18px] shrink-0" strokeWidth={2} aria-hidden />
+        <span className="text-sm font-semibold">
+          {t(sharing ? "locateButtonLabelSharing" : "locateButtonLabel")}
+        </span>
       </button>
 
       <Modal

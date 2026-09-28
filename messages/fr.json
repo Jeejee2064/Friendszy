@@ -483,6 +483,8 @@
   "MapLocation": {
     "locateButtonAriaLabel": "Me localiser",
     "locateButtonAriaLabelSharing": "Gérer le partage de ma position",
+    "locateButtonLabel": "Me localiser",
+    "locateButtonLabelSharing": "Visible sur la carte",
     "consentTitle": "Partager votre position sur la carte ?",
     "consentBody": "Vous pouvez utiliser votre position pour vous repérer vous-même sur la carte, ou accepter qu'elle soit aussi visible (de façon approximative) par les autres utilisateurs. Rien n'est jamais partagé sans votre accord, et vous pouvez arrêter à tout moment.",
     "selfOnlyButton": "Me repérer, sans être vu·e",

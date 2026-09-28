@@ -483,6 +483,8 @@
   "MapLocation": {
     "locateButtonAriaLabel": "Ubicarme",
     "locateButtonAriaLabelSharing": "Gestionar el uso compartido de mi ubicación",
+    "locateButtonLabel": "Ubicarme",
+    "locateButtonLabelSharing": "Visible en el mapa",
     "consentTitle": "¿Compartir tu ubicación en el mapa?",
     "consentBody": "Puedes usar tu ubicación para ubicarte a ti mismo/a en el mapa, o aceptar que también sea visible (de forma aproximada) para otros usuarios. Nunca se comparte nada sin tu consentimiento, y puedes detenerlo en cualquier momento.",
     "selfOnlyButton": "Ubicarme, sin ser visto/a",

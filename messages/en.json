@@ -483,6 +483,8 @@
   "MapLocation": {
     "locateButtonAriaLabel": "Locate me",
     "locateButtonAriaLabelSharing": "Manage my location sharing",
+    "locateButtonLabel": "Locate me",
+    "locateButtonLabelSharing": "Visible on the map",
     "consentTitle": "Share your location on the map?",
     "consentBody": "You can use your location to find yourself on the map, or agree to also make it visible (approximately) to other users. Nothing is ever shared without your consent, and you can stop at any time.",
     "selfOnlyButton": "Find myself, without being seen",
