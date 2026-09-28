@@ -24,17 +24,24 @@ import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { AgeBracketPicker, type AgeBracket } from "@/components/search/age-bracket-picker";
 import { Modal } from "@/components/ui/modal";
 import { PersonCard } from "@/components/social/person-card";
+import { MapView, type MapPoint } from "@/components/map/map-view";
+import { MapLocationControl } from "@/components/map/map-location-control";
+import { getNearbyVisibleProfiles, type NearbyProfile } from "@/lib/map/queries";
 import { track } from "@/lib/analytics/track";
 
-type Tab = "name" | "discover";
+type Tab = "name" | "discover" | "map";
 type DiscoverStep = "city" | "interests" | "ageGender" | "results";
 
 export function SearchPageClient({
   userId,
   interests,
+  initialCenter,
+  initialMapVisible,
 }: {
   userId: string;
   interests: Interest[];
+  initialCenter: { latitude: number; longitude: number } | null;
+  initialMapVisible: boolean;
 }) {
   const t = useTranslations("Search");
   const tFriends = useTranslations("Friends");
@@ -72,13 +79,36 @@ export function SearchPageClient({
     getMyInterestIds(supabase, userId).then(setMyInterestIds);
   }, [userId]);
 
+  // People who opted into sharing their (fuzzed) position — same source as
+  // the Découvrir map (get_nearby_visible_profiles), unfiltered by the
+  // discover-tab search criteria: the map tab is a browse-by-location
+  // alternative to searching city by city, not a view of the current
+  // results set. Fetched once regardless of which tab is active, same as
+  // Découvrir, so switching to "Carte" never shows a loading flicker.
+  const [nearbyProfiles, setNearbyProfiles] = useState<NearbyProfile[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    getNearbyVisibleProfiles(createClient())
+      .then((rows) => {
+        if (!cancelled) setNearbyProfiles(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const [mapFocusCenter, setMapFocusCenter] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
     if (!interest) return "";
     return localizedInterestLabel(interest, locale);
   };
 
-  async function applyResults(mode: Tab, searchResults: SearchResult[]) {
+  async function applyResults(mode: "name" | "discover", searchResults: SearchResult[]) {
     const supabase = createClient();
     setResults(searchResults);
     track(
@@ -163,7 +193,9 @@ export function SearchPageClient({
     try {
       const supabase = createClient();
       await addFriend(supabase, userId, targetId);
-      track("search_action", { mode: tab, actionType: "add_friend" }, userId);
+      // Only reachable from the results grid (name/discover tabs), never
+      // "map" — the map tab has no add-friend action.
+      track("search_action", { mode: tab === "name" ? "name" : "discover", actionType: "add_friend" }, userId);
       setFriendshipMap((prev) => {
         const next = new Map(prev);
         next.set(targetId, { friendshipId: "" });
@@ -189,7 +221,9 @@ export function SearchPageClient({
     try {
       const supabase = createClient();
       const conversationId = await getOrCreateConversation(supabase, userId, targetId);
-      track("search_action", { mode: tab, actionType: "message" }, userId);
+      // Only reachable from the results grid (name/discover tabs), never
+      // "map" — the map tab has no message action of its own.
+      track("search_action", { mode: tab === "name" ? "name" : "discover", actionType: "message" }, userId);
       router.push(`/messages?c=${conversationId}`);
     } finally {
       setMessagingId(null);
@@ -198,6 +232,16 @@ export function SearchPageClient({
 
   const activeFilterCount =
     (genders.length > 0 ? 1 : 0) + (ageBrackets.length > 0 ? 1 : 0);
+
+  const personPoints: MapPoint[] = nearbyProfiles.map((profile) => ({
+    id: profile.id,
+    kind: "person",
+    latitude: profile.latitude,
+    longitude: profile.longitude,
+    title: profile.full_name ?? "",
+    imageUrl: profile.avatar_url,
+    href: `/profile/${profile.id}`,
+  }));
 
   function renderResultsGrid() {
     return (
@@ -316,9 +360,27 @@ export function SearchPageClient({
         <TabButton active={tab === "name"} onClick={() => handleTabChange("name")}>
           {t("nameTab")}
         </TabButton>
+        <TabButton active={tab === "map"} onClick={() => handleTabChange("map")}>
+          🗺️ {t("mapTab")}
+        </TabButton>
       </div>
 
-      {tab === "name" ? (
+      {tab === "map" ? (
+        <div className="relative">
+          <MapView
+            points={personPoints}
+            initialCenter={initialCenter}
+            focusCenter={mapFocusCenter}
+            height="70vh"
+            className="overflow-hidden rounded-2xl border border-border"
+          />
+          <MapLocationControl
+            initialSharing={initialMapVisible}
+            initialCenter={initialCenter}
+            onLocate={setMapFocusCenter}
+          />
+        </div>
+      ) : tab === "name" ? (
         <>
           <form onSubmit={handleNameSubmit} className="mb-6 flex flex-col gap-3 sm:flex-row">
             <input

@@ -257,6 +257,7 @@
     "title": "Rechercher",
     "nameTab": "Par nom",
     "discoverTab": "Trouver des amis",
+    "mapTab": "Carte",
     "namePlaceholder": "Prénom et nom",
     "nameEmptyHint": "Tape le prénom et le nom pour commencer la recherche.",
     "cityExample": "Ex : Montréal, QC",

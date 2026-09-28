@@ -257,6 +257,7 @@
     "title": "Search",
     "nameTab": "By name",
     "discoverTab": "Find friends",
+    "mapTab": "Map",
     "namePlaceholder": "First and last name",
     "nameEmptyHint": "Type the first and last name to start searching.",
     "cityExample": "E.g.: Montreal, QC",
