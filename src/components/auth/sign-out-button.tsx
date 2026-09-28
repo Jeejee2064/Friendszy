@@ -7,9 +7,11 @@ import { signOutUser } from "@/lib/auth";
 import { useGoOffline } from "@/lib/presence/presence-context";
 
 export function SignOutButton({
+  id,
   className,
   iconOnly = true,
 }: {
+  id?: string;
   className?: string;
   iconOnly?: boolean;
 }) {
@@ -38,6 +40,7 @@ export function SignOutButton({
 
   return (
     <button
+      id={id}
       type="button"
       onClick={handleSignOut}
       disabled={loading}

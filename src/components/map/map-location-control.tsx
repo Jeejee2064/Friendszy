@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { LocateFixed } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
@@ -8,6 +8,13 @@ import { createClient } from "@/lib/supabase/client";
 import { getBrowserPosition } from "@/lib/map/geolocation";
 import { clearMapLocation, setMapLocation } from "@/lib/map/queries";
 import { LocationPickerMap } from "@/components/map/location-picker-map";
+
+// Shown automatically at most once ever per browser — same "set the moment
+// we decide to show it" rule as the push/PWA-install banners, so it can
+// never reappear later just because the user closed it. Only relevant when
+// the user is already sharing: someone who hasn't opted in yet gets the
+// consent modal instead, only on explicit tap of the locate button.
+const SHOWN_STORAGE_KEY = "friendszy:map-sharing-tip-shown";
 
 /**
  * Floating "locate me" control for the Discover map. Three distinct
@@ -27,6 +34,10 @@ import { LocationPickerMap } from "@/components/map/location-picker-map";
  * choose on map / stop sharing" instead of asking the consent question
  * again — the manual picker stays available afterwards too, to let
  * someone move their point later without going through GPS.
+ * The one exception to "never automatic": if the user is already sharing,
+ * this same reminder modal auto-opens the first time they land on the
+ * Carte tab (see SHOWN_STORAGE_KEY) so they're not surprised their
+ * position is visible — it never auto-turns sharing on, only reminds.
  */
 export function MapLocationControl({
   initialSharing,
@@ -47,6 +58,19 @@ export function MapLocationControl({
     latitude: number | null;
     longitude: number | null;
   }>({ latitude: initialCenter?.latitude ?? null, longitude: initialCenter?.longitude ?? null });
+
+  useEffect(() => {
+    if (!sharing) return;
+    try {
+      if (localStorage.getItem(SHOWN_STORAGE_KEY)) return;
+      localStorage.setItem(SHOWN_STORAGE_KEY, "1");
+    } catch {
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function withPosition(onSuccess: (coords: GeolocationCoordinates) => Promise<void>) {
     setLoading(true);

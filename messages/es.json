@@ -72,7 +72,8 @@
     "search": "Buscar",
     "discover": "Descubrir",
     "profile": "Mi perfil",
-    "admin": "Admin"
+    "admin": "Admin",
+    "logout": "Cerrar sesión"
   },
   "NavTour": {
     "title": "Recorrido guiado de la navegación",
@@ -90,7 +91,8 @@
       "friends": "La lista de tus amigos y tus solicitudes de amistad pendientes.",
       "groups": "Únete o crea grupos en torno a tus pasiones.",
       "discover": "Socios y eventos cerca de ti por descubrir.",
-      "admin": "Las herramientas de moderación y administración de la plataforma."
+      "admin": "Las herramientas de moderación y administración de la plataforma.",
+      "logout": "El ícono de la puerta: para cerrar sesión de tu cuenta de forma segura."
     }
   },
   "Dashboard": {

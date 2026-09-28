@@ -72,7 +72,8 @@
     "search": "Search",
     "discover": "Discover",
     "profile": "My profile",
-    "admin": "Admin"
+    "admin": "Admin",
+    "logout": "Sign out"
   },
   "NavTour": {
     "title": "Guided tour of the navigation",
@@ -90,7 +91,8 @@
       "friends": "Your friends list and pending friend requests.",
       "groups": "Join or create groups around your passions.",
       "discover": "Partners and events near you to discover.",
-      "admin": "The platform's moderation and administration tools."
+      "admin": "The platform's moderation and administration tools.",
+      "logout": "The door icon: sign out of your account safely."
     }
   },
   "Dashboard": {

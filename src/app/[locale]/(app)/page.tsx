@@ -103,13 +103,6 @@ export default async function DashboardPage({
                 subtitle={t("cards.searchSubtitle")}
               />
               <QuickAccessCard
-                href="/discover"
-                icon="🧭"
-                iconBg="var(--dark)"
-                title={t("cards.discoverTitle")}
-                subtitle={t("cards.discoverSubtitle")}
-              />
-              <QuickAccessCard
                 href="/messages"
                 icon="💬"
                 iconBg="var(--teal1)"
@@ -129,6 +122,13 @@ export default async function DashboardPage({
                 iconBg="var(--grad)"
                 title={t("cards.groupsTitle")}
                 subtitle={t("cards.groupsSubtitle", { count: stats.groupsCount })}
+              />
+              <QuickAccessCard
+                href="/discover"
+                icon="🧭"
+                iconBg="var(--dark)"
+                title={t("cards.discoverTitle")}
+                subtitle={t("cards.discoverSubtitle")}
               />
               <QuickAccessCard
                 href="/profile"

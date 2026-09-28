@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
 import { SidebarNav } from "./sidebar-nav";
 import { NavTour } from "./nav-tour";
-import { getNavKeys } from "./nav-items";
+import { getNavKeys, navTourTargetId } from "./nav-items";
 import { LocaleToggle } from "./locale-toggle";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { InstallPromptBanner } from "@/components/pwa/install-prompt-banner";
@@ -82,7 +82,7 @@ export async function AppShell({
 
         <div className="mt-auto flex flex-col gap-3 px-2 md:px-4">
           <LocaleToggle />
-          <SignOutButton />
+          <SignOutButton id={navTourTargetId("logout")} />
           <p className="hidden text-xs text-muted md:block">
             🛡️ {t("security")}: securite@friendszy.ca
           </p>

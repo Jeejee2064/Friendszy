@@ -17,7 +17,9 @@ const VIEWPORT_MARGIN = 12;
  * One-time guided tour of the main nav, shown right after onboarding: a
  * welcome screen first (launch or skip), then a bubble per real nav icon
  * (see `getNavKeys`/`navTourTargetId` in nav-items.ts — the sequence is
- * never a separate hardcoded list, it's exactly what SidebarNav renders).
+ * never a separate hardcoded list, it's exactly what SidebarNav renders),
+ * plus one final step for the sign-out button (AppShell renders it outside
+ * SidebarNav, so it's appended after `navKeys` rather than folded in).
  * Gated by `profiles.has_seen_nav_tour`; skipping the welcome screen and
  * finishing/skipping the icon steps all end it for good, via `finish()`.
  */
@@ -47,7 +49,11 @@ export function NavTour({
   // component isn't remounted by client-side nav, so we can't rely on
   // `initialSeen` alone after the first dismissal).
   const active = !dismissed && pathname === "/" && navKeys.length > 0;
-  const key = navKeys[Math.min(step, navKeys.length - 1)];
+  // "logout" isn't a SidebarNav item (see nav-items.ts), so it's appended
+  // here rather than folded into navKeys — it stays a final, separate step
+  // pointing at AppShell's sign-out button instead of a nav link.
+  const steps = [...navKeys, "logout"];
+  const key = steps[Math.min(step, steps.length - 1)];
 
   // Let InstallPromptBanner know the tour is on screen so it can hold off
   // opening on top of it (see install-context.tsx).
@@ -143,7 +149,7 @@ export function NavTour({
 
   if (!rect) return null;
 
-  const isLast = step === navKeys.length - 1;
+  const isLast = step === steps.length - 1;
 
   const highlightStyle = {
     top: rect.top - HIGHLIGHT_PAD,
@@ -178,7 +184,7 @@ export function NavTour({
         style={{ top: bubbleTop, left: bubbleLeft, width: BUBBLE_WIDTH }}
       >
         <p className="text-xs font-bold uppercase tracking-wide text-muted">
-          {tTour("stepOf", { step: step + 1, total: navKeys.length })}
+          {tTour("stepOf", { step: step + 1, total: steps.length })}
         </p>
         <p className="mt-1 font-extrabold text-text">{t(key)}</p>
         <p className="mt-1 text-sm text-muted">{tTour(`steps.${key}`)}</p>

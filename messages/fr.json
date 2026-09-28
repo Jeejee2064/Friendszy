@@ -72,7 +72,8 @@
     "search": "Rechercher",
     "discover": "Découvrir",
     "profile": "Mon profil",
-    "admin": "Admin"
+    "admin": "Admin",
+    "logout": "Se déconnecter"
   },
   "NavTour": {
     "title": "Visite guidée de la navigation",
@@ -90,7 +91,8 @@
       "friends": "La liste de tes amis et tes demandes d'amitié en attente.",
       "groups": "Rejoins ou crée des groupes autour de tes passions.",
       "discover": "Des partenaires et événements près de chez toi à découvrir.",
-      "admin": "Les outils de modération et d'administration de la plateforme."
+      "admin": "Les outils de modération et d'administration de la plateforme.",
+      "logout": "L'icône de la porte : pour te déconnecter de ton compte en toute sécurité."
     }
   },
   "Dashboard": {
