@@ -486,11 +486,16 @@
     "consentBody": "Puedes usar tu ubicación para ubicarte a ti mismo/a en el mapa, o aceptar que también sea visible (de forma aproximada) para otros usuarios. Nunca se comparte nada sin tu consentimiento, y puedes detenerlo en cualquier momento.",
     "selfOnlyButton": "Ubicarme, sin ser visto/a",
     "visibleButton": "Ubicarme y ser visible para otros",
+    "chooseOnMapButton": "Elegirla yo mismo/a en el mapa",
     "cancelButton": "Cancelar",
     "sharingTitle": "Eres visible en el mapa",
     "sharingBody": "Otros usuarios ven tu ubicación aproximada (nunca exacta). Puedes actualizarla o dejar de compartir en cualquier momento.",
     "refreshButton": "Actualizar mi ubicación",
     "stopButton": "Dejar de compartir",
+    "pickerTitle": "Elige tu ubicación",
+    "pickerHint": "Haz clic en el mapa o arrastra el marcador para elegir dónde aparecerás. Se calculará automáticamente una posición aproximada, nunca tu ubicación exacta.",
+    "pickerConfirmButton": "Confirmar esta ubicación",
+    "backButton": "Atrás",
     "error": "No se pudo obtener tu ubicación. Verifica que el acceso a la ubicación esté permitido en tu navegador."
   },
   "PublicLanding": {

@@ -486,11 +486,16 @@
     "consentBody": "You can use your location to find yourself on the map, or agree to also make it visible (approximately) to other users. Nothing is ever shared without your consent, and you can stop at any time.",
     "selfOnlyButton": "Find myself, without being seen",
     "visibleButton": "Find myself and be visible to others",
+    "chooseOnMapButton": "Choose it myself on the map",
     "cancelButton": "Cancel",
     "sharingTitle": "You're visible on the map",
     "sharingBody": "Other users see your approximate location (never exact). You can refresh it or stop sharing at any time.",
     "refreshButton": "Refresh my location",
     "stopButton": "Stop sharing",
+    "pickerTitle": "Choose your location",
+    "pickerHint": "Click on the map or drag the marker to choose where you'll appear. An approximate position is calculated automatically — never your exact location.",
+    "pickerConfirmButton": "Confirm this location",
+    "backButton": "Back",
     "error": "Couldn't get your location. Check that location access is allowed for your browser."
   },
   "PublicLanding": {

@@ -447,7 +447,11 @@ export function DiscoverPageClient({
       )}
 
       {view === "map" && (
-        <MapLocationControl initialSharing={initialMapVisible} onLocate={setFocusCenter} />
+        <MapLocationControl
+          initialSharing={initialMapVisible}
+          initialCenter={initialCenter}
+          onLocate={setFocusCenter}
+        />
       )}
 
       <DiscoverFab />
