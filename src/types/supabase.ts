@@ -504,7 +504,7 @@ export type Database = {
           created_at: string
           creator_id: string | null
           description: string | null
-          ends_at: string
+          ends_at: string | null
           id: string
           interest_id: number
           latitude: number | null
@@ -521,7 +521,7 @@ export type Database = {
           created_at?: string
           creator_id?: string | null
           description?: string | null
-          ends_at: string
+          ends_at?: string | null
           id?: string
           interest_id: number
           latitude?: number | null
@@ -538,7 +538,7 @@ export type Database = {
           created_at?: string
           creator_id?: string | null
           description?: string | null
-          ends_at?: string
+          ends_at?: string | null
           id?: string
           interest_id?: number
           latitude?: number | null
