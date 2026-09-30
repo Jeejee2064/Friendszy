@@ -31,13 +31,14 @@ export default async function EventPage({
   const event = await getEventById(supabase, id);
   if (!event) notFound();
 
-  const [interests, myRegistration, registrationCounts, photos, myInterestedIds] =
+  const [interests, myRegistration, registrationCounts, photos, myInterestedIds, { data: me }] =
     await Promise.all([
       getInterests(supabase),
       getMyRegistration(supabase, id, user.id),
       getRegistrationCountsByEvent(supabase, [id]),
       listEventPhotos(supabase, id),
       getMyInterestedEventIds(supabase, [id], user.id),
+      supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle(),
     ]);
   const interest = interests.find((i) => i.id === event.interest_id) ?? null;
   const isRegistered = myRegistration !== null;
@@ -72,6 +73,7 @@ export default async function EventPage({
       isRegistered={isRegistered}
       isInterested={isInterested}
       isOrganizer={isOrganizer}
+      canEdit={isOrganizer || (me?.is_admin ?? false)}
       photos={photos}
       initialMessages={initialMessages}
       initialSenders={initialSenders}

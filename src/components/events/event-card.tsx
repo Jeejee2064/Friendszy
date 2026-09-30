@@ -44,14 +44,10 @@ export function EventCard({ event }: { event: EventCardData }) {
           </div>
         )}
         <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
-          {format.dateTime(new Date(event.starts_at), { dateStyle: "medium", timeStyle: "short" })}
-          {" → "}
-          {event.ends_at
-            ? format.dateTime(new Date(event.ends_at), {
-                ...(isSameDay ? {} : { dateStyle: "medium" }),
-                timeStyle: "short",
-              })
-            : t("endUndetermined")}
+          {format.dateTime(new Date(event.starts_at), { dateStyle: "medium" })}
+          {event.ends_at && !isSameDay
+            ? ` → ${format.dateTime(new Date(event.ends_at), { dateStyle: "medium" })}`
+            : ""}
         </span>
         {isFull && (
           <span

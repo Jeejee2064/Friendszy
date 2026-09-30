@@ -43,6 +43,7 @@ export function EventViewClient({
   isRegistered: initialIsRegistered,
   isInterested: initialIsInterested,
   isOrganizer,
+  canEdit,
   photos,
   initialMessages,
   initialSenders,
@@ -56,6 +57,7 @@ export function EventViewClient({
   isRegistered: boolean;
   isInterested: boolean;
   isOrganizer: boolean;
+  canEdit: boolean;
   photos: EventPhotoRow[];
   initialMessages: EventMessageRow[];
   initialSenders: ProfileSummary[];
@@ -416,7 +418,7 @@ export function EventViewClient({
         </div>
       </div>
 
-      {isOrganizer && (
+      {canEdit && (
         <div className="mx-6 mb-4 rounded-2xl border border-border bg-card p-6 md:mx-10">
           <Link
             href={`/events/${event.id}/edit`}

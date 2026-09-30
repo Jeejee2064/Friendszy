@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LogOut } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { getPathname } from "@/i18n/navigation";
 import { signOutUser } from "@/lib/auth";
@@ -50,7 +51,7 @@ export function SignOutButton({
       }
       style={{ color: "#a8543a" }}
     >
-      <span className="text-lg">🚪</span>
+      <LogOut size={20} strokeWidth={2.5} aria-hidden="true" />
       <span className={iconOnly ? "hidden md:inline" : "inline"}>
         {t("signOut.submit")}
       </span>
