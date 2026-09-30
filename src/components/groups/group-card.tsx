@@ -92,7 +92,7 @@ export function GroupCard({
         <button
           type="button"
           onClick={() => setDetailsOpen(true)}
-          className="truncate text-left font-bold text-text hover:underline"
+          className="block w-full truncate text-left font-bold text-text hover:underline"
         >
           {group.name}
         </button>
