@@ -623,6 +623,10 @@
   "Events": {
     "form": {
       "createTitle": "Crear un evento",
+      "editTitle": "Editar el evento",
+      "endUndeterminedLabel": "Fecha de fin por determinar",
+      "endUndetermined": "por determinar",
+      "save": "Guardar cambios",
       "stepOf": "Paso {step} / {total}",
       "steps": {
         "basics": "Información básica",
@@ -671,6 +675,7 @@
     "discovery": {
       "spotsUnlimited": "{count} inscritos",
       "spotsLimited": "{count} / {capacity} inscritos",
+      "endUndetermined": "por determinar",
       "full": "Completo",
       "detailsLink": "Ver el evento"
     },
@@ -700,6 +705,8 @@
       "chatTitle": "Chat",
       "chatLockedNotice": "Inscríbete para acceder al chat.",
       "cancel": "Cancelar",
+      "editEventButton": "Editar el evento",
+      "endUndetermined": "por determinar",
       "deleteEventTitle": "Eliminar el evento",
       "deleteEventBody": "Esta acción es irreversible: el evento, sus inscripciones y el chat se eliminarán definitivamente.",
       "deleteEventButton": "Eliminar el evento",

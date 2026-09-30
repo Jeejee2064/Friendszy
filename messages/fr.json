@@ -489,7 +489,7 @@
     "locateButtonLabelSharing": "Visible sur la carte",
     "consentTitle": "Partager votre position sur la carte ?",
     "consentBody": "Vous pouvez utiliser votre position pour vous repérer vous-même sur la carte, ou accepter qu'elle soit aussi visible (de façon approximative) par les autres utilisateurs. Rien n'est jamais partagé sans votre accord, et vous pouvez arrêter à tout moment.",
-    "selfOnlyButton": "Me repérer, sans être vu·e",
+    "selfOnlyButton": "Me repérer, sans être vu",
     "visibleButton": "Me repérer et être visible par les autres",
     "chooseOnMapButton": "Choisir moi-même sur la carte",
     "cancelButton": "Annuler",
@@ -623,6 +623,10 @@
   "Events": {
     "form": {
       "createTitle": "Créer un événement",
+      "editTitle": "Modifier l'événement",
+      "endUndeterminedLabel": "Date de fin indéterminée",
+      "endUndetermined": "indéterminée",
+      "save": "Enregistrer les modifications",
       "stepOf": "Étape {step} / {total}",
       "steps": {
         "basics": "Infos de base",
@@ -671,6 +675,7 @@
     "discovery": {
       "spotsUnlimited": "{count} inscrit·es",
       "spotsLimited": "{count} / {capacity} inscrit·es",
+      "endUndetermined": "indéterminée",
       "full": "Complet",
       "detailsLink": "Voir l'événement"
     },
@@ -700,6 +705,8 @@
       "chatTitle": "Discussion",
       "chatLockedNotice": "Inscris-toi pour accéder à la discussion.",
       "cancel": "Annuler",
+      "editEventButton": "Modifier l'événement",
+      "endUndetermined": "indéterminée",
       "deleteEventTitle": "Supprimer l'événement",
       "deleteEventBody": "Cette action est irréversible : l'événement, ses inscriptions et la discussion seront définitivement supprimés.",
       "deleteEventButton": "Supprimer l'événement",

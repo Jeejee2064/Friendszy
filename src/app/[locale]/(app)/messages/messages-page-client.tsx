@@ -634,7 +634,7 @@ function ConversationPane({
   const closingRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const messageInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const isTypingRef = useRef(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1131,6 +1131,14 @@ function ConversationPane({
     if (replyingTo) messageInputRef.current?.focus();
   }, [replyingTo]);
 
+  // Agrandit la zone de saisie selon le texte, jusqu'à la hauteur max (ensuite elle défile).
+  useEffect(() => {
+    const el = messageInputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [content]);
+
   async function handleSend(e: FormEvent) {
     e.preventDefault();
     const text = content.trim();
@@ -1371,14 +1379,21 @@ function ConversationPane({
         />
       )}
 
-      <form onSubmit={handleSend} className="flex gap-2 border-t border-border p-4">
-        <input
+      <form onSubmit={handleSend} className="flex items-end gap-2 border-t border-border p-4">
+        <textarea
           ref={messageInputRef}
-          type="text"
+          rows={1}
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
+          onKeyDown={(e) => {
+            // Entrée envoie, Maj+Entrée insère un retour à la ligne (sauf pendant une composition IME).
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
           placeholder={t("messagePlaceholder")}
-          className="min-w-0 flex-1 rounded-full border border-border px-4 py-2.5 text-sm outline-none focus:border-teal2"
+          className="max-h-32 min-w-0 flex-1 resize-none rounded-2xl border border-border px-4 py-2.5 text-sm outline-none focus:border-teal2"
         />
         <button
           type="submit"

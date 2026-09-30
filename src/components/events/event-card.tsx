@@ -17,6 +17,9 @@ export function EventCard({ event }: { event: EventCardData }) {
       }`
     : null;
 
+  const isSameDay =
+    !!event.ends_at &&
+    new Date(event.starts_at).toDateString() === new Date(event.ends_at).toDateString();
   const isFull = event.capacity != null && event.registrationCount >= event.capacity;
 
   return (
@@ -42,6 +45,13 @@ export function EventCard({ event }: { event: EventCardData }) {
         )}
         <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
           {format.dateTime(new Date(event.starts_at), { dateStyle: "medium", timeStyle: "short" })}
+          {" → "}
+          {event.ends_at
+            ? format.dateTime(new Date(event.ends_at), {
+                ...(isSameDay ? {} : { dateStyle: "medium" }),
+                timeStyle: "short",
+              })
+            : t("endUndetermined")}
         </span>
         {isFull && (
           <span

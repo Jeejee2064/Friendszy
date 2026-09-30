@@ -8,9 +8,11 @@ import {
   attachEventPhotos,
   createEvent,
   removeEventPhotoFile,
+  updateEvent,
   uploadEventPhotoFile,
 } from "@/lib/events/queries";
 import type { Interest } from "@/lib/profile/types";
+import type { EventRow } from "@/lib/events/types";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { AddressAutocomplete } from "@/components/search/address-autocomplete";
 import { GroupInterestSelect } from "@/components/groups/group-interest-select";
@@ -30,6 +32,7 @@ type EventFormState = {
   interestId: number | null;
   startsAt: string; // <input type="datetime-local"> value
   endsAt: string;
+  endUndetermined: boolean;
   capacity: string; // raw input; "" = unlimited
   websiteUrl: string;
   photoUrls: string[];
@@ -38,37 +41,49 @@ type EventFormState = {
   createWithoutOrganizer: boolean;
 };
 
+// ISO (UTC) -> value for <input type="datetime-local"> in the viewer's timezone.
+function toLocalInputValue(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export function EventCreationWizard({
   userId,
   interests,
   isAdmin,
+  event: existingEvent,
 }: {
   userId: string;
   interests: Interest[];
   isAdmin: boolean;
+  // When provided, the wizard edits this event instead of creating one.
+  event?: EventRow;
 }) {
+  const isEdit = !!existingEvent;
   const t = useTranslations("Events.form");
   const format = useFormatter();
   const router = useRouter();
 
-  const [eventId] = useState(() => crypto.randomUUID());
+  const [eventId] = useState(() => existingEvent?.id ?? crypto.randomUUID());
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<EventFormState>({
-    title: "",
-    description: "",
-    interestId: null,
-    startsAt: "",
-    endsAt: "",
-    capacity: "",
-    websiteUrl: "",
+    title: existingEvent?.title ?? "",
+    description: existingEvent?.description ?? "",
+    interestId: existingEvent?.interest_id ?? null,
+    startsAt: existingEvent ? toLocalInputValue(existingEvent.starts_at) : "",
+    endsAt: existingEvent?.ends_at ? toLocalInputValue(existingEvent.ends_at) : "",
+    endUndetermined: existingEvent ? existingEvent.ends_at === null : false,
+    capacity: existingEvent?.capacity != null ? String(existingEvent.capacity) : "",
+    websiteUrl: existingEvent?.website_url ?? "",
     photoUrls: [],
-    city: "",
-    address: "",
+    city: existingEvent?.city ?? "",
+    address: existingEvent?.address ?? "",
     createWithoutOrganizer: false,
   });
   const [coords, setCoords] = useState<{ latitude: number | null; longitude: number | null }>({
-    latitude: null,
-    longitude: null,
+    latitude: existingEvent?.latitude ?? null,
+    longitude: existingEvent?.longitude ?? null,
   });
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -81,7 +96,11 @@ export function EventCreationWizard({
     if (step === 0) {
       if (!form.title.trim()) return t("errors.titleRequired");
       if (form.interestId == null) return t("errors.categoryRequired");
-      if (!form.startsAt || !form.endsAt || new Date(form.endsAt) < new Date(form.startsAt)) {
+      if (
+        !form.startsAt ||
+        (!form.endUndetermined &&
+          (!form.endsAt || new Date(form.endsAt) < new Date(form.startsAt)))
+      ) {
         return t("errors.datesInvalid");
       }
       if (form.websiteUrl.trim() && !/^https?:\/\//i.test(form.websiteUrl.trim())) {
@@ -112,22 +131,28 @@ export function EventCreationWizard({
     setError(null);
     try {
       const supabase = createClient();
+      const fields = {
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        city: form.city.trim(),
+        address: form.address.trim() || null,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        interest_id: form.interestId!,
+        starts_at: new Date(form.startsAt).toISOString(),
+        ends_at: form.endUndetermined ? null : new Date(form.endsAt).toISOString(),
+        capacity: form.capacity.trim() ? Number(form.capacity) : null,
+        website_url: form.websiteUrl.trim() || null,
+      };
+      if (existingEvent) {
+        await updateEvent(supabase, existingEvent.id, fields);
+        router.push(`/events/${existingEvent.id}`);
+        router.refresh();
+        return;
+      }
       const event = await createEvent(
         supabase,
-        {
-          id: eventId,
-          title: form.title.trim(),
-          description: form.description.trim() || null,
-          city: form.city.trim(),
-          address: form.address.trim() || null,
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          interest_id: form.interestId!,
-          starts_at: new Date(form.startsAt).toISOString(),
-          ends_at: new Date(form.endsAt).toISOString(),
-          capacity: form.capacity.trim() ? Number(form.capacity) : null,
-          website_url: form.websiteUrl.trim() || null,
-        },
+        { id: eventId, ...fields },
         isAdmin && form.createWithoutOrganizer ? null : userId
       );
       await attachEventPhotos(supabase, event.id, form.photoUrls);
@@ -143,7 +168,7 @@ export function EventCreationWizard({
   return (
     <main className="flex min-h-screen flex-col items-center gap-8 bg-bg px-6 py-16">
       <div className="text-center">
-        <h1 className="text-2xl font-extrabold text-text">{t("createTitle")}</h1>
+        <h1 className="text-2xl font-extrabold text-text">{isEdit ? t("editTitle") : t("createTitle")}</h1>
         <p className="mt-1 text-sm text-muted">
           {t("stepOf", { step: step + 1, total: STEP_COUNT })}
         </p>
@@ -222,10 +247,19 @@ export function EventCreationWizard({
                   id="event-ends-at"
                   type="datetime-local"
                   value={form.endsAt}
+                  disabled={form.endUndetermined}
                   onChange={(e) => update("endsAt", e.target.value)}
-                  className={fieldInputClass}
+                  className={`${fieldInputClass} disabled:opacity-50`}
                 />
               </div>
+              <label className="col-span-2 flex items-center gap-2 text-sm text-text">
+                <input
+                  type="checkbox"
+                  checked={form.endUndetermined}
+                  onChange={(e) => update("endUndetermined", e.target.checked)}
+                />
+                {t("endUndeterminedLabel")}
+              </label>
             </div>
             <div>
               <label htmlFor="event-capacity" className={fieldLabelClass}>
@@ -255,7 +289,7 @@ export function EventCreationWizard({
                 className={fieldInputClass}
               />
             </div>
-            {isAdmin && (
+            {isAdmin && !isEdit && (
               <label className="flex items-start gap-2 text-sm text-text">
                 <input
                   type="checkbox"
@@ -266,6 +300,7 @@ export function EventCreationWizard({
                 {t("createWithoutOrganizerLabel")}
               </label>
             )}
+            {!isEdit && (
             <div>
               <p className={fieldLabelClass}>{t("photosLabel")}</p>
               <PhotoPicker
@@ -279,6 +314,7 @@ export function EventCreationWizard({
                 maxPhotos={MAX_EVENT_PHOTOS}
               />
             </div>
+            )}
           </div>
         )}
 
@@ -330,11 +366,13 @@ export function EventCreationWizard({
                     timeStyle: "short",
                   })}
                 {" → "}
-                {form.endsAt &&
-                  format.dateTime(new Date(form.endsAt), {
-                    dateStyle: "long",
-                    timeStyle: "short",
-                  })}
+                {form.endUndetermined
+                  ? t("endUndetermined")
+                  : form.endsAt &&
+                    format.dateTime(new Date(form.endsAt), {
+                      dateStyle: "long",
+                      timeStyle: "short",
+                    })}
               </p>
             </div>
             <div>
@@ -382,7 +420,7 @@ export function EventCreationWizard({
             className="rounded-full px-6 py-2.5 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ backgroundImage: "var(--grad)" }}
           >
-            {pending ? "…" : step === STEP_COUNT - 1 ? t("finish") : t("next")}
+            {pending ? "…" : step === STEP_COUNT - 1 ? (isEdit ? t("save") : t("finish")) : t("next")}
           </button>
         </div>
       </div>

@@ -89,7 +89,7 @@ export function GroupMessageBubble({
         >
           <div className="group/bubble relative">
             <div
-              className={`rounded-2xl px-4 py-2 text-sm ${
+              className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm ${
                 isRemoved ? "italic text-muted" : isMine ? "text-white" : "text-text"
               }`}
               style={

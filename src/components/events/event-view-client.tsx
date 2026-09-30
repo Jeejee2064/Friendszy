@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { MapPin, Calendar, MessageCircle, Link as LinkIcon, Share2, Users } from "lucide-react";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import {
@@ -15,6 +15,7 @@ import {
   markEventInterest,
   unmarkEventInterest,
   getEventRegistrants,
+  hasEventEnded,
 } from "@/lib/events/queries";
 import type {
   EventRow,
@@ -90,7 +91,7 @@ export function EventViewClient({
   const confirmWord = t("deleteConfirmWord");
   const canDelete = confirmText.trim().toUpperCase() === confirmWord.toUpperCase();
 
-  const hasEnded = new Date(event.ends_at) < new Date();
+  const hasEnded = hasEventEnded(event);
   const isFull = event.capacity != null && registrationCount >= event.capacity;
   const interestLabel = interest
     ? `${interest.emoji ? `${interest.emoji} ` : ""}${
@@ -270,10 +271,12 @@ export function EventViewClient({
                   timeStyle: "short",
                 })}
                 {" → "}
-                {format.dateTime(new Date(event.ends_at), {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                })}
+                {event.ends_at
+                  ? format.dateTime(new Date(event.ends_at), {
+                      dateStyle: "long",
+                      timeStyle: "short",
+                    })
+                  : t("endUndetermined")}
               </p>
               <p className="flex items-center gap-1.5 text-muted">
                 <MapPin className="h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
@@ -412,6 +415,17 @@ export function EventViewClient({
           )}
         </div>
       </div>
+
+      {isOrganizer && (
+        <div className="mx-6 mb-4 rounded-2xl border border-border bg-card p-6 md:mx-10">
+          <Link
+            href={`/events/${event.id}/edit`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-bold text-text transition-colors hover:border-teal2 hover:text-teal2"
+          >
+            {t("editEventButton")}
+          </Link>
+        </div>
+      )}
 
       {isOrganizer && (
         <div className="mx-6 mb-10 rounded-2xl border border-border bg-card p-6 md:mx-10">

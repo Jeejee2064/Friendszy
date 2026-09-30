@@ -623,6 +623,10 @@
   "Events": {
     "form": {
       "createTitle": "Create an event",
+      "editTitle": "Edit event",
+      "endUndeterminedLabel": "End date to be determined",
+      "endUndetermined": "TBD",
+      "save": "Save changes",
       "stepOf": "Step {step} / {total}",
       "steps": {
         "basics": "Basics",
@@ -671,6 +675,7 @@
     "discovery": {
       "spotsUnlimited": "{count} registered",
       "spotsLimited": "{count} / {capacity} registered",
+      "endUndetermined": "TBD",
       "full": "Full",
       "detailsLink": "View event"
     },
@@ -700,6 +705,8 @@
       "chatTitle": "Chat",
       "chatLockedNotice": "Register to access the chat.",
       "cancel": "Cancel",
+      "editEventButton": "Edit event",
+      "endUndetermined": "TBD",
       "deleteEventTitle": "Delete event",
       "deleteEventBody": "This action is irreversible: the event, its registrations, and the chat will be permanently deleted.",
       "deleteEventButton": "Delete event",

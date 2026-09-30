@@ -196,7 +196,7 @@ export function GroupViewClient({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card">
           {headerBlock}
 
-          <div className="flex gap-2 border-b border-border px-4 py-2">
+          <div className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2 sm:gap-2 sm:px-4">
             <TabButton active={tab === "chat"} onClick={() => setTab("chat")}>
               {t("chatTab")}
             </TabButton>
@@ -268,7 +268,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
+      className={`flex shrink-0 items-center whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-bold transition-colors sm:px-4 ${
         active ? "text-white" : "text-muted"
       }`}
       style={active ? { backgroundImage: "var(--grad)" } : undefined}

@@ -6,6 +6,17 @@ import { getProfilesByIds } from "@/lib/profile/queries";
 
 type Client = SupabaseClient<Database>;
 
+// An event with no end date ("indéterminée") counts as over this long after
+// it starts — mirrored in get_public_map_points().
+const UNDETERMINED_END_GRACE_MS = 24 * 60 * 60 * 1000;
+
+export function hasEventEnded(event: { starts_at: string; ends_at: string | null }): boolean {
+  const end = event.ends_at
+    ? new Date(event.ends_at).getTime()
+    : new Date(event.starts_at).getTime() + UNDETERMINED_END_GRACE_MS;
+  return end < Date.now();
+}
+
 // creatorId is null for events an admin pre-seeds without becoming their
 // organizer (see events_insert RLS: only an admin may insert creator_id
 // null). Such an event has no auto-registered participant either.
@@ -21,7 +32,7 @@ export async function createEvent(
     longitude: number | null;
     interest_id: number;
     starts_at: string;
-    ends_at: string;
+    ends_at: string | null;
     capacity: number | null;
     website_url: string | null;
   },
@@ -45,6 +56,33 @@ export async function createEvent(
   }
 
   return event;
+}
+
+export async function updateEvent(
+  supabase: Client,
+  eventId: string,
+  fields: {
+    title: string;
+    description: string | null;
+    city: string;
+    address: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    interest_id: number;
+    starts_at: string;
+    ends_at: string | null;
+    capacity: number | null;
+    website_url: string | null;
+  }
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("events")
+    .update(fields)
+    .eq("id", eventId)
+    .select("id");
+  if (error) throw error;
+  // RLS filters silently: zero rows back means the update was refused.
+  if (!data || data.length === 0) throw new Error("Event update not permitted");
 }
 
 export async function getEventById(
@@ -102,9 +140,15 @@ export async function listEvents(
     // start on it — a multi-day event starting before should still appear.
     const dayStart = `${filters.date}T00:00:00.000Z`;
     const dayEnd = `${filters.date}T23:59:59.999Z`;
-    query = query.lte("starts_at", dayEnd).gte("ends_at", dayStart);
+    query = query
+      .lte("starts_at", dayEnd)
+      .or(`ends_at.gte.${dayStart},and(ends_at.is.null,starts_at.gte.${dayStart})`);
   } else if (!filters.includePast) {
-    query = query.gte("ends_at", new Date().toISOString());
+    const now = new Date();
+    const undeterminedCutoff = new Date(now.getTime() - UNDETERMINED_END_GRACE_MS);
+    query = query.or(
+      `ends_at.gte.${now.toISOString()},and(ends_at.is.null,starts_at.gte.${undeterminedCutoff.toISOString()})`
+    );
   }
 
   const { data, error } = await query;
