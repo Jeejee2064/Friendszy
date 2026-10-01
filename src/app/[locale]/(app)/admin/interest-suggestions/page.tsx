@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { listPendingInterestSuggestionsWithProfiles } from "@/lib/admin/queries";
+import { listPendingInterestSuggestionsWithProfiles, listInterestCategories } from "@/lib/admin/queries";
 import { getInterests } from "@/lib/profile/queries";
 import { AdminInterestSuggestionsClient } from "./admin-interest-suggestions-client";
 
@@ -14,9 +14,10 @@ export default async function AdminInterestSuggestionsPage() {
   // suggestions themselves to power the client's own "looks similar to an
   // existing interest?" hint — a plain client-side text comparison, no
   // extra round trip needed once both lists are in hand.
-  const [suggestions, allInterests] = await Promise.all([
+  const [suggestions, allInterests, categories] = await Promise.all([
     listPendingInterestSuggestionsWithProfiles(supabase),
     getInterests(supabase),
+    listInterestCategories(supabase),
   ]);
 
   return (
@@ -24,6 +25,7 @@ export default async function AdminInterestSuggestionsPage() {
       adminId={user!.id}
       initialSuggestions={suggestions}
       allInterests={allInterests}
+      initialCategories={categories}
     />
   );
 }

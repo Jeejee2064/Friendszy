@@ -11,9 +11,9 @@ import { LocationPickerMap } from "@/components/map/location-picker-map";
 
 // Shown automatically at most once ever per browser — same "set the moment
 // we decide to show it" rule as the push/PWA-install banners, so it can
-// never reappear later just because the user closed it. Only relevant when
-// the user is already sharing: someone who hasn't opted in yet gets the
-// consent modal instead, only on explicit tap of the locate button.
+// never reappear later just because the user closed it. Opens the consent
+// modal for someone who hasn't opted in yet, or the reminder modal for
+// someone already sharing. Nothing is shared until they pick an option.
 const SHOWN_STORAGE_KEY = "friendszy:map-sharing-tip-shown";
 
 /**
@@ -34,19 +34,21 @@ const SHOWN_STORAGE_KEY = "friendszy:map-sharing-tip-shown";
  * choose on map / stop sharing" instead of asking the consent question
  * again — the manual picker stays available afterwards too, to let
  * someone move their point later without going through GPS.
- * The one exception to "never automatic": if the user is already sharing,
- * this same reminder modal auto-opens the first time they land on the
- * Carte tab (see SHOWN_STORAGE_KEY) so they're not surprised their
- * position is visible — it never auto-turns sharing on, only reminds.
+ * The one exception to "never automatic": the first time the user lands on
+ * the Search page (any tab, see SHOWN_STORAGE_KEY) the modal opens by itself
+ * — consent question, or reminder if already sharing. It never turns
+ * sharing on by itself, only asks/reminds.
  */
 export function MapLocationControl({
   initialSharing,
   initialCenter,
   onLocate,
+  showButton = true,
 }: {
   initialSharing: boolean;
   initialCenter: { latitude: number; longitude: number } | null;
   onLocate: (coords: { latitude: number; longitude: number }) => void;
+  showButton?: boolean;
 }) {
   const t = useTranslations("MapLocation");
   const [sharing, setSharing] = useState(initialSharing);
@@ -57,10 +59,12 @@ export function MapLocationControl({
   const [pickedCoords, setPickedCoords] = useState<{
     latitude: number | null;
     longitude: number | null;
-  }>({ latitude: initialCenter?.latitude ?? null, longitude: initialCenter?.longitude ?? null });
+  }>({
+    latitude: initialCenter?.latitude ?? null,
+    longitude: initialCenter?.longitude ?? null,
+  });
 
   useEffect(() => {
-    if (!sharing) return;
     try {
       if (localStorage.getItem(SHOWN_STORAGE_KEY)) return;
       localStorage.setItem(SHOWN_STORAGE_KEY, "1");
@@ -72,7 +76,9 @@ export function MapLocationControl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function withPosition(onSuccess: (coords: GeolocationCoordinates) => Promise<void>) {
+  async function withPosition(
+    onSuccess: (coords: GeolocationCoordinates) => Promise<void>,
+  ) {
     setLoading(true);
     setError(false);
     try {
@@ -122,9 +128,16 @@ export function MapLocationControl({
     setLoading(true);
     setError(false);
     try {
-      await setMapLocation(createClient(), pickedCoords.latitude, pickedCoords.longitude);
+      await setMapLocation(
+        createClient(),
+        pickedCoords.latitude,
+        pickedCoords.longitude,
+      );
       setSharing(true);
-      onLocate({ latitude: pickedCoords.latitude, longitude: pickedCoords.longitude });
+      onLocate({
+        latitude: pickedCoords.latitude,
+        longitude: pickedCoords.longitude,
+      });
       setStep("choice");
       setOpen(false);
     } catch {
@@ -141,30 +154,48 @@ export function MapLocationControl({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t(sharing ? "locateButtonAriaLabelSharing" : "locateButtonAriaLabel")}
-        className="fixed bottom-24 right-6 z-30 flex h-11 items-center gap-2 rounded-full bg-card/95 px-4 shadow-md backdrop-blur-sm transition-transform hover:scale-105"
-        style={{ color: sharing ? "var(--teal2)" : "var(--text)" }}
-      >
-        <LocateFixed className="h-[18px] w-[18px] shrink-0" strokeWidth={2} aria-hidden />
-        <span className="text-sm font-semibold">
-          {t(sharing ? "locateButtonLabelSharing" : "locateButtonLabel")}
-        </span>
-      </button>
+      {showButton && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={t(
+            sharing ? "locateButtonAriaLabelSharing" : "locateButtonAriaLabel",
+          )}
+          className="fixed bottom-24 right-6 z-30 flex h-11 items-center gap-2 rounded-full bg-card/95 px-4 shadow-md backdrop-blur-sm transition-transform hover:scale-105"
+          style={{ color: sharing ? "var(--teal2)" : "var(--text)" }}
+        >
+          <LocateFixed
+            className="h-[18px] w-[18px] shrink-0"
+            strokeWidth={2}
+            aria-hidden
+          />
+          <span className="text-sm font-semibold">
+            {t(sharing ? "locateButtonLabelSharing" : "locateButtonLabel")}
+          </span>
+        </button>
+      )}
 
       <Modal
         open={open}
         onClose={handleClose}
-        title={t(step === "picker" ? "pickerTitle" : sharing ? "sharingTitle" : "consentTitle")}
+        title={t(
+          step === "picker"
+            ? "pickerTitle"
+            : sharing
+              ? "sharingTitle"
+              : "consentTitle",
+        )}
       >
         <div className="flex flex-col gap-4">
           {step === "choice" && (
-            <p className="text-sm text-muted">{t(sharing ? "sharingBody" : "consentBody")}</p>
+            <p className="text-sm text-muted">
+              {t(sharing ? "sharingBody" : "consentBody")}
+            </p>
           )}
 
-          {error && <p className="text-sm font-semibold text-[#e55]">{t("error")}</p>}
+          {error && (
+            <p className="text-sm font-semibold text-[#e55]">{t("error")}</p>
+          )}
 
           {step === "picker" ? (
             <>

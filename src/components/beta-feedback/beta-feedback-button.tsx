@@ -77,7 +77,7 @@ export function BetaFeedbackButton() {
     setFeedback(null);
     try {
       const supabase = createClient();
-      await submitBetaFeedback(supabase, {
+      const saved = await submitBetaFeedback(supabase, {
         userId,
         category,
         message: message.trim(),
@@ -86,6 +86,15 @@ export function BetaFeedbackButton() {
         userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
         screenshotPath,
       });
+      // Notification courriel (bugs uniquement, côté serveur) — sans
+      // incidence sur l'expérience de l'utilisateur si elle échoue.
+      if (category === "bug") {
+        void fetch("/api/beta-feedback/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: saved.id }),
+        }).catch(() => {});
+      }
       setFeedback("success");
       // Auto-close shortly after a successful send rather than making the
       // user dismiss the confirmation themselves.

@@ -2,28 +2,11 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useInterestCategories } from "@/lib/interests/categories";
 import { createClient } from "@/lib/supabase/client";
 import { createInterestSuggestion } from "@/lib/interest-suggestions/queries";
 import { Notice } from "@/components/ui/notice";
 import { CustomSelect } from "@/components/ui/custom-select";
-
-// Kept in sync by hand with the interest_suggestions_category_check
-// constraint (11 values: the 10 real categories + "autre" as the
-// non-blocking fallback) — same category vocabulary CATEGORY_ORDER in
-// InterestsGrid/GroupInterestSelect uses, plus "autre".
-const CATEGORY_VALUES = [
-  "sports",
-  "plein_air",
-  "arts_creatifs",
-  "jeux",
-  "lecture",
-  "cinema_culture_pop",
-  "genres_musicaux",
-  "instruments_musique",
-  "cuisine",
-  "bien_etre",
-  "autre",
-];
 
 export function SuggestInterestForm({
   userId,
@@ -37,6 +20,7 @@ export function SuggestInterestForm({
   const locale = useLocale();
   const t = useTranslations("InterestSuggestions");
   const tCategory = useTranslations("InterestCategories");
+  const { categories, labelFor } = useInterestCategories();
   const [label, setLabel] = useState(initialLabel);
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -93,7 +77,10 @@ export function SuggestInterestForm({
         <CustomSelect
           value={category}
           onChange={setCategory}
-          options={CATEGORY_VALUES.map((value) => ({ value, label: tCategory(value) }))}
+          options={categories.map((c) => ({
+            value: c.slug,
+            label: labelFor(c.slug, locale) ?? (tCategory.has(c.slug) ? tCategory(c.slug) : c.slug),
+          }))}
           placeholder="—"
         />
       </label>

@@ -10,29 +10,13 @@ import {
 } from "@/lib/interest-suggestions/queries";
 import { logAdminAction, createInterest, updateInterest, deleteInterest } from "@/lib/admin/queries";
 import type { InterestSuggestionWithProfile } from "@/lib/admin/types";
-import type { Interest } from "@/lib/profile/types";
+import type { Interest, InterestCategory } from "@/lib/profile/types";
+import { localizedCategoryLabel, invalidateInterestCategories } from "@/lib/interests/categories";
+import { AdminCategoriesSection } from "./admin-categories-section";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import { normalizeForSearch } from "@/lib/text";
 import { Modal } from "@/components/ui/modal";
 import { Notice } from "@/components/ui/notice";
-
-// Same 11 values the interest_suggestions.category CHECK constraint accepts
-// (10 real categories + "autre") — keeping the manual-add/edit form limited
-// to these keeps every interest's category renderable via InterestCategories
-// everywhere else in the app, instead of admins free-typing arbitrary text.
-const CATEGORY_KEYS = [
-  "sports",
-  "plein_air",
-  "arts_creatifs",
-  "jeux",
-  "lecture",
-  "cinema_culture_pop",
-  "genres_musicaux",
-  "instruments_musique",
-  "cuisine",
-  "bien_etre",
-  "autre",
-] as const;
 
 function slugify(value: string): string {
   return normalizeForSearch(value)
@@ -85,10 +69,12 @@ export function AdminInterestSuggestionsClient({
   adminId,
   initialSuggestions,
   allInterests,
+  initialCategories,
 }: {
   adminId: string;
   initialSuggestions: InterestSuggestionWithProfile[];
   allInterests: Interest[];
+  initialCategories: InterestCategory[];
 }) {
   const t = useTranslations("Admin.interestSuggestions");
   // actionSuccess/actionError are shared top-level Admin keys (same ones
@@ -111,6 +97,16 @@ export function AdminInterestSuggestionsClient({
   const [approving, setApproving] = useState(false);
 
   // Interest catalogue (list + manual add/edit/delete) ---------------------
+  const [categories, setCategories] = useState<InterestCategory[]>(initialCategories);
+  const defaultCategory = categories[0]?.slug ?? "autre";
+
+  // Table label first, then the legacy InterestCategories message, then the raw slug.
+  function categoryName(slug: string): string {
+    const row = categories.find((c) => c.slug === slug);
+    if (row) return localizedCategoryLabel(row, locale);
+    return tCategory.has(slug) ? tCategory(slug) : slug;
+  }
+
   const [interests, setInterests] = useState<Interest[]>([...allInterests].sort(sortInterests));
   const [search, setSearch] = useState("");
   const [catalogFeedback, setCatalogFeedback] = useState<{
@@ -123,7 +119,7 @@ export function AdminInterestSuggestionsClient({
   const [iLabelFr, setILabelFr] = useState("");
   const [iLabelEn, setILabelEn] = useState("");
   const [iLabelEs, setILabelEs] = useState("");
-  const [iCategory, setICategory] = useState<string>(CATEGORY_KEYS[0]);
+  const [iCategory, setICategory] = useState<string>(defaultCategory);
   const [iEmoji, setIEmoji] = useState("");
   const [iSlug, setISlug] = useState("");
   const [iSlugTouched, setISlugTouched] = useState(false);
@@ -152,8 +148,12 @@ export function AdminInterestSuggestionsClient({
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(interest);
     }
-    return [...groups.entries()];
-  }, [filteredInterests]);
+    const rank = (slug: string) => {
+      const i = categories.findIndex((c) => c.slug === slug);
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    return [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b));
+  }, [filteredInterests, categories]);
 
   function openCreate() {
     setFormMode("create");
@@ -161,7 +161,7 @@ export function AdminInterestSuggestionsClient({
     setILabelFr("");
     setILabelEn("");
     setILabelEs("");
-    setICategory(CATEGORY_KEYS[0]);
+    setICategory(defaultCategory);
     setIEmoji("");
     setISlug("");
     setISlugTouched(false);
@@ -173,7 +173,7 @@ export function AdminInterestSuggestionsClient({
     setILabelFr(interest.label_fr);
     setILabelEn(interest.label_en);
     setILabelEs(interest.label_es ?? "");
-    setICategory(interest.category ?? CATEGORY_KEYS[0]);
+    setICategory(interest.category ?? defaultCategory);
     setIEmoji(interest.emoji ?? "");
     setISlug(interest.slug);
     setISlugTouched(true); // never silently rewrite an existing, already-referenced slug
@@ -397,9 +397,7 @@ export function AdminInterestSuggestionsClient({
 
                   <p className="text-sm text-muted">
                     {t("categoryLabel")}:{" "}
-                    {tCategory.has(suggestion.category)
-                      ? tCategory(suggestion.category)
-                      : suggestion.category}
+                    {categoryName(suggestion.category)}
                   </p>
 
                   {similar && (
@@ -472,7 +470,7 @@ export function AdminInterestSuggestionsClient({
             {groupedInterests.map(([category, items]) => (
               <div key={category}>
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">
-                  {tCategory.has(category) ? tCategory(category) : category}
+                  {categoryName(category)}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {items.map((interest) => (
@@ -506,6 +504,17 @@ export function AdminInterestSuggestionsClient({
           </div>
         )}
       </section>
+
+      <AdminCategoriesSection
+        adminId={adminId}
+        categories={categories}
+        interests={interests}
+        categoryName={categoryName}
+        onChange={(next) => {
+          setCategories(next);
+          invalidateInterestCategories();
+        }}
+      />
 
       <Modal
         open={!!approveTarget}
@@ -549,9 +558,7 @@ export function AdminInterestSuggestionsClient({
             </label>
             <p className="text-xs text-muted">
               {t("categoryLabel")}:{" "}
-              {tCategory.has(approveTarget.category)
-                ? tCategory(approveTarget.category)
-                : approveTarget.category}
+              {categoryName(approveTarget.category)}
             </p>
 
             <div className="mt-1 flex justify-end gap-2">
@@ -625,9 +632,9 @@ export function AdminInterestSuggestionsClient({
               onChange={(e) => setICategory(e.target.value)}
               className="rounded-lg border border-border px-3 py-2 text-sm normal-case text-text outline-none focus:border-teal2"
             >
-              {CATEGORY_KEYS.map((key) => (
-                <option key={key} value={key}>
-                  {tCategory(key)}
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {categoryName(c.slug)}
                 </option>
               ))}
             </select>

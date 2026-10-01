@@ -209,8 +209,7 @@ export function EventViewClient({
             title: event.title,
             categoryLabel: interestLabel,
             whenLabel: format.dateTime(new Date(event.starts_at), {
-              dateStyle: "medium",
-              timeStyle: "short",
+              dateStyle: "medium"
             }),
             infoLine:
               event.capacity != null
@@ -269,14 +268,12 @@ export function EventViewClient({
               <p className="flex items-center gap-1.5 font-semibold">
                 <Calendar className="h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
                 {format.dateTime(new Date(event.starts_at), {
-                  dateStyle: "long",
-                  timeStyle: "short",
+                  dateStyle: "long"
                 })}
                 {" → "}
                 {event.ends_at
                   ? format.dateTime(new Date(event.ends_at), {
-                      dateStyle: "long",
-                      timeStyle: "short",
+                      dateStyle: "long"
                     })
                   : t("endUndetermined")}
               </p>

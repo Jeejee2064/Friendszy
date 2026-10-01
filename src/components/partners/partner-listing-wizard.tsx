@@ -93,6 +93,13 @@ export function PartnerListingWizard({
     return null;
   }
 
+  function validateAll(): string | null {
+    if (!form.name.trim()) return t("errors.nameRequired");
+    if (form.interestId == null) return t("errors.categoryRequired");
+    if (!form.city.trim()) return t("errors.cityRequired");
+    return null;
+  }
+
   function goNext() {
     const validationError = validateStep();
     if (validationError) {
@@ -109,6 +116,11 @@ export function PartnerListingWizard({
   }
 
   async function finish() {
+    const validationError = validateAll();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setPending(true);
     setError(null);
     try {
@@ -363,6 +375,18 @@ export function PartnerListingWizard({
             </button>
           ) : (
             <span />
+          )}
+
+          {mode === "edit" && step < STEP_COUNT - 1 && (
+            <button
+              type="button"
+              onClick={finish}
+              disabled={pending}
+              className="rounded-full border px-4 py-2.5 text-sm font-bold text-teal2 transition-opacity hover:opacity-80 disabled:opacity-60"
+              style={{ borderColor: "var(--teal2)" }}
+            >
+              {t("saveAndClose")}
+            </button>
           )}
 
           <button

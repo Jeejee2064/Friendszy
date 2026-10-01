@@ -14,6 +14,18 @@ export type ProfilePhoto = Database["public"]["Tables"]["profile_photos"]["Row"]
 // has been re-run against the live schema.
 export type City = { id: number; name: string; created_at: string };
 
+// Hand-written for the same reason as City above — see
+// supabase/migrations/20261001120000_interest_categories.sql. Switch to the
+// generated Row type once `npm run supabase:types` has been re-run.
+export type InterestCategory = {
+  slug: string;
+  label_fr: string;
+  label_en: string;
+  label_es: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 export type Gender = "homme" | "femme" | "non-binaire" | "autre";
 
 export const GENDERS: Gender[] = ["homme", "femme", "non-binaire", "autre"];

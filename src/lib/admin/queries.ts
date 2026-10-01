@@ -7,7 +7,7 @@ import { listOpenReports, listAllReports, type ReportRow } from "@/lib/reports/q
 import { getPartnerListingsByIds, type PartnerListingRow } from "@/lib/partners/queries";
 import { listPendingInterestSuggestions } from "@/lib/interest-suggestions/queries";
 import { listBetaFeedback } from "@/lib/beta-feedback/queries";
-import type { City, Interest } from "@/lib/profile/types";
+import type { City, Interest, InterestCategory } from "@/lib/profile/types";
 import type {
   ModerationStatus,
   ReportWithTarget,
@@ -395,5 +395,76 @@ export async function updateCity(supabase: Client, cityId: number, name: string)
 export async function deleteCity(supabase: Client, cityId: number) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
   const { error } = await (supabase as any).from("cities").delete().eq("id", cityId);
+  if (error) throw error;
+}
+
+// Interest categories (see 20261001120000_interest_categories.sql). Slugs are
+// never edited once created — interests.category references them as plain
+// text, so a rename would orphan every interest in the category.
+// `interest_categories` isn't in the generated Database type yet — `as any`
+// needed until `npm run supabase:types` is re-run post-migration.
+export async function listInterestCategories(supabase: Client): Promise<InterestCategory[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { data, error } = await (supabase as any)
+    .from("interest_categories")
+    .select("*")
+    .order("sort_order")
+    .order("label_fr");
+  if (error) throw error;
+  return data ?? [];
+}
+
+type InterestCategoryInput = {
+  labelFr: string;
+  labelEn: string;
+  labelEs: string | null;
+  sortOrder: number;
+};
+
+export async function createInterestCategory(
+  supabase: Client,
+  category: InterestCategoryInput & { slug: string }
+): Promise<InterestCategory> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { data, error } = await (supabase as any)
+    .from("interest_categories")
+    .insert({
+      slug: category.slug,
+      label_fr: category.labelFr,
+      label_en: category.labelEn,
+      label_es: category.labelEs,
+      sort_order: category.sortOrder,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateInterestCategory(
+  supabase: Client,
+  slug: string,
+  category: InterestCategoryInput
+): Promise<InterestCategory> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { data, error } = await (supabase as any)
+    .from("interest_categories")
+    .update({
+      label_fr: category.labelFr,
+      label_en: category.labelEn,
+      label_es: category.labelEs,
+      sort_order: category.sortOrder,
+    })
+    .eq("slug", slug)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// Callers must check no interest still uses the slug first (no FK to do it).
+export async function deleteInterestCategory(supabase: Client, slug: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see comment above
+  const { error } = await (supabase as any).from("interest_categories").delete().eq("slug", slug);
   if (error) throw error;
 }

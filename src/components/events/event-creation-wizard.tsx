@@ -30,7 +30,7 @@ type EventFormState = {
   title: string;
   description: string;
   interestId: number | null;
-  startsAt: string; // <input type="datetime-local"> value
+  startsAt: string; // <input type="date"> value
   endsAt: string;
   endUndetermined: boolean;
   capacity: string; // raw input; "" = unlimited
@@ -41,11 +41,11 @@ type EventFormState = {
   createWithoutOrganizer: boolean;
 };
 
-// ISO (UTC) -> value for <input type="datetime-local"> in the viewer's timezone.
+// ISO (UTC) -> value for <input type="date"> in the viewer's timezone.
 function toLocalInputValue(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export function EventCreationWizard({
@@ -139,8 +139,8 @@ export function EventCreationWizard({
         latitude: coords.latitude,
         longitude: coords.longitude,
         interest_id: form.interestId!,
-        starts_at: new Date(form.startsAt).toISOString(),
-        ends_at: form.endUndetermined ? null : new Date(form.endsAt).toISOString(),
+        starts_at: new Date(`${form.startsAt}T00:00:00`).toISOString(),
+        ends_at: form.endUndetermined ? null : new Date(`${form.endsAt}T23:59:00`).toISOString(),
         capacity: form.capacity.trim() ? Number(form.capacity) : null,
         website_url: form.websiteUrl.trim() || null,
       };
@@ -233,7 +233,7 @@ export function EventCreationWizard({
                 </label>
                 <input
                   id="event-starts-at"
-                  type="datetime-local"
+                  type="date"
                   value={form.startsAt}
                   onChange={(e) => update("startsAt", e.target.value)}
                   className={fieldInputClass}
@@ -245,7 +245,7 @@ export function EventCreationWizard({
                 </label>
                 <input
                   id="event-ends-at"
-                  type="datetime-local"
+                  type="date"
                   value={form.endsAt}
                   disabled={form.endUndetermined}
                   onChange={(e) => update("endsAt", e.target.value)}
@@ -361,17 +361,15 @@ export function EventCreationWizard({
               <p className={fieldLabelClass}>{t("reviewDate")}</p>
               <p className="text-text">
                 {form.startsAt &&
-                  format.dateTime(new Date(form.startsAt), {
+                  format.dateTime(new Date(`${form.startsAt}T00:00:00`), {
                     dateStyle: "long",
-                    timeStyle: "short",
                   })}
                 {" → "}
                 {form.endUndetermined
                   ? t("endUndetermined")
                   : form.endsAt &&
-                    format.dateTime(new Date(form.endsAt), {
+                    format.dateTime(new Date(`${form.endsAt}T00:00:00`), {
                       dateStyle: "long",
-                      timeStyle: "short",
                     })}
               </p>
             </div>

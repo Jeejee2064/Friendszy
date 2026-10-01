@@ -355,6 +355,15 @@ export function SearchPageClient({
     <div className="p-6 md:p-10">
       <h1 className="mb-6 text-2xl font-extrabold text-text">{t("title")}</h1>
 
+      {/* Always mounted so the first-visit location prompt appears on the Search
+          page itself, not only once the Carte tab is opened. */}
+      <MapLocationControl
+        initialSharing={initialMapVisible}
+        initialCenter={initialCenter}
+        onLocate={setMapFocusCenter}
+        showButton={tab === "map"}
+      />
+
       <div className="mb-6 flex gap-2 rounded-full bg-card p-1">
         <TabButton active={tab === "discover"} onClick={() => handleTabChange("discover")}>
           {t("discoverTab")}
@@ -375,11 +384,6 @@ export function SearchPageClient({
             focusCenter={mapFocusCenter}
             height="70vh"
             className="overflow-hidden rounded-2xl border border-border"
-          />
-          <MapLocationControl
-            initialSharing={initialMapVisible}
-            initialCenter={initialCenter}
-            onLocate={setMapFocusCenter}
           />
         </div>
       ) : tab === "name" ? (

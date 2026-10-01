@@ -896,6 +896,33 @@ export type Database = {
           },
         ]
       }
+      interest_categories: {
+        Row: {
+          created_at: string
+          label_en: string
+          label_es: string | null
+          label_fr: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          label_en: string
+          label_es?: string | null
+          label_fr: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          label_en?: string
+          label_es?: string | null
+          label_fr?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       interest_suggestions: {
         Row: {
           category: string

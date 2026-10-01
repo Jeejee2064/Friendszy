@@ -5,22 +5,9 @@ import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import type { Interest } from "@/lib/profile/types";
 import { normalizeForSearch } from "@/lib/text";
+import { useInterestCategories } from "@/lib/interests/categories";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import { SuggestInterestPrompt } from "@/components/interests/suggest-interest-prompt";
-
-const CATEGORY_ORDER = [
-  "sports",
-  "plein_air",
-  "arts_creatifs",
-  "jeux",
-  "lecture",
-  "cinema_culture_pop",
-  "genres_musicaux",
-  "instruments_musique",
-  "cuisine",
-  "bien_etre",
-  "autre",
-];
 
 const MAX_FLAT_RESULTS = 8;
 
@@ -53,6 +40,7 @@ export function InterestsGrid({
 }) {
   const locale = useLocale();
   const tCategory = useTranslations("InterestCategories");
+  const { categories, compareSlugs, labelFor: categoryLabelFor } = useInterestCategories();
   const tFields = useTranslations("ProfileFields");
   const [query, setQuery] = useState("");
 
@@ -112,15 +100,9 @@ export function InterestsGrid({
       list.push(interest);
       map.set(category, list);
     }
-    return [...map.entries()].sort(([a], [b]) => {
-      const aIndex = CATEGORY_ORDER.indexOf(a);
-      const bIndex = CATEGORY_ORDER.indexOf(b);
-      if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-      if (aIndex === -1) return 1;
-      if (bIndex === -1) return -1;
-      return aIndex - bIndex;
-    });
-  }, [interests]);
+    return [...map.entries()].sort(([a], [b]) => compareSlugs(a, b));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- compareSlugs only reads `categories`
+  }, [interests, categories]);
 
   // Categories always start closed — an existing profile can have
   // interests spread across most/all categories, which used to open
@@ -218,7 +200,7 @@ export function InterestsGrid({
                   >
                     <span>
                       {items[0]?.emoji ? `${items[0].emoji} ` : ""}
-                      {tCategory.has(category) ? tCategory(category) : category}
+                      {categoryLabelFor(category, locale) ?? (tCategory.has(category) ? tCategory(category) : category)}
                     </span>
                     <span
                       className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
