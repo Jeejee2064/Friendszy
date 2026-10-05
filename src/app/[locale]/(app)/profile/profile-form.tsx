@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { upsertMyProfile, setMyInterests } from "@/lib/profile/queries";
-import type { Gender, Interest } from "@/lib/profile/types";
+import type { Gender, Interest, LookingFor } from "@/lib/profile/types";
 import { ProfileTabs, type ProfileTab } from "@/components/profile/profile-tabs";
 import { ProfileInfoSection } from "@/components/profile/profile-info-section";
 import { ProfilePhotosSection } from "@/components/profile/profile-photos-section";
@@ -29,6 +29,9 @@ type FormState = {
   gender: Gender | null;
   interestIds: number[];
   bio: string;
+  looking_for: LookingFor | null;
+  looking_for_other: string;
+  languages: string[];
 };
 
 export function ProfileForm({
@@ -118,6 +121,11 @@ export function ProfileForm({
       return;
     }
 
+    if (form.looking_for === "other" && !form.looking_for_other.trim()) {
+      setNotice({ kind: "error", message: t("errors.lookingForOtherRequired") });
+      return;
+    }
+
     setPending(true);
     try {
       const supabase = createClient();
@@ -134,6 +142,10 @@ export function ProfileForm({
         age: form.age,
         gender: form.gender,
         bio: form.bio.trim() || null,
+        looking_for: form.looking_for,
+        looking_for_other:
+          form.looking_for === "other" ? form.looking_for_other.trim() || null : null,
+        languages: form.languages,
       });
       await setMyInterests(supabase, userId, form.interestIds);
       setSavedInterestIds(form.interestIds);

@@ -4,8 +4,10 @@ import type { FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { uploadAvatar } from "@/lib/profile/queries";
-import type { Gender } from "@/lib/profile/types";
+import type { Gender, LookingFor } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
+import { LookingForSelect } from "@/components/profile/looking-for-select";
+import { LanguageSelect } from "@/components/profile/language-select";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 
@@ -21,6 +23,9 @@ type InfoFormState = {
   age: number | null;
   gender: Gender | null;
   bio: string;
+  looking_for: LookingFor | null;
+  looking_for_other: string;
+  languages: string[];
 };
 
 /**
@@ -122,6 +127,19 @@ export function ProfileInfoSection({
         <div>
           <p className={fieldLabelClass}>{tFields("genderLabel")}</p>
           <GenderSelect value={form.gender} onChange={(g) => onUpdate({ gender: g })} />
+        </div>
+        <div>
+          <p className={fieldLabelClass}>{tFields("lookingForLabel")}</p>
+          <LookingForSelect
+            value={form.looking_for}
+            other={form.looking_for_other}
+            onChange={(v) => onUpdate({ looking_for: v })}
+            onOtherChange={(v) => onUpdate({ looking_for_other: v })}
+          />
+        </div>
+        <div>
+          <p className={fieldLabelClass}>{tFields("languagesLabel")}</p>
+          <LanguageSelect value={form.languages} onChange={(v) => onUpdate({ languages: v })} />
         </div>
       </div>
 

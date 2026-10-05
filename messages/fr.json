@@ -161,7 +161,11 @@
     "showMore": "Voir plus (+{count})",
     "showLess": "Voir moins",
     "interestsSearchPlaceholder": "Rechercher un intérêt...",
-    "interestsNoResults": "Aucun intérêt ne correspond."
+    "interestsNoResults": "Aucun intérêt ne correspond.",
+    "lookingForLabel": "Ce que je recherche",
+    "lookingForPlaceholder": "Choisir une option",
+    "lookingForOtherPlaceholder": "Précise ce que tu recherches",
+    "languagesLabel": "Langues parlées"
   },
   "InterestCategories": {
     "sports": "Sports",
@@ -199,6 +203,7 @@
       "photo": "Photo de profil",
       "basics": "Tes informations",
       "interests": "Centres d'intérêt",
+      "lookingFor": "Ce que tu cherches",
       "bio": "Un mot sur toi"
     },
     "next": "Suivant",
@@ -214,7 +219,10 @@
       "ageInvalid": "Indique un âge valide (18 ans ou plus).",
       "genderRequired": "Choisis une option.",
       "interestsRequired": "Choisis au moins 3 centres d'intérêt.",
-      "saveFailed": "Une erreur est survenue. Réessaie."
+      "saveFailed": "Une erreur est survenue. Réessaie.",
+      "lookingForRequired": "Choisis ce que tu recherches.",
+      "lookingForOtherRequired": "Précise ce que tu recherches.",
+      "languagesRequired": "Choisis au moins une langue."
     }
   },
   "Profile": {
@@ -232,7 +240,8 @@
     "errors": {
       "fullNameRequired": "Le prénom est requis.",
       "lastNameRequired": "Le nom de famille est requis.",
-      "ageInvalid": "Indique un âge valide (18 ans ou plus)."
+      "ageInvalid": "Indique un âge valide (18 ans ou plus).",
+      "lookingForOtherRequired": "Précise ce que tu recherches."
     }
   },
   "TemporaryCity": {
@@ -1158,5 +1167,15 @@
     "bannerBody": "Sois averti·e dès que quelqu'un t'envoie un message, même quand Friendszy est fermé.",
     "enableButton": "Activer",
     "dismissButton": "Plus tard"
+  },
+  "LookingFor": {
+    "new_friends": "Nouvelles amitiés",
+    "sport_partner": "Partenaire de sport",
+    "outings": "Sorties et activités",
+    "parent_friends": "Amis parents",
+    "online_chat": "Discuter en ligne",
+    "networking": "Réseautage",
+    "game_partner": "Partenaire de jeu",
+    "other": "Autre"
   }
 }

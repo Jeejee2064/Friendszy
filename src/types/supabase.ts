@@ -1364,9 +1364,12 @@ export type Database = {
           id: string
           is_admin: boolean
           is_online: boolean
+          languages: string[]
           last_name: string | null
           last_seen_at: string | null
           locale: string
+          looking_for: string | null
+          looking_for_other: string | null
           moderation_status: string
           plan: string
           plan_valid_until: string | null
@@ -1389,9 +1392,12 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_online?: boolean
+          languages?: string[]
           last_name?: string | null
           last_seen_at?: string | null
           locale?: string
+          looking_for?: string | null
+          looking_for_other?: string | null
           moderation_status?: string
           plan?: string
           plan_valid_until?: string | null
@@ -1414,9 +1420,12 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_online?: boolean
+          languages?: string[]
           last_name?: string | null
           last_seen_at?: string | null
           locale?: string
+          looking_for?: string | null
+          looking_for_other?: string | null
           moderation_status?: string
           plan?: string
           plan_valid_until?: string | null

@@ -1,7 +1,7 @@
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getInterests, getMyProfile, getMyInterestIds } from "@/lib/profile/queries";
-import type { Gender } from "@/lib/profile/types";
+import type { Gender, LookingFor } from "@/lib/profile/types";
 import { OnboardingWizard } from "./onboarding-wizard";
 
 export default async function OnboardingPage({
@@ -39,6 +39,9 @@ export default async function OnboardingPage({
         gender: (profile?.gender as Gender | null) ?? null,
         interestIds,
         bio: profile?.bio ?? "",
+        looking_for: (profile?.looking_for as LookingFor | null) ?? null,
+        looking_for_other: profile?.looking_for_other ?? "",
+        languages: profile?.languages ?? [],
       }}
     />
   );

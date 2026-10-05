@@ -149,6 +149,9 @@ export async function upsertMyProfile(
     age?: number | null;
     gender?: ProfileFormData["gender"];
     bio?: string | null;
+    looking_for?: ProfileFormData["looking_for"];
+    looking_for_other?: string | null;
+    languages?: string[];
   }
 ) {
   const { error } = await supabase.from("profiles").update(fields).eq("id", userId);

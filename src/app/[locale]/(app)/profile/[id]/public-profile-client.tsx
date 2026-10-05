@@ -6,7 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { addFriend, type FriendshipInfo } from "@/lib/friends/queries";
-import type { Interest } from "@/lib/profile/types";
+import { languageLabel, type Interest, type LookingFor } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import type { Database } from "@/types/supabase";
 import type { EventCardData } from "@/lib/events/types";
@@ -42,6 +42,7 @@ export function PublicProfileClient({
   const tCommon = useTranslations("Common");
   const tGender = useTranslations("Gender");
   const tFields = useTranslations("ProfileFields");
+  const tLookingFor = useTranslations("LookingFor");
   const locale = useLocale();
   const router = useRouter();
 
@@ -145,6 +146,40 @@ export function PublicProfileClient({
           </div>
 
           {profile.bio && <p className="text-sm text-text">{profile.bio}</p>}
+
+          {(profile.looking_for || profile.languages.length > 0) && (
+            <div className="flex w-full flex-col gap-3 text-center">
+              {profile.looking_for && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted">
+                    {tFields("lookingForLabel")}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-text">
+                    {profile.looking_for === "other" && profile.looking_for_other
+                      ? profile.looking_for_other
+                      : tLookingFor(profile.looking_for as LookingFor)}
+                  </p>
+                </div>
+              )}
+              {profile.languages.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted">
+                    {tFields("languagesLabel")}
+                  </p>
+                  <div className="mt-1 flex flex-wrap justify-center gap-2">
+                    {profile.languages.map((code) => (
+                      <span
+                        key={code}
+                        className="rounded-full border border-border px-3 py-1 text-sm font-semibold text-text"
+                      >
+                        {languageLabel(code, locale)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {sortedInterestIds.length > 0 && (
             <div className="flex flex-col items-center gap-2">

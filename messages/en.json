@@ -161,7 +161,11 @@
     "showMore": "Show more (+{count})",
     "showLess": "Show less",
     "interestsSearchPlaceholder": "Search an interest...",
-    "interestsNoResults": "No interest matches."
+    "interestsNoResults": "No interest matches.",
+    "lookingForLabel": "What I'm looking for",
+    "lookingForPlaceholder": "Choose an option",
+    "lookingForOtherPlaceholder": "Tell us what you're looking for",
+    "languagesLabel": "Languages spoken"
   },
   "InterestCategories": {
     "sports": "Sports",
@@ -199,6 +203,7 @@
       "photo": "Profile photo",
       "basics": "Your info",
       "interests": "Interests",
+      "lookingFor": "What you're looking for",
       "bio": "A word about you"
     },
     "next": "Next",
@@ -214,7 +219,10 @@
       "ageInvalid": "Enter a valid age (18 or older).",
       "genderRequired": "Choose an option.",
       "interestsRequired": "Choose at least 3 interests.",
-      "saveFailed": "Something went wrong. Try again."
+      "saveFailed": "Something went wrong. Try again.",
+      "lookingForRequired": "Choose what you're looking for.",
+      "lookingForOtherRequired": "Tell us what you're looking for.",
+      "languagesRequired": "Choose at least one language."
     }
   },
   "Profile": {
@@ -232,7 +240,8 @@
     "errors": {
       "fullNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
-      "ageInvalid": "Enter a valid age (18 or older)."
+      "ageInvalid": "Enter a valid age (18 or older).",
+      "lookingForOtherRequired": "Tell us what you're looking for."
     }
   },
   "TemporaryCity": {
@@ -1158,5 +1167,15 @@
     "bannerBody": "Get notified as soon as someone sends you a message, even when Friendszy is closed.",
     "enableButton": "Enable",
     "dismissButton": "Later"
+  },
+  "LookingFor": {
+    "new_friends": "New friendships",
+    "sport_partner": "Sports partner",
+    "outings": "Outings and activities",
+    "parent_friends": "Parent friends",
+    "online_chat": "Chatting online",
+    "networking": "Networking",
+    "game_partner": "Gaming partner",
+    "other": "Other"
   }
 }

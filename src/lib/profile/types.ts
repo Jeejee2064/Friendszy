@@ -30,6 +30,62 @@ export type Gender = "homme" | "femme" | "non-binaire" | "autre";
 
 export const GENDERS: Gender[] = ["homme", "femme", "non-binaire", "autre"];
 
+export type LookingFor =
+  | "new_friends"
+  | "sport_partner"
+  | "outings"
+  | "parent_friends"
+  | "online_chat"
+  | "networking"
+  | "game_partner"
+  | "other";
+
+export const LOOKING_FOR_OPTIONS: LookingFor[] = [
+  "new_friends",
+  "sport_partner",
+  "outings",
+  "parent_friends",
+  "online_chat",
+  "networking",
+  "game_partner",
+  "other",
+];
+
+export const LOOKING_FOR_OTHER_MAX = 100;
+
+// ISO 639-1 codes. Display names come from Intl.DisplayNames in the viewer's
+// locale (see languageLabel), so nothing here needs translating.
+export const LANGUAGE_CODES = [
+  "fr",
+  "en",
+  "es",
+  "pt",
+  "it",
+  "de",
+  "ar",
+  "zh",
+  "ru",
+  "hi",
+  "ja",
+  "ko",
+  "nl",
+  "pl",
+  "uk",
+  "ht",
+] as const;
+
+export const MAX_LANGUAGES = 10;
+
+export function languageLabel(code: string, locale: string): string {
+  try {
+    const name = new Intl.DisplayNames([locale], { type: "language" }).of(code);
+    if (name) return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
+  } catch {
+    // unsupported code/locale — fall through to the raw code
+  }
+  return code;
+}
+
 export type ProfileFormData = {
   full_name: string;
   last_name: string;
@@ -38,6 +94,9 @@ export type ProfileFormData = {
   age: number | null;
   gender: Gender | null;
   bio: string;
+  looking_for: LookingFor | null;
+  looking_for_other: string;
+  languages: string[];
 };
 
 export type ProfileSummary = {

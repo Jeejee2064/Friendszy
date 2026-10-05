@@ -5,9 +5,11 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { upsertMyProfile, setMyInterests, uploadAvatar } from "@/lib/profile/queries";
-import type { Gender, Interest } from "@/lib/profile/types";
+import type { Gender, Interest, LookingFor } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
+import { LookingForSelect } from "@/components/profile/looking-for-select";
+import { LanguageSelect } from "@/components/profile/language-select";
 import { InterestsGrid } from "@/components/profile/interests-grid";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { track } from "@/lib/analytics/track";
@@ -21,9 +23,12 @@ type FormState = {
   gender: Gender | null;
   interestIds: number[];
   bio: string;
+  looking_for: LookingFor | null;
+  looking_for_other: string;
+  languages: string[];
 };
 
-const STEP_COUNT = 4;
+const STEP_COUNT = 5;
 const MIN_INTERESTS = 3;
 
 export function OnboardingWizard({
@@ -63,6 +68,12 @@ export function OnboardingWizard({
     if (step === 2) {
       if (form.interestIds.length < MIN_INTERESTS) return t("errors.interestsRequired");
     }
+    if (step === 3) {
+      if (!form.looking_for) return t("errors.lookingForRequired");
+      if (form.looking_for === "other" && !form.looking_for_other.trim())
+        return t("errors.lookingForOtherRequired");
+      if (form.languages.length === 0) return t("errors.languagesRequired");
+    }
     return null;
   }
 
@@ -95,6 +106,10 @@ export function OnboardingWizard({
         age: form.age,
         gender: form.gender,
         bio: form.bio.trim() || null,
+        looking_for: form.looking_for,
+        looking_for_other:
+          form.looking_for === "other" ? form.looking_for_other.trim() || null : null,
+        languages: form.languages,
       });
       await setMyInterests(supabase, userId, form.interestIds);
       track(
@@ -114,6 +129,7 @@ export function OnboardingWizard({
     t("steps.photo"),
     t("steps.basics"),
     t("steps.interests"),
+    t("steps.lookingFor"),
     t("steps.bio"),
   ];
 
@@ -217,6 +233,31 @@ export function OnboardingWizard({
         )}
 
         {step === 3 && (
+          <div className="flex flex-col gap-5">
+            <div>
+              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">
+                {tFields("lookingForLabel")}
+              </p>
+              <LookingForSelect
+                value={form.looking_for}
+                other={form.looking_for_other}
+                onChange={(v) => update("looking_for", v)}
+                onOtherChange={(v) => update("looking_for_other", v)}
+              />
+            </div>
+            <div>
+              <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">
+                {tFields("languagesLabel")}
+              </p>
+              <LanguageSelect
+                value={form.languages}
+                onChange={(v) => update("languages", v)}
+              />
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
           <textarea
             rows={4}
             placeholder={tFields("bioPlaceholder")}

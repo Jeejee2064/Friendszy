@@ -161,7 +161,11 @@
     "showMore": "Ver más (+{count})",
     "showLess": "Ver menos",
     "interestsSearchPlaceholder": "Buscar un interés...",
-    "interestsNoResults": "Ningún interés coincide."
+    "interestsNoResults": "Ningún interés coincide.",
+    "lookingForLabel": "Lo que busco",
+    "lookingForPlaceholder": "Elige una opción",
+    "lookingForOtherPlaceholder": "Especifica lo que buscas",
+    "languagesLabel": "Idiomas que hablo"
   },
   "InterestCategories": {
     "sports": "Deportes",
@@ -199,6 +203,7 @@
       "photo": "Foto de perfil",
       "basics": "Tu información",
       "interests": "Intereses",
+      "lookingFor": "Lo que buscas",
       "bio": "Unas palabras sobre ti"
     },
     "next": "Siguiente",
@@ -214,7 +219,10 @@
       "ageInvalid": "Indica una edad válida (18 años o más).",
       "genderRequired": "Elige una opción.",
       "interestsRequired": "Elige al menos 3 intereses.",
-      "saveFailed": "Se produjo un error. Inténtalo de nuevo."
+      "saveFailed": "Se produjo un error. Inténtalo de nuevo.",
+      "lookingForRequired": "Elige lo que buscas.",
+      "lookingForOtherRequired": "Especifica lo que buscas.",
+      "languagesRequired": "Elige al menos un idioma."
     }
   },
   "Profile": {
@@ -232,7 +240,8 @@
     "errors": {
       "fullNameRequired": "El nombre es obligatorio.",
       "lastNameRequired": "El apellido es obligatorio.",
-      "ageInvalid": "Indica una edad válida (18 años o más)."
+      "ageInvalid": "Indica una edad válida (18 años o más).",
+      "lookingForOtherRequired": "Especifica lo que buscas."
     }
   },
   "TemporaryCity": {
@@ -1158,5 +1167,15 @@
     "bannerBody": "Recibe un aviso en cuanto alguien te envíe un mensaje, incluso cuando Friendszy esté cerrado.",
     "enableButton": "Activar",
     "dismissButton": "Más tarde"
+  },
+  "LookingFor": {
+    "new_friends": "Nuevas amistades",
+    "sport_partner": "Compañero de deporte",
+    "outings": "Salidas y actividades",
+    "parent_friends": "Amigos padres",
+    "online_chat": "Charlar en línea",
+    "networking": "Networking",
+    "game_partner": "Compañero de juego",
+    "other": "Otro"
   }
 }

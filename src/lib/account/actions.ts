@@ -45,6 +45,9 @@ export async function deleteMyAccount(
       city: null,
       age: null,
       gender: null,
+      looking_for: null,
+      looking_for_other: null,
+      languages: [],
     })
     .eq("id", userId);
   if (anonymizeError) return { error: "anonymize" };

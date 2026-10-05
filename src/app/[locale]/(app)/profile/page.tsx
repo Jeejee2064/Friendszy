@@ -6,7 +6,7 @@ import {
   getMyInterestIds,
   getProfilePhotos,
 } from "@/lib/profile/queries";
-import type { Gender } from "@/lib/profile/types";
+import type { Gender, LookingFor } from "@/lib/profile/types";
 import { ProfileForm } from "./profile-form";
 
 export default async function ProfilePage({
@@ -71,6 +71,9 @@ export default async function ProfilePage({
         gender: (profile?.gender as Gender | null) ?? null,
         interestIds,
         bio: profile?.bio ?? "",
+        looking_for: (profile?.looking_for as LookingFor | null) ?? null,
+        looking_for_other: profile?.looking_for_other ?? "",
+        languages: profile?.languages ?? [],
       }}
     />
   );
