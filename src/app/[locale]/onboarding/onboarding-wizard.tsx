@@ -4,9 +4,16 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { upsertMyProfile, setMyInterests, uploadAvatar } from "@/lib/profile/queries";
+import {
+  upsertMyProfile,
+  setMyInterests,
+  uploadAvatar,
+  uploadProfilePhoto,
+  removeProfilePhoto,
+} from "@/lib/profile/queries";
 import type { Gender, Interest, LookingFor } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
+import { PhotoPicker } from "@/components/media/photo-picker";
 import { GenderSelect } from "@/components/profile/gender-select";
 import { LookingForSelect } from "@/components/profile/looking-for-select";
 import { LanguageSelect } from "@/components/profile/language-select";
@@ -45,6 +52,10 @@ export function OnboardingWizard({
   const router = useRouter();
 
   const [step, setStep] = useState(0);
+  // Photos supplémentaires : persistées tout de suite par PhotoPicker (table profile_photos),
+  // on ne garde ici que l'état d'affichage.
+  const [extraPhotos, setExtraPhotos] = useState<string[]>([]);
+  const [showExtraPhotos, setShowExtraPhotos] = useState(false);
   const [form, setForm] = useState<FormState>(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -167,6 +178,30 @@ export function OnboardingWizard({
               value={form.avatarUrl}
               onChange={(url) => update("avatarUrl", url)}
             />
+            {form.avatarUrl && !showExtraPhotos && extraPhotos.length === 0 && (
+              <button
+                type="button"
+                onClick={() => setShowExtraPhotos(true)}
+                className="text-sm font-bold text-teal2 hover:underline"
+              >
+                {t("addMorePhotos")}
+              </button>
+            )}
+            {form.avatarUrl && (showExtraPhotos || extraPhotos.length > 0) && (
+              <div className="w-full">
+                <p className="mb-2 text-xs text-muted">{tFields("photosHint")}</p>
+                <PhotoPicker
+                  value={extraPhotos}
+                  onChange={setExtraPhotos}
+                  maxPhotos={3}
+                  upload={(blob) => uploadProfilePhoto(createClient(), userId, blob)}
+                  remove={(url) => removeProfilePhoto(createClient(), userId, url)}
+                  addLabel={tFields("photosAdd")}
+                  errorLabel={tFields("photosError")}
+                  removeLabel={tFields("photoRemove")}
+                />
+              </div>
+            )}
             <input
               type="text"
               required
