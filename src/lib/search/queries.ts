@@ -66,28 +66,24 @@ export async function searchProfiles(
 
   if (blockedIds.length > 0) query = query.not("id", "in", `(${blockedIds.join(",")})`);
   if (filters.name) {
-    // Strip characters with special meaning in PostgREST filter strings so a
-    // stray comma/paren in the search box can't break the query syntax.
+    // Accent/case-insensitive match ("Kloe" finds "Kloé") — done in Postgres
+    // via unaccent(), which the PostgREST ilike filter can't apply to a column.
+    // Every token must match full_name or last_name; a single token also
+    // matches username. LIKE wildcards are escaped so they match literally.
     const tokens = filters.name
       .split(/\s+/)
-      .map((token) => token.replace(/[,()]/g, ""))
+      .map((token) => token.replace(/[\\%_]/g, "\\$&"))
       .filter(Boolean);
 
-    if (tokens.length > 1) {
-      // "Jean Tremblay": require every token to match full_name OR
-      // last_name (in either order), not just one field with the whole
-      // string — full_name and last_name are separate columns (first name
-      // and last name respectively), so no single column ever holds both.
-      // Each .or() call appends its own query param; PostgREST ANDs
-      // separate top-level params together, so chaining .or() per token
-      // gives us AND-of-ORs without a dedicated .and() method.
-      for (const token of tokens) {
-        query = query.or(`full_name.ilike.%${token}%,last_name.ilike.%${token}%`);
-      }
-    } else if (tokens.length === 1) {
-      query = query.or(
-        `full_name.ilike.%${tokens[0]}%,last_name.ilike.%${tokens[0]}%,username.ilike.%${tokens[0]}%`
+    if (tokens.length > 0) {
+      const { data: nameMatches, error: nameError } = await supabase.rpc(
+        "match_profile_name_ids",
+        { p_tokens: tokens }
       );
+      if (nameError) throw nameError;
+      const nameIds = (nameMatches ?? []).map((row) => row.id);
+      if (nameIds.length === 0) return [];
+      query = query.in("id", nameIds);
     }
   }
   if (cityIds) query = query.in("id", cityIds);

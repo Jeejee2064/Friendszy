@@ -1615,6 +1615,12 @@ export type Database = {
           id: string
         }[]
       }
+      match_profile_name_ids: {
+        Args: { p_tokens: string[] }
+        Returns: {
+          id: string
+        }[]
+      }
       match_event_city_ids: {
         Args: { p_city: string }
         Returns: {
