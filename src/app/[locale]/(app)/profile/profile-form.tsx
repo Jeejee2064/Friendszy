@@ -29,7 +29,7 @@ type FormState = {
   gender: Gender | null;
   interestIds: number[];
   bio: string;
-  looking_for: LookingFor | null;
+  looking_for: LookingFor[];
   looking_for_other: string;
   languages: string[];
 };
@@ -121,7 +121,7 @@ export function ProfileForm({
       return;
     }
 
-    if (form.looking_for === "other" && !form.looking_for_other.trim()) {
+    if (form.looking_for.includes("other") && !form.looking_for_other.trim()) {
       setNotice({ kind: "error", message: t("errors.lookingForOtherRequired") });
       return;
     }
@@ -144,7 +144,7 @@ export function ProfileForm({
         bio: form.bio.trim() || null,
         looking_for: form.looking_for,
         looking_for_other:
-          form.looking_for === "other" ? form.looking_for_other.trim() || null : null,
+          form.looking_for.includes("other") ? form.looking_for_other.trim() || null : null,
         languages: form.languages,
       });
       await setMyInterests(supabase, userId, form.interestIds);

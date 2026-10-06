@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { CustomSelect } from "@/components/ui/custom-select";
+import { CustomMultiSelect } from "@/components/ui/custom-multi-select";
 import { LOOKING_FOR_OPTIONS, LOOKING_FOR_OTHER_MAX, type LookingFor } from "@/lib/profile/types";
 
 export function LookingForSelect({
@@ -10,9 +10,9 @@ export function LookingForSelect({
   onChange,
   onOtherChange,
 }: {
-  value: LookingFor | null;
+  value: LookingFor[];
   other: string;
-  onChange: (value: LookingFor) => void;
+  onChange: (value: LookingFor[]) => void;
   onOtherChange: (value: string) => void;
 }) {
   const t = useTranslations("LookingFor");
@@ -20,13 +20,13 @@ export function LookingForSelect({
 
   return (
     <div className="flex flex-col gap-2">
-      <CustomSelect
-        value={value ?? ""}
-        onChange={(v) => onChange(v as LookingFor)}
+      <CustomMultiSelect
+        value={value}
+        onChange={(v) => onChange(v as LookingFor[])}
         placeholder={tFields("lookingForPlaceholder")}
         options={LOOKING_FOR_OPTIONS.map((option) => ({ value: option, label: t(option) }))}
       />
-      {value === "other" && (
+      {value.includes("other") && (
         <input
           type="text"
           maxLength={LOOKING_FOR_OTHER_MAX}

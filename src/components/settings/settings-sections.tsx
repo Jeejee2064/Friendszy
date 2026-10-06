@@ -24,6 +24,7 @@ import { isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
 export function SettingsSections({ locale }: { locale: string }) {
   const t = useTranslations("Settings");
   const tPrivacy = useTranslations("Privacy");
+  const tTerms = useTranslations("Terms");
   const tCookies = useTranslations("CookieConsent");
   const goOffline = useGoOffline();
   const localeForPush = useLocale();
@@ -222,6 +223,17 @@ export function SettingsSections({ locale }: { locale: string }) {
             className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
           >
             {tPrivacy("settingsCardLink")}
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-2 font-bold text-text">{tTerms("settingsCardTitle")}</h2>
+          <p className="mb-4 text-sm text-muted">{tTerms("settingsCardBody")}</p>
+          <Link
+            href="/terms"
+            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+          >
+            {tTerms("settingsCardLink")}
           </Link>
         </div>
 

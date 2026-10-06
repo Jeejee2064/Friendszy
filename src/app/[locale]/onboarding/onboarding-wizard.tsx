@@ -30,7 +30,7 @@ type FormState = {
   gender: Gender | null;
   interestIds: number[];
   bio: string;
-  looking_for: LookingFor | null;
+  looking_for: LookingFor[];
   looking_for_other: string;
   languages: string[];
 };
@@ -80,8 +80,8 @@ export function OnboardingWizard({
       if (form.interestIds.length < MIN_INTERESTS) return t("errors.interestsRequired");
     }
     if (step === 3) {
-      if (!form.looking_for) return t("errors.lookingForRequired");
-      if (form.looking_for === "other" && !form.looking_for_other.trim())
+      if (form.looking_for.length === 0) return t("errors.lookingForRequired");
+      if (form.looking_for.includes("other") && !form.looking_for_other.trim())
         return t("errors.lookingForOtherRequired");
       if (form.languages.length === 0) return t("errors.languagesRequired");
     }
@@ -119,7 +119,7 @@ export function OnboardingWizard({
         bio: form.bio.trim() || null,
         looking_for: form.looking_for,
         looking_for_other:
-          form.looking_for === "other" ? form.looking_for_other.trim() || null : null,
+          form.looking_for.includes("other") ? form.looking_for_other.trim() || null : null,
         languages: form.languages,
       });
       await setMyInterests(supabase, userId, form.interestIds);

@@ -94,7 +94,7 @@ export type ProfileFormData = {
   age: number | null;
   gender: Gender | null;
   bio: string;
-  looking_for: LookingFor | null;
+  looking_for: LookingFor[];
   looking_for_other: string;
   languages: string[];
 };

@@ -45,7 +45,7 @@ export async function deleteMyAccount(
       city: null,
       age: null,
       gender: null,
-      looking_for: null,
+      looking_for: [],
       looking_for_other: null,
       languages: [],
     })

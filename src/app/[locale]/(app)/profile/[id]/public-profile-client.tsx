@@ -147,17 +147,21 @@ export function PublicProfileClient({
 
           {profile.bio && <p className="text-sm text-text">{profile.bio}</p>}
 
-          {(profile.looking_for || profile.languages.length > 0) && (
+          {(profile.looking_for.length > 0 || profile.languages.length > 0) && (
             <div className="flex w-full flex-col gap-3 text-center">
-              {profile.looking_for && (
+              {profile.looking_for.length > 0 && (
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-muted">
                     {tFields("lookingForLabel")}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-text">
-                    {profile.looking_for === "other" && profile.looking_for_other
-                      ? profile.looking_for_other
-                      : tLookingFor(profile.looking_for as LookingFor)}
+                    {(profile.looking_for as LookingFor[])
+                      .map((option) =>
+                        option === "other" && profile.looking_for_other
+                          ? profile.looking_for_other
+                          : tLookingFor(option)
+                      )
+                      .join(", ")}
                   </p>
                 </div>
               )}

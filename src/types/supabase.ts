@@ -1368,7 +1368,7 @@ export type Database = {
           last_name: string | null
           last_seen_at: string | null
           locale: string
-          looking_for: string | null
+          looking_for: string[]
           looking_for_other: string | null
           moderation_status: string
           plan: string
@@ -1396,7 +1396,7 @@ export type Database = {
           last_name?: string | null
           last_seen_at?: string | null
           locale?: string
-          looking_for?: string | null
+          looking_for?: string[]
           looking_for_other?: string | null
           moderation_status?: string
           plan?: string
@@ -1424,7 +1424,7 @@ export type Database = {
           last_name?: string | null
           last_seen_at?: string | null
           locale?: string
-          looking_for?: string | null
+          looking_for?: string[]
           looking_for_other?: string | null
           moderation_status?: string
           plan?: string

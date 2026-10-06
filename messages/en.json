@@ -163,9 +163,10 @@
     "interestsSearchPlaceholder": "Search an interest...",
     "interestsNoResults": "No interest matches.",
     "lookingForLabel": "What I'm looking for",
-    "lookingForPlaceholder": "Choose an option",
+    "lookingForPlaceholder": "Choose one or more options",
     "lookingForOtherPlaceholder": "Tell us what you're looking for",
-    "languagesLabel": "Languages spoken"
+    "languagesLabel": "Languages spoken",
+    "languagesPlaceholder": "Choose languages"
   },
   "InterestCategories": {
     "sports": "Sports",
@@ -1178,5 +1179,14 @@
     "networking": "Networking",
     "game_partner": "Gaming partner",
     "other": "Other"
+  },
+  "Terms": {
+    "pageTitle": "Terms of Use and Community Guidelines",
+    "backLink": "Back",
+    "lastUpdated": "Last updated: {date}",
+    "settingsCardTitle": "Terms of Use and Community Guidelines",
+    "settingsCardBody": "Read Friendszy's terms of use, community guidelines and safety tips.",
+    "settingsCardLink": "Read the terms and guidelines",
+    "frenchOnlyNotice": "This legal text is only available in French; the French version prevails over any translation."
   }
 }

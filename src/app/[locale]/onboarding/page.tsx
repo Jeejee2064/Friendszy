@@ -39,7 +39,7 @@ export default async function OnboardingPage({
         gender: (profile?.gender as Gender | null) ?? null,
         interestIds,
         bio: profile?.bio ?? "",
-        looking_for: (profile?.looking_for as LookingFor | null) ?? null,
+        looking_for: (profile?.looking_for as LookingFor[] | undefined) ?? [],
         looking_for_other: profile?.looking_for_other ?? "",
         languages: profile?.languages ?? [],
       }}

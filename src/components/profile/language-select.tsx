@@ -1,6 +1,7 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { CustomMultiSelect } from "@/components/ui/custom-multi-select";
 import { LANGUAGE_CODES, MAX_LANGUAGES, languageLabel } from "@/lib/profile/types";
 
 export function LanguageSelect({
@@ -11,36 +12,15 @@ export function LanguageSelect({
   onChange: (languages: string[]) => void;
 }) {
   const locale = useLocale();
-
-  function toggle(code: string) {
-    if (value.includes(code)) {
-      onChange(value.filter((c) => c !== code));
-    } else if (value.length < MAX_LANGUAGES) {
-      onChange([...value, code]);
-    }
-  }
+  const tFields = useTranslations("ProfileFields");
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {LANGUAGE_CODES.map((code) => {
-        const selected = value.includes(code);
-        return (
-          <button
-            key={code}
-            type="button"
-            aria-pressed={selected}
-            onClick={() => toggle(code)}
-            className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
-              selected ? "text-white" : "border-border text-text"
-            }`}
-            style={
-              selected ? { backgroundImage: "var(--grad)", borderColor: "transparent" } : undefined
-            }
-          >
-            {languageLabel(code, locale)}
-          </button>
-        );
-      })}
-    </div>
+    <CustomMultiSelect
+      value={value}
+      onChange={onChange}
+      max={MAX_LANGUAGES}
+      placeholder={tFields("languagesPlaceholder")}
+      options={LANGUAGE_CODES.map((code) => ({ value: code, label: languageLabel(code, locale) }))}
+    />
   );
 }
