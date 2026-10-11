@@ -72,11 +72,13 @@ export function EventCard({ event }: { event: EventCardData }) {
           {event.city}
           {event.address ? ` — ${event.address}` : ""}
         </p>
-        <p className="mt-auto pt-1 text-xs font-semibold text-muted">
-          {event.capacity != null
-            ? t("spotsLimited", { count: event.registrationCount, capacity: event.capacity })
-            : t("spotsUnlimited", { count: event.registrationCount })}
-        </p>
+        {(event.capacity != null || event.registrationCount > 0) && (
+          <p className="mt-auto pt-1 text-xs font-semibold text-muted">
+            {event.capacity != null
+              ? t("spotsLimited", { count: event.registrationCount, capacity: event.capacity })
+              : t("spotsUnlimited", { count: event.registrationCount })}
+          </p>
+        )}
       </div>
     </Link>
   );

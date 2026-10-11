@@ -19,6 +19,7 @@ import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getMyInterestIds } from "@/lib/profile/queries";
 import { GENDERS, type Gender, type Interest } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
+import { ResultInterests } from "@/components/search/result-interests";
 import { InterestPicker } from "@/components/search/interest-picker";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
 import { AgeRangeSlider, AGE_MIN, AGE_MAX } from "@/components/search/age-range-slider";
@@ -274,27 +275,25 @@ export function SearchPageClient({
               const resultInterestIds = sharedByProfile.get(result.id) ?? [];
               const alreadyAdded = friendshipMap.has(result.id) || sentIds.has(result.id);
 
-              // In "Trouver des amis", the badges below compare each result
-              // against the interests chosen for the search (interestIds),
-              // not against the searcher's own profile interests — the "Par
-              // nom" tab has no search interests, so it keeps the classic
-              // "shared with me" line via PersonCard's own prop instead.
-              const sharedSearchInterestIds = interestIds.filter((id) =>
-                resultInterestIds.includes(id)
+              // Common = shared with the searcher's own profile; everything
+              // else collapses into a "+N" chip that opens the full list.
+              const commonIds = resultInterestIds.filter((id) =>
+                myInterestIds.includes(id)
               );
-              const searchInterestBadges =
-                tab === "discover" && sharedSearchInterestIds.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {sharedSearchInterestIds.map((id) => (
-                      <span
-                        key={id}
-                        className="rounded-full border border-teal2 px-2.5 py-1 text-xs font-semibold text-teal2"
-                      >
-                        ✓ {interestLabel(id)}
-                      </span>
-                    ))}
-                  </div>
-                ) : null;
+              const otherIds = resultInterestIds.filter(
+                (id) => !myInterestIds.includes(id)
+              );
+              const searchInterestBadges = (
+                <ResultInterests
+                  commonLabels={commonIds.map(interestLabel)}
+                  otherLabels={otherIds.map(interestLabel)}
+                  commonText={t("commonInterests", {
+                    list: commonIds.map(interestLabel).join(", "),
+                  })}
+                  title={t("allInterestsTitle")}
+                  closeLabel={t("allInterestsClose")}
+                />
+              );
 
               return (
                 <motion.div
@@ -308,13 +307,6 @@ export function SearchPageClient({
                   <PersonCard
                     profile={result}
                     href={`/profile/${result.id}`}
-                    sharedInterests={
-                      tab === "name"
-                        ? resultInterestIds
-                            .filter((id) => myInterestIds.includes(id))
-                            .map(interestLabel)
-                        : undefined
-                    }
                     deletedUserLabel={tCommon("deletedUser")}
                     footer={
                       <div className="flex flex-col gap-2">

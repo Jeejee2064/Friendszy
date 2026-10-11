@@ -44,7 +44,7 @@ export function PrivacyPolicyContentEs() {
       <ul>
         <li>Responsable de la protección de la información personal, Friendszy inc.</li>
         <li>4454, avenida Papineau, Montreal (Quebec) H2H 1T8, Canadá</li>
-        <li>Correo electrónico: vieprivee@friendszy.ca</li>
+        <li>Correo electrónico: info@friendszy.ca</li>
       </ul>
       <p>
         El título y los datos de contacto de esta persona están publicados en nuestro sitio web,
@@ -60,7 +60,7 @@ export function PrivacyPolicyContentEs() {
       <ul>
         <li>
           <strong>Información de identificación</strong>: apellido, nombre, dirección de correo
-          electrónico, fecha de nacimiento (para verificar tu edad) y, en su caso, número de
+          electrónico, edad y, en su caso, número de
           teléfono.
         </li>
         <li>
@@ -252,7 +252,7 @@ export function PrivacyPolicyContentEs() {
         </li>
       </ul>
       <p>
-        Para ejercer estos derechos, escribe a vieprivee@friendszy.ca. Responderemos a tu
+        Para ejercer estos derechos, escribe a info@friendszy.ca. Responderemos a tu
         solicitud con diligencia, a más tardar dentro de los 30 días siguientes a su recepción,
         como lo exige la ley. Se te podrá solicitar una prueba de identidad para proteger tu
         información.
@@ -277,7 +277,7 @@ export function PrivacyPolicyContentEs() {
       <ul>
         <li>Friendszy inc., a la atención del responsable de la protección de la información personal</li>
         <li>4454, avenida Papineau, Montreal (Quebec) H2H 1T8, Canadá</li>
-        <li>Correo electrónico: vieprivee@friendszy.ca o info@friendszy.ca</li>
+        <li>Correo electrónico: info@friendszy.ca</li>
       </ul>
       <p>
         También puedes comunicarte con la Commission d&rsquo;accès à l&rsquo;information du

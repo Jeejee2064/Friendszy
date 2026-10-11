@@ -242,7 +242,9 @@ export function DiscoverPageClient({
               infoLine:
                 event.capacity != null
                   ? tEvents("spotsLimited", { count: event.registrationCount, capacity: event.capacity })
-                  : tEvents("spotsUnlimited", { count: event.registrationCount }),
+                  : event.registrationCount > 0
+                    ? tEvents("spotsUnlimited", { count: event.registrationCount })
+                    : null,
               imageUrl: event.coverPhotoUrl,
               href: `/events/${event.id}`,
             };

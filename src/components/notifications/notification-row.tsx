@@ -104,12 +104,12 @@ export function NotificationRow({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className={`text-sm ${isUnread ? "font-bold text-text" : "text-muted"}`}>{label}</p>
-        <span className="text-xs text-muted">
+        <p className={`text-sm ${isUnread ? "font-bold text-text" : "font-semibold text-text/80"}`}>{label}</p>
+        <span className="text-xs text-text/60">
           {pastRelativeTime(format, new Date(notification.created_at), now)}
         </span>
       </div>
-      <span className="shrink-0 self-center text-muted">→</span>
+      <span className="shrink-0 self-center text-text/60">→</span>
     </button>
   );
 }

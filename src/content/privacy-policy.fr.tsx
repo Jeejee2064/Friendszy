@@ -17,7 +17,7 @@ export function PrivacyPolicyContentFr() {
         vous reconnaissez avoir pris connaissance de la présente politique.
       </p>
 
-      <h2>1. Qui sommes nous</h2>
+      <h2>1. Qui sommes-nous</h2>
       <p>
         Friendszy est une plateforme en ligne dont la mission est de favoriser les rencontres
         amicales entre personnes partageant des centres d&rsquo;intérêt communs. Friendszy
@@ -43,7 +43,7 @@ export function PrivacyPolicyContentFr() {
       <ul>
         <li>Responsable de la protection des renseignements personnels, Friendszy inc.</li>
         <li>4454, avenue Papineau, Montréal (Québec) H2H 1T8, Canada</li>
-        <li>Courriel : vieprivee@friendszy.ca</li>
+        <li>Courriel : info@friendszy.ca</li>
       </ul>
       <p>
         Le titre et les coordonnées de cette personne sont publiés sur notre site Web, comme
@@ -59,7 +59,7 @@ export function PrivacyPolicyContentFr() {
       <ul>
         <li>
           <strong>Renseignements d&rsquo;identification</strong> : nom, prénom, adresse courriel,
-          date de naissance (afin de vérifier votre âge) et, le cas échéant, numéro de téléphone.
+          âge et, le cas échéant, numéro de téléphone.
         </li>
         <li>
           <strong>Renseignements de profil</strong> : pseudonyme, photographie de profil, ville
@@ -255,7 +255,7 @@ export function PrivacyPolicyContentFr() {
         </li>
       </ul>
       <p>
-        Pour exercer ces droits, écrivez à vieprivee@friendszy.ca. Nous répondrons à votre
+        Pour exercer ces droits, écrivez à info@friendszy.ca. Nous répondrons à votre
         demande avec diligence, au plus tard dans les 30 jours de sa réception, comme le prévoit
         la loi. Une preuve d&rsquo;identité pourra être demandée afin de protéger vos
         renseignements.
@@ -281,7 +281,7 @@ export function PrivacyPolicyContentFr() {
       <ul>
         <li>Friendszy inc., à l&rsquo;attention du responsable de la protection des renseignements personnels</li>
         <li>4454, avenue Papineau, Montréal (Québec) H2H 1T8, Canada</li>
-        <li>Courriel : vieprivee@friendszy.ca ou info@friendszy.ca</li>
+        <li>Courriel : info@friendszy.ca</li>
       </ul>
       <p>
         Vous pouvez également communiquer avec la Commission d&rsquo;accès à l&rsquo;information
