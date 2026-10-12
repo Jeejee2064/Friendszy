@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   listAllPartnerListingsForAdmin,
   setPartnerListingActive,
+  deletePartnerListing,
   type PartnerListingRow,
 } from "@/lib/partners/queries";
 import { logAdminAction } from "@/lib/admin/queries";
@@ -42,6 +43,8 @@ export function AdminPartnersClient({
   const [feedback, setFeedback] = useState<"success" | "error" | null>(null);
   const [submitters, setSubmitters] = useState<Map<string, ProfileSummary>>(new Map());
   const [detailListingId, setDetailListingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PartnerListingRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -118,6 +121,31 @@ export function AdminPartnersClient({
       router.refresh();
     } catch {
       setFeedback("error");
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setFeedback(null);
+    setDeleting(true);
+    try {
+      const supabase = createClient();
+      await deletePartnerListing(supabase, deleteTarget);
+      setListings((prev) => prev.filter((l) => l.id !== deleteTarget.id));
+      if (detailListingId === deleteTarget.id) setDetailListingId(null);
+      logAdminAction(supabase, {
+        adminId,
+        actionType: "delete",
+        targetType: "partner_listing",
+        targetId: deleteTarget.id,
+      }).catch(() => {});
+      setFeedback("success");
+      router.refresh();
+    } catch {
+      setFeedback("error");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   }
 
@@ -208,6 +236,13 @@ export function AdminPartnersClient({
                     }}
                   >
                     {t(listing.status === "active" ? "actions.deactivate" : "actions.activate")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(listing)}
+                    className="rounded-full border border-[#e55] px-3 py-2 text-xs font-bold text-[#e55]"
+                  >
+                    {t("actions.delete")}
                   </button>
                 </div>
               </div>
@@ -359,8 +394,43 @@ export function AdminPartnersClient({
             >
               {t(detailListing.status === "active" ? "actions.deactivate" : "actions.activate")}
             </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(detailListing)}
+                  className="rounded-full border border-[#e55] px-4 py-2.5 text-sm font-bold text-[#e55]"
+                >
+                  {t("actions.delete")}
+                </button>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => (deleting ? undefined : setDeleteTarget(null))}
+        title={deleteTarget?.name}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-text">{t("actions.deleteConfirm")}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setDeleteTarget(null)}
+              className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-text disabled:opacity-40"
+            >
+              {t("actions.deleteCancel")}
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={handleDelete}
+              className="rounded-full bg-[#e55] px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
+            >
+              {t("actions.delete")}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

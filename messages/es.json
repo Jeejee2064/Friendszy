@@ -882,7 +882,10 @@
       "noListings": "Ninguna ficha coincide con estos filtros.",
       "actions": {
         "activate": "Activar",
-        "deactivate": "Desactivar"
+        "deactivate": "Desactivar",
+        "delete": "Eliminar",
+        "deleteConfirm": "¿Eliminar definitivamente esta ficha de socio? Esta acción es irreversible: la ficha y sus fotos se borrarán de la base de datos.",
+        "deleteCancel": "Cancelar"
       },
       "detailTitle": "Ficha de socio",
       "descriptionLabel": "Descripción",

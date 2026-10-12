@@ -882,7 +882,10 @@
       "noListings": "Aucune fiche ne correspond à ces filtres.",
       "actions": {
         "activate": "Activer",
-        "deactivate": "Désactiver"
+        "deactivate": "Désactiver",
+        "delete": "Supprimer",
+        "deleteConfirm": "Supprimer définitivement cette fiche partenaire ? Cette action est irréversible : la fiche et ses photos seront effacées de la base.",
+        "deleteCancel": "Annuler"
       },
       "detailTitle": "Fiche partenaire",
       "descriptionLabel": "Description",

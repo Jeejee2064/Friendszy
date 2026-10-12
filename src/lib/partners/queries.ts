@@ -154,6 +154,21 @@ export async function setPartnerListingActive(
   if (error) throw error;
 }
 
+/**
+ * Hard-deletes a listing (admin only — partner_listings_delete_admin) and
+ * best-effort removes its logo/photos from storage. The row is deleted first
+ * so a storage failure can't leave a listing pointing at missing files.
+ */
+export async function deletePartnerListing(
+  supabase: Client,
+  listing: { id: string; photo_urls: string[]; logo_url: string | null }
+) {
+  const { error } = await supabase.from("partner_listings").delete().eq("id", listing.id);
+  if (error) throw error;
+  const urls = [...listing.photo_urls, ...(listing.logo_url ? [listing.logo_url] : [])];
+  await Promise.allSettled(urls.map((url) => removePartnerListingPhoto(supabase, url)));
+}
+
 export async function uploadPartnerListingPhoto(
   supabase: Client,
   listingId: string,
