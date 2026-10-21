@@ -48,3 +48,7 @@ next-env.d.ts
 
 # supabase CLI local cache (project-ref/version pin, machine-specific)
 /supabase/.temp/
+
+# claude local settings (peuvent contenir des identifiants)
+.claude/settings.json
+.claude/settings.local.json

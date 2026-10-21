@@ -689,7 +689,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition-colors ${active ? "text-white" : "text-muted"}`}
+      className={`min-w-0 flex-1 leading-tight rounded-full px-2 py-2.5 text-[13px] sm:px-4 sm:text-sm font-bold transition-colors ${active ? "text-white" : "text-muted"}`}
       style={active ? { backgroundImage: "var(--grad)" } : undefined}
     >
       {children}

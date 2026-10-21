@@ -1,7 +1,8 @@
 {
   "Metadata": {
-    "title": "Friendszy",
-    "description": "Haz nuevos amigos en torno a tus intereses."
+    "title": "Friendszy – Haz nuevos amigos cerca de ti",
+    "description": "Conoce a personas que comparten tus intereses: deporte, música, lectura, juegos de mesa… Una app de amistad, no de citas. Gratis.",
+    "loginTitle": "Iniciar sesión"
   },
   "Auth": {
     "signUp": {

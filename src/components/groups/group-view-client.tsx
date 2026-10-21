@@ -164,7 +164,7 @@ export function GroupViewClient({
 
   if (!isActiveMember) {
     return (
-      <div className="flex h-screen flex-col">
+      <div className="flex h-dvh flex-col">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card">
             {headerBlock}
@@ -191,7 +191,7 @@ export function GroupViewClient({
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-dvh flex-col">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card">
           {headerBlock}

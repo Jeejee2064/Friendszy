@@ -1,7 +1,8 @@
 {
   "Metadata": {
-    "title": "Friendszy",
-    "description": "Fais de nouveaux amis autour de tes centres d'intérêt."
+    "title": "Friendszy – Fais de nouveaux amis près de chez toi",
+    "description": "Rencontre des gens qui partagent tes centres d'intérêt : sport, musique, lecture, jeux de société… Une app d'amitié, pas de rencontres amoureuses. Gratuit au Québec.",
+    "loginTitle": "Connexion"
   },
   "Auth": {
     "signUp": {

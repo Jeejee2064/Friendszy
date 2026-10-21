@@ -43,9 +43,9 @@ export function CookieConsentBanner() {
   if (!needsChoice) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card p-4 shadow-lg">
+    <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-card p-3 shadow-lg sm:p-4">
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
-        <p className="text-sm text-text">
+        <p className="text-[13px] leading-snug text-text sm:text-sm">
           {t("body")}{" "}
           <Link href="/privacy" className="font-semibold text-teal2 underline">
             {t("privacyLink")}

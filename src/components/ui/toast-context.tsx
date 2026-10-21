@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={showToast}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0">
+      <div className="pointer-events-none fixed inset-x-0 top-4 z-50 flex flex-col gap-2 px-4 sm:inset-x-auto sm:right-4 sm:w-96 sm:px-0 [&>*]:pointer-events-auto">
         {toasts.map((toast) => (
           <div
             key={toast.id}
@@ -55,7 +55,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => dismiss(toast.id)}
               aria-label="close"
-              className="shrink-0 text-muted"
+              className="flex h-9 w-9 shrink-0 items-center justify-center text-muted"
             >
               ✕
             </button>

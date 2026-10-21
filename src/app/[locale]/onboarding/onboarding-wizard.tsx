@@ -152,7 +152,7 @@ export function OnboardingWizard({
   ];
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-8 bg-bg px-6 py-16">
+    <main className="flex min-h-dvh flex-col items-center gap-8 bg-bg px-6 py-16">
       <div className="text-center">
         <h1 className="font-pacifico text-4xl text-teal2">Friendszy</h1>
         <p className="mt-1 text-sm text-muted">

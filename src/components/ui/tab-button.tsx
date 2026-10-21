@@ -20,7 +20,8 @@ export function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+      aria-pressed={active}
+      className={`min-w-0 flex-1 whitespace-nowrap rounded-full px-2 py-2.5 text-[13px] font-bold transition-colors sm:px-4 sm:text-sm ${
         active ? "text-white" : "text-muted"
       }`}
       style={active ? { backgroundImage: "var(--grad)" } : undefined}

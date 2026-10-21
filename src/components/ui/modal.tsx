@@ -34,22 +34,24 @@ export function Modal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/40 p-4 ${
-        align === "top" ? "items-start pt-3 sm:pt-6" : "items-center"
+      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto overscroll-contain bg-black/40 p-4 ${
+        align === "top" ? "items-start pt-3 sm:pt-6" : "items-start"
       }`}
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-lg"
+        className={`relative w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-lg sm:p-6 ${
+          align === "top" ? "" : "my-auto"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={t("close")}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-lg text-muted transition-colors hover:bg-bg hover:text-text"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-lg text-muted transition-colors hover:bg-bg hover:text-text"
         >
           ✕
         </button>

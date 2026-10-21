@@ -172,7 +172,7 @@ export function PartnerListingWizard({
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center gap-8 bg-bg px-6 py-16">
+    <main className="flex min-h-dvh flex-col items-center gap-8 bg-bg px-6 py-16">
       <div className="text-center">
         <h1 className="text-2xl font-extrabold text-text">
           {mode === "create" ? t("createTitle") : t("editTitle")}

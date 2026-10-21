@@ -8,7 +8,7 @@
   --white: #fff;
   --bg: #e8f8f5;
   --text: #1a2e2b;
-  --muted: #6b9e96;
+  --muted: #3b7469; /* assombri pour le contraste AA (≥4,5:1 sur blanc et sur --bg) */
   --border: #d0f0ee;
   --card: #fff;
   --grad: linear-gradient(135deg, #1ecfb0, #1ab8c0, #1a90c8);
@@ -117,6 +117,45 @@ body {
   textarea,
   select {
     font-size: 16px !important;
+  }
+}
+
+/* Pas de délai de double-tap-zoom ni de flash gris au toucher sur les
+   éléments interactifs. */
+a,
+button,
+[role="button"],
+summary,
+label,
+select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Anneau de focus clavier cohérent avec la palette (visible uniquement à la
+   navigation clavier, pas au clic/toucher). */
+:focus-visible {
+  outline: 2px solid var(--teal2);
+  outline-offset: 2px;
+}
+
+/* Les longs mots (courriels, URL, noms) ne doivent jamais élargir la page
+   sur petit écran. */
+h1,
+h2,
+h3,
+p {
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

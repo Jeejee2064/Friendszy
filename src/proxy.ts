@@ -4,6 +4,7 @@ import { routing } from "@/i18n/routing";
 import { updateSession } from "@/lib/supabase/middleware";
 import { isProfileComplete } from "@/lib/profile/completeness";
 import { HAS_SEEN_WELCOME_COOKIE_NAME } from "@/lib/welcome/cookie";
+import { BOT_UA } from "@/lib/seo/site";
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -47,7 +48,10 @@ export async function proxy(request: NextRequest) {
         // landing page. The cookie is set once the visitor reaches the
         // last screen or skips (api/welcome-seen), and /welcome itself
         // stays reachable afterwards to replay it.
-        if (request.cookies.get(HAS_SEEN_WELCOME_COOKIE_NAME)?.value !== "1") {
+        // Crawlers never carry the cookie: serve them the landing page directly
+        // instead of the thin /welcome carousel.
+        const isBot = BOT_UA.test(request.headers.get("user-agent") ?? "");
+        if (!isBot && request.cookies.get(HAS_SEEN_WELCOME_COOKIE_NAME)?.value !== "1") {
           return NextResponse.redirect(
             new URL(withLocalePrefix(pathname, "/welcome"), request.url)
           );

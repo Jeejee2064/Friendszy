@@ -1,7 +1,8 @@
 {
   "Metadata": {
-    "title": "Friendszy",
-    "description": "Make new friends around your interests."
+    "title": "Friendszy – Make new friends near you",
+    "description": "Meet people who share your interests: sports, music, reading, board games… A friendship app, not a dating app. Free to join.",
+    "loginTitle": "Sign in"
   },
   "Auth": {
     "signUp": {

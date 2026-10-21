@@ -1,12 +1,25 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { localeAlternates } from "@/lib/seo/site";
 import { Link } from "@/i18n/navigation";
 import { TermsOfUseContentFr, TERMS_LAST_UPDATED_FR } from "@/content/terms-of-use.fr";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Terms" });
+  const alternates = localeAlternates(locale, "/terms");
+  return { title: t("pageTitle"), alternates, openGraph: { url: alternates.canonical } };
+}
 
 export default async function TermsOfUsePage() {
   const t = await getTranslations("Terms");
 
   return (
-    <main className="min-h-screen bg-bg px-6 py-16">
+    <main className="min-h-dvh bg-bg px-6 py-16">
       <div className="mx-auto w-full max-w-2xl rounded-3xl border border-border bg-card p-8 shadow-lg sm:p-10">
         <Link href="/profile" className="text-sm font-semibold text-teal2 hover:underline">
           ← {t("backLink")}

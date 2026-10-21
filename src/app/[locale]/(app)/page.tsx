@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
@@ -8,10 +9,26 @@ import { getDashboardStats } from "@/lib/dashboard/queries";
 import { getNotificationsWithProfiles, markNotificationsRead } from "@/lib/notifications/queries";
 import { getPublicMapPoints } from "@/lib/publicMap/queries";
 import { HAS_CHOSEN_DISCOVER_COOKIE_NAME } from "@/lib/intent/cookie";
+import { localeAlternates } from "@/lib/seo/site";
 import { PageHeader } from "@/components/layout/page-header";
 import { NotificationRow } from "@/components/notifications/notification-row";
 import { PublicLanding } from "@/components/landing/public-landing";
 import { IntentRedirect } from "@/components/landing/intent-redirect";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  return {
+    title: { absolute: t("title") },
+    description: t("description"),
+    alternates: localeAlternates(locale, "/"),
+    openGraph: { url: localeAlternates(locale, "/").canonical },
+  };
+}
 
 export default async function DashboardPage({
   params,

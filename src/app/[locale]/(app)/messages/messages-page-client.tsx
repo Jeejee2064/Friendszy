@@ -362,7 +362,7 @@ export function MessagesPageClient({
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-dvh flex-col">
       <PageHeader title={t("title")} />
       <PushPermissionBanner />
 
@@ -372,8 +372,8 @@ export function MessagesPageClient({
         }`}
       >
         <div
-          className={`min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card lg:flex lg:w-80 ${
-            hasSelection ? "hidden lg:flex" : "flex"
+          className={`min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card lg:w-80 ${
+            hasSelection ? "hidden" : "flex"
           }`}
         >
           <div className="border-b border-border p-4">
@@ -427,8 +427,10 @@ export function MessagesPageClient({
         </div>
 
         <div
-          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card lg:rounded-2xl lg:border lg:border-border ${
-            hasSelection ? "flex" : "hidden lg:flex"
+          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card ${
+            hasSelection
+              ? "fixed inset-0 z-40 flex h-dvh"
+              : "hidden rounded-2xl border border-border lg:flex"
           }`}
         >
           {hasSelection ? (
@@ -1178,7 +1180,7 @@ function ConversationPane({
       <div className="flex items-center gap-3 border-b border-border p-4">
         <Link
           href="/messages"
-          className="text-lg font-semibold text-teal2 lg:hidden"
+          className="text-lg font-semibold text-teal2"
           aria-label={t("back")}
         >
           ←

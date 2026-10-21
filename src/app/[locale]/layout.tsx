@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { SITE_URL } from "@/lib/seo/site";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { CookieConsentBanner } from "@/components/consent/cookie-consent-banner";
 import { BetaFeedbackButton } from "@/components/beta-feedback/beta-feedback-button";
@@ -40,9 +41,28 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
 
+  const ogLocale = { fr: "fr_CA", en: "en_CA", es: "es_ES" }[locale] ?? "fr_CA";
+
   return {
-    title: t("title"),
+    metadataBase: new URL(SITE_URL),
+    title: { default: t("title"), template: "%s | Friendszy" },
     description: t("description"),
+    applicationName: "Friendszy",
+    openGraph: {
+      type: "website",
+      siteName: "Friendszy",
+      title: t("title"),
+      description: t("description"),
+      locale: ogLocale,
+      alternateLocale: ["fr_CA", "en_CA", "es_ES"].filter((l) => l !== ogLocale),
+      images: [{ url: "/icons/icon-512.png", width: 512, height: 512, alt: "Friendszy" }],
+    },
+    twitter: {
+      card: "summary",
+      title: t("title"),
+      description: t("description"),
+      images: ["/icons/icon-512.png"],
+    },
     icons: {
       icon: [
         { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

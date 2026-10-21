@@ -265,17 +265,21 @@ export function EventViewClient({
             )}
 
             <div className="mt-4 flex flex-col gap-1.5 text-sm text-text">
-              <p className="flex items-center gap-1.5 font-semibold">
-                <Calendar className="h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
-                {format.dateTime(new Date(event.starts_at), {
-                  dateStyle: "long"
-                })}
-                {" → "}
-                {event.ends_at
-                  ? format.dateTime(new Date(event.ends_at), {
-                      dateStyle: "long"
-                    })
-                  : t("endUndetermined")}
+              <p className="flex items-start gap-1.5 font-semibold">
+                <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+                <span>
+                  {format.dateTime(new Date(event.starts_at), {
+                    dateStyle: "long"
+                  })}
+                  {event.ends_at
+                    ? new Date(event.ends_at).toDateString() !==
+                      new Date(event.starts_at).toDateString()
+                      ? ` → ${format.dateTime(new Date(event.ends_at), {
+                          dateStyle: "long"
+                        })}`
+                      : ""
+                    : ` → ${t("endUndetermined")}`}
+                </span>
               </p>
               <p className="flex items-center gap-1.5 text-muted">
                 <MapPin className="h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />

@@ -65,7 +65,7 @@ export function LocaleToggle({
             key={l}
             type="button"
             onClick={() => switchTo(l)}
-            className={`rounded-lg py-1 text-center text-[10px] font-bold uppercase transition-colors ${
+            className={`flex min-h-9 items-center justify-center rounded-lg text-center text-[11px] font-bold uppercase transition-colors ${
               locale === l ? "text-white" : "text-muted"
             }`}
             style={locale === l ? { backgroundImage: "var(--grad)" } : undefined}

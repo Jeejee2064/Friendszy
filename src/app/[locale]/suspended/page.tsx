@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function SuspendedPage({
   params,
@@ -35,7 +38,7 @@ export default async function SuspendedPage({
   const t = await getTranslations("Suspended");
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-bg px-6 py-16">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-8 bg-bg px-6 py-16">
       <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-lg">
         <div
           className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-2xl"

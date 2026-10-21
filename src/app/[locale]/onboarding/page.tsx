@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -8,6 +9,8 @@ import {
 } from "@/lib/profile/queries";
 import type { Gender, LookingFor } from "@/lib/profile/types";
 import { OnboardingWizard } from "./onboarding-wizard";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function OnboardingPage({
   params,

@@ -160,7 +160,7 @@ export function TemporaryCityCard({
                 placeholder={t("cityPlaceholder")}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2">
               <div>
                 <p className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-muted">
                   {t("arrivalLabel")}

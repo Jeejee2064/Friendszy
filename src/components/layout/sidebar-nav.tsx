@@ -38,12 +38,14 @@ export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
             key={item.href}
             id={navTourTargetId(item.key)}
             href={item.href}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+            aria-label={t(item.key)}
+            aria-current={active ? "page" : undefined}
+            className={`flex min-h-11 items-center justify-center gap-3 rounded-xl px-3 py-2.5 md:justify-start text-sm font-semibold transition-colors ${
               active ? "bg-bg text-teal2" : "text-muted hover:bg-bg"
             }`}
           >
             <span className="relative flex h-[18px] w-[18px] items-center justify-center">
-              <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+              <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
               {badgeCount > 0 && (
                 <span
                   className="absolute -right-2.5 -top-2.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +8,8 @@ import { countPendingInterestSuggestions } from "@/lib/interest-suggestions/quer
 import { countNewBetaFeedback } from "@/lib/beta-feedback/queries";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function AdminLayout({
   children,
@@ -51,7 +54,7 @@ export default async function AdminLayout({
   const adminName = [profile.full_name, profile.last_name].filter(Boolean).join(" ") || user.email;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       <AdminSidebar
         pendingReportsCount={pendingReportsCount}
         pendingPartnersCount={pendingPartnersCount}
