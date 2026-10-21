@@ -366,7 +366,11 @@ export function MessagesPageClient({
       <PageHeader title={t("title")} />
       <PushPermissionBanner />
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden p-4 md:p-6">
+      <div
+        className={`flex min-h-0 flex-1 gap-4 overflow-hidden lg:p-6 ${
+          hasSelection ? "p-0" : "p-4 md:p-6"
+        }`}
+      >
         <div
           className={`min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card lg:flex lg:w-80 ${
             hasSelection ? "hidden lg:flex" : "flex"
@@ -423,7 +427,7 @@ export function MessagesPageClient({
         </div>
 
         <div
-          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card ${
+          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card lg:rounded-2xl lg:border lg:border-border ${
             hasSelection ? "flex" : "hidden lg:flex"
           }`}
         >
