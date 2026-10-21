@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getMyProfile,
   getMyInterestIds,
+  getMyPartnerInterestIds,
   getInterests,
   getProfilePhotos,
 } from "@/lib/profile/queries";
@@ -43,11 +44,20 @@ export default async function PublicProfilePage({
   const profile = await getMyProfile(supabase, id);
   if (!profile) notFound();
 
-  const [interests, myInterestIds, interestsByProfile, friendshipMap, photos, interestedEventIds] =
+  const [
+    interests,
+    myInterestIds,
+    interestsByProfile,
+    partnerInterestIds,
+    friendshipMap,
+    photos,
+    interestedEventIds,
+  ] =
     await Promise.all([
       getInterests(supabase),
       getMyInterestIds(supabase, user.id),
       getInterestsForProfiles(supabase, [id]),
+      getMyPartnerInterestIds(supabase, id),
       getFriendshipMap(supabase, user.id),
       getProfilePhotos(supabase, id),
       getInterestedEventIds(supabase, id),
@@ -75,6 +85,7 @@ export default async function PublicProfilePage({
       interests={interests}
       profileInterestIds={interestsByProfile.get(id) ?? []}
       myInterestIds={myInterestIds}
+      partnerInterestIds={partnerInterestIds}
       friendshipInfo={friendshipMap.get(id) ?? null}
       photos={photos.map((photo) => photo.url)}
       interestedEvents={interestedEvents}

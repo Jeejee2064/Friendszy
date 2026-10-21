@@ -25,6 +25,7 @@ export function PublicProfileClient({
   interests,
   profileInterestIds,
   myInterestIds,
+  partnerInterestIds,
   friendshipInfo,
   photos,
   interestedEvents,
@@ -34,6 +35,7 @@ export function PublicProfileClient({
   interests: Interest[];
   profileInterestIds: number[];
   myInterestIds: number[];
+  partnerInterestIds: number[];
   friendshipInfo: FriendshipInfo | null;
   photos: string[];
   interestedEvents: EventCardData[];
@@ -156,11 +158,21 @@ export function PublicProfileClient({
                   </p>
                   <p className="mt-1 text-sm font-semibold text-text">
                     {(profile.looking_for as LookingFor[])
-                      .map((option) =>
-                        option === "other" && profile.looking_for_other
-                          ? profile.looking_for_other
-                          : tLookingFor(option)
-                      )
+                      .map((option) => {
+                        if (option === "other" && profile.looking_for_other) {
+                          return profile.looking_for_other;
+                        }
+                        if (option === "activity_partner") {
+                          const names = partnerInterestIds
+                            .map((id) => interests.find((i) => i.id === id))
+                            .filter((i): i is Interest => Boolean(i))
+                            .map((i) => localizedInterestLabel(i, locale));
+                          return names.length > 0
+                            ? tLookingFor("activityPartnerOf", { list: names.join(", ") })
+                            : tLookingFor("activityPartnerAny");
+                        }
+                        return tLookingFor(option);
+                      })
                       .join(", ")}
                   </p>
                 </div>

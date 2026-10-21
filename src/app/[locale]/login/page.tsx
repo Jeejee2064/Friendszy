@@ -28,6 +28,7 @@ function initialsFromEmail(email: string | null | undefined) {
 
 export default function LoginPage() {
   const t = useTranslations("Auth");
+  const tWelcome = useTranslations("Welcome");
   const router = useRouter();
   const locale = useLocale();
   const goOffline = useGoOffline();
@@ -436,6 +437,9 @@ export default function LoginPage() {
           </div>
         )}
       </div>
+      <Link href="/welcome" className="text-sm font-semibold text-muted hover:underline">
+        {tWelcome("replay")}
+      </Link>
     </main>
   );
 }

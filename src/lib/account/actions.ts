@@ -23,6 +23,7 @@ export async function deleteMyAccount(
   await admin.storage.from("avatars").remove([`${userId}/avatar.jpg`]);
 
   await admin.from("profile_interests").delete().eq("profile_id", userId);
+  await admin.from("profile_partner_interests").delete().eq("profile_id", userId);
 
   await admin
     .from("friendships")

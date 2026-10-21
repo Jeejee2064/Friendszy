@@ -165,6 +165,7 @@
     "lookingForLabel": "What I'm looking for",
     "lookingForPlaceholder": "Choose one or more options",
     "lookingForOtherPlaceholder": "Tell us what you're looking for",
+    "partnerInterestsPlaceholder": "Choose up to 5 interests",
     "languagesLabel": "Languages spoken",
     "languagesPlaceholder": "Choose languages"
   },
@@ -279,7 +280,9 @@
     "allInterestsTitle": "Interests",
     "allInterestsClose": "Close",
     "interestsStepTitle": "Interests",
-    "ageGenderStepTitle": "Age & gender (optional)",
+    "ageGenderStepTitle": "Age, gender and what they're looking for (optional)",
+    "lookingForLabel": "What I'm looking for",
+    "lookingForAny": "Any",
     "skip": "Skip this step",
     "next": "Next",
     "back": "Back",
@@ -1178,7 +1181,9 @@
   },
   "LookingFor": {
     "new_friends": "New friendships",
-    "sport_partner": "Sports partner",
+    "activity_partner": "Partner for…",
+    "activityPartnerOf": "Partner for {list}",
+    "activityPartnerAny": "Activity partner",
     "outings": "Outings and activities",
     "parent_friends": "Parent friends",
     "online_chat": "Chatting online",
@@ -1194,5 +1199,81 @@
     "settingsCardBody": "Read Friendszy's terms of use, community guidelines and safety tips.",
     "settingsCardLink": "Read the terms and guidelines",
     "frenchOnlyNotice": "This legal text is only available in French; the French version prevails over any translation."
+  },
+  "Welcome": {
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "start": "Get started",
+    "haveAccount": "I already have an account",
+    "createAccount": "Create my account",
+    "slideLabel": "Screen {current} of {total}",
+    "dotLabel": "Go to screen {n}",
+    "s1Title": "Make friends who like the same things you do.",
+    "s1Body": "People near you, shared interests. For friendship, not for dating.",
+    "s2Title": "Tell us what you're passionate about.",
+    "s2Body": "We suggest people and groups who share your interests, close to home.",
+    "interests": {
+      "cooking": "Cooking",
+      "pickleball": "Pickleball",
+      "photo": "Photography",
+      "climbing": "Climbing",
+      "boardGames": "Board games",
+      "yoga": "Yoga",
+      "reading": "Reading",
+      "hiking": "Hiking",
+      "museums": "Museums",
+      "improv": "Improv",
+      "tennis": "Tennis",
+      "cycling": "Cycling",
+      "moreCategories": "20+ categories"
+    },
+    "s3Body": "Chat about anything and everything with people like you, or join a group activity when you feel ready. Breaking isolation often starts with a simple conversation.",
+    "ev1": {
+      "day": "SAT",
+      "title": "Beginner pickleball",
+      "meta": "Maisonneuve Park · 10 a.m."
+    },
+    "ev2": {
+      "day": "THU",
+      "title": "Board game night",
+      "meta": "Neighbourhood café · 7 p.m."
+    },
+    "ev3": {
+      "day": "SUN",
+      "title": "Mount Royal hike",
+      "meta": "Group · 9:30 a.m."
+    },
+    "join": "I'm in",
+    "s4Title": "Discover what's happening near you.",
+    "s4Body": "Exhibits, shows, festivals and local businesses, all in one place. Find an outing and invite your new friends.",
+    "tabAll": "See all",
+    "tabEvents": "Events",
+    "tabActivities": "Activities",
+    "searchPlaceholder": "Search for an event or a business…",
+    "disc1": {
+      "date": "Oct. 24 → Nov. 30",
+      "title": "IMMERSIVE EXHIBIT",
+      "category": "Exhibits",
+      "place": "Montréal — Old Port"
+    },
+    "disc2": {
+      "date": "Nov. 8",
+      "title": "JAZZ NIGHT",
+      "category": "Jazz",
+      "place": "Montréal — Mile End"
+    },
+    "openNow": "OPEN NOW",
+    "shopName": "Corner café",
+    "shopMeta": "Local business · Plateau",
+    "call": "Call",
+    "website": "Website",
+    "s5Title": "Here, we come for friendship.",
+    "s5Body": "A few simple rules keep the community welcoming for everyone.",
+    "rule1": "Not for dating",
+    "rule2": "Confidential reporting",
+    "rule2Sub": "Block or report in one tap.",
+    "rule3": "18 and over",
+    "replay": "Watch the intro again"
   }
 }

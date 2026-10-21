@@ -32,7 +32,7 @@ export const GENDERS: Gender[] = ["homme", "femme", "non-binaire", "autre"];
 
 export type LookingFor =
   | "new_friends"
-  | "sport_partner"
+  | "activity_partner"
   | "outings"
   | "parent_friends"
   | "online_chat"
@@ -42,7 +42,7 @@ export type LookingFor =
 
 export const LOOKING_FOR_OPTIONS: LookingFor[] = [
   "new_friends",
-  "sport_partner",
+  "activity_partner",
   "outings",
   "parent_friends",
   "online_chat",
@@ -52,6 +52,9 @@ export const LOOKING_FOR_OPTIONS: LookingFor[] = [
 ];
 
 export const LOOKING_FOR_OTHER_MAX = 100;
+
+// Mirrors the cap enforced by profile_partner_interests_limit in the DB.
+export const MAX_PARTNER_INTERESTS = 5;
 
 // ISO 639-1 codes. Display names come from Intl.DisplayNames in the viewer's
 // locale (see languageLabel), so nothing here needs translating.

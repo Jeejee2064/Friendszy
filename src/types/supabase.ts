@@ -1318,6 +1318,39 @@ export type Database = {
           },
         ]
       }
+      profile_partner_interests: {
+        Row: {
+          created_at: string
+          interest_id: number
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          interest_id: number
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          interest_id?: number
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_partner_interests_interest_id_fkey"
+            columns: ["interest_id"]
+            isOneToOne: false
+            referencedRelation: "interests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_partner_interests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_photos: {
         Row: {
           created_at: string
@@ -1615,12 +1648,6 @@ export type Database = {
           id: string
         }[]
       }
-      match_profile_name_ids: {
-        Args: { p_tokens: string[] }
-        Returns: {
-          id: string
-        }[]
-      }
       match_event_city_ids: {
         Args: { p_city: string }
         Returns: {
@@ -1629,6 +1656,12 @@ export type Database = {
       }
       match_partner_listing_city_ids: {
         Args: { p_city: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      match_profile_name_ids: {
+        Args: { p_tokens: string[] }
         Returns: {
           id: string
         }[]

@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { uploadAvatar } from "@/lib/profile/queries";
-import type { Gender, LookingFor } from "@/lib/profile/types";
+import type { Gender, Interest, LookingFor } from "@/lib/profile/types";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { LookingForSelect } from "@/components/profile/looking-for-select";
 import { LanguageSelect } from "@/components/profile/language-select";
@@ -25,6 +25,7 @@ type InfoFormState = {
   bio: string;
   looking_for: LookingFor[];
   looking_for_other: string;
+  partner_interest_ids: number[];
   languages: string[];
 };
 
@@ -36,6 +37,7 @@ type InfoFormState = {
  */
 export function ProfileInfoSection({
   userId,
+  interests,
   form,
   onUpdate,
   tripActive,
@@ -44,6 +46,7 @@ export function ProfileInfoSection({
   onSubmit,
 }: {
   userId: string;
+  interests: Interest[];
   form: InfoFormState;
   onUpdate: (patch: Partial<InfoFormState>) => void;
   tripActive: boolean;
@@ -133,8 +136,11 @@ export function ProfileInfoSection({
           <LookingForSelect
             value={form.looking_for}
             other={form.looking_for_other}
+            interests={interests}
+            partnerInterestIds={form.partner_interest_ids}
             onChange={(v) => onUpdate({ looking_for: v })}
             onOtherChange={(v) => onUpdate({ looking_for_other: v })}
+            onPartnerInterestsChange={(ids) => onUpdate({ partner_interest_ids: ids })}
           />
         </div>
         <div>

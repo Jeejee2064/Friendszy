@@ -4,6 +4,7 @@ import {
   getInterests,
   getMyProfile,
   getMyInterestIds,
+  getMyPartnerInterestIds,
   getProfilePhotos,
 } from "@/lib/profile/queries";
 import type { Gender, LookingFor } from "@/lib/profile/types";
@@ -25,10 +26,11 @@ export default async function ProfilePage({
     return null;
   }
 
-  const [profile, interests, interestIds, photos] = await Promise.all([
+  const [profile, interests, interestIds, partnerInterestIds, photos] = await Promise.all([
     getMyProfile(supabase, user.id),
     getInterests(supabase),
     getMyInterestIds(supabase, user.id),
+    getMyPartnerInterestIds(supabase, user.id),
     getProfilePhotos(supabase, user.id),
   ]);
 
@@ -73,6 +75,7 @@ export default async function ProfilePage({
         bio: profile?.bio ?? "",
         looking_for: (profile?.looking_for as LookingFor[] | undefined) ?? [],
         looking_for_other: profile?.looking_for_other ?? "",
+        partner_interest_ids: partnerInterestIds,
         languages: profile?.languages ?? [],
       }}
     />

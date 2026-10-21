@@ -3,11 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "@/i18n/routing";
 import { updateSession } from "@/lib/supabase/middleware";
 import { isProfileComplete } from "@/lib/profile/completeness";
+import { HAS_SEEN_WELCOME_COOKIE_NAME } from "@/lib/welcome/cookie";
 
 const handleI18nRouting = createMiddleware(routing);
 
 function withLocalePrefix(pathname: string, targetPath: string) {
-  return /^\/en(?=\/|$)/.test(pathname) ? `/en${targetPath}` : targetPath;
+  const match = pathname.match(/^\/(en|es)(?=\/|$)/);
+  return match ? `/${match[1]}${targetPath}` : targetPath;
 }
 
 export async function proxy(request: NextRequest) {
@@ -15,7 +17,7 @@ export async function proxy(request: NextRequest) {
   const { response, supabase, user } = await updateSession(request, intlResponse);
 
   const pathname = request.nextUrl.pathname;
-  const path = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
+  const path = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
   const protectedPaths = [
     "/",
     "/onboarding",
@@ -41,6 +43,15 @@ export async function proxy(request: NextRequest) {
       // authenticated visitor on "/" still goes through every check below
       // (suspended, onboarding, ...) unchanged.
       if (path === "/") {
+        // First visit: show the /welcome intro screens before the public
+        // landing page. The cookie is set once the visitor reaches the
+        // last screen or skips (api/welcome-seen), and /welcome itself
+        // stays reachable afterwards to replay it.
+        if (request.cookies.get(HAS_SEEN_WELCOME_COOKIE_NAME)?.value !== "1") {
+          return NextResponse.redirect(
+            new URL(withLocalePrefix(pathname, "/welcome"), request.url)
+          );
+        }
         return response;
       }
       return NextResponse.redirect(

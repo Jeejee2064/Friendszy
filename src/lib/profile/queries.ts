@@ -60,6 +60,18 @@ export async function getMyInterestIds(
   return (data ?? []).map((row) => row.interest_id);
 }
 
+export async function getMyPartnerInterestIds(
+  supabase: Client,
+  userId: string
+): Promise<number[]> {
+  const { data, error } = await supabase
+    .from("profile_partner_interests")
+    .select("interest_id")
+    .eq("profile_id", userId);
+  if (error) throw error;
+  return (data ?? []).map((row) => row.interest_id);
+}
+
 export async function uploadAvatar(
   supabase: Client,
   userId: string,
@@ -199,6 +211,25 @@ export async function setMyInterests(
 
   const { error: insertError } = await supabase
     .from("profile_interests")
+    .insert(interestIds.map((interest_id) => ({ profile_id: userId, interest_id })));
+  if (insertError) throw insertError;
+}
+
+export async function setMyPartnerInterests(
+  supabase: Client,
+  userId: string,
+  interestIds: number[]
+) {
+  const { error: deleteError } = await supabase
+    .from("profile_partner_interests")
+    .delete()
+    .eq("profile_id", userId);
+  if (deleteError) throw deleteError;
+
+  if (interestIds.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("profile_partner_interests")
     .insert(interestIds.map((interest_id) => ({ profile_id: userId, interest_id })));
   if (insertError) throw insertError;
 }

@@ -1,6 +1,11 @@
 import { redirect } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getInterests, getMyProfile, getMyInterestIds } from "@/lib/profile/queries";
+import {
+  getInterests,
+  getMyProfile,
+  getMyInterestIds,
+  getMyPartnerInterestIds,
+} from "@/lib/profile/queries";
 import type { Gender, LookingFor } from "@/lib/profile/types";
 import { OnboardingWizard } from "./onboarding-wizard";
 
@@ -20,10 +25,11 @@ export default async function OnboardingPage({
     return null;
   }
 
-  const [profile, interests, interestIds] = await Promise.all([
+  const [profile, interests, interestIds, partnerInterestIds] = await Promise.all([
     getMyProfile(supabase, user.id),
     getInterests(supabase),
     getMyInterestIds(supabase, user.id),
+    getMyPartnerInterestIds(supabase, user.id),
   ]);
 
   return (
@@ -41,6 +47,7 @@ export default async function OnboardingPage({
         bio: profile?.bio ?? "",
         looking_for: (profile?.looking_for as LookingFor[] | undefined) ?? [],
         looking_for_other: profile?.looking_for_other ?? "",
+        partner_interest_ids: partnerInterestIds,
         languages: profile?.languages ?? [],
       }}
     />

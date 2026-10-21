@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { upsertMyProfile, setMyInterests } from "@/lib/profile/queries";
+import { upsertMyProfile, setMyInterests, setMyPartnerInterests } from "@/lib/profile/queries";
 import type { Gender, Interest, LookingFor } from "@/lib/profile/types";
 import { ProfileTabs, type ProfileTab } from "@/components/profile/profile-tabs";
 import { ProfileInfoSection } from "@/components/profile/profile-info-section";
@@ -31,6 +31,7 @@ type FormState = {
   bio: string;
   looking_for: LookingFor[];
   looking_for_other: string;
+  partner_interest_ids: number[];
   languages: string[];
 };
 
@@ -148,6 +149,11 @@ export function ProfileForm({
         languages: form.languages,
       });
       await setMyInterests(supabase, userId, form.interestIds);
+      await setMyPartnerInterests(
+        supabase,
+        userId,
+        form.looking_for.includes("activity_partner") ? form.partner_interest_ids : []
+      );
       setSavedInterestIds(form.interestIds);
       setNotice({ kind: "success", message: t("saveSuccess") });
       setCollapseSignal((v) => v + 1);
@@ -187,6 +193,7 @@ export function ProfileForm({
         <>
           <ProfileInfoSection
             userId={userId}
+            interests={interests}
             form={form}
             onUpdate={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
             tripActive={tripActive}

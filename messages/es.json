@@ -165,6 +165,7 @@
     "lookingForLabel": "Lo que busco",
     "lookingForPlaceholder": "Elige una o varias opciones",
     "lookingForOtherPlaceholder": "Especifica lo que buscas",
+    "partnerInterestsPlaceholder": "Elige hasta 5 intereses",
     "languagesLabel": "Idiomas que hablo",
     "languagesPlaceholder": "Elegir idiomas"
   },
@@ -279,7 +280,9 @@
     "allInterestsTitle": "Intereses",
     "allInterestsClose": "Cerrar",
     "interestsStepTitle": "Intereses",
-    "ageGenderStepTitle": "Edad y género (opcional)",
+    "ageGenderStepTitle": "Edad, género y lo que buscan (opcional)",
+    "lookingForLabel": "Lo que busco",
+    "lookingForAny": "Cualquiera",
     "skip": "Omitir este paso",
     "next": "Siguiente",
     "back": "Atrás",
@@ -1178,7 +1181,9 @@
   },
   "LookingFor": {
     "new_friends": "Nuevas amistades",
-    "sport_partner": "Compañero de deporte",
+    "activity_partner": "Compañero/a de…",
+    "activityPartnerOf": "Compañero/a de {list}",
+    "activityPartnerAny": "Compañero/a de actividad",
     "outings": "Salidas y actividades",
     "parent_friends": "Amigos padres",
     "online_chat": "Charlar en línea",
@@ -1194,5 +1199,81 @@
     "settingsCardBody": "Consulta las condiciones de uso, las normas de la comunidad y los consejos de seguridad de Friendszy.",
     "settingsCardLink": "Leer las condiciones y las normas",
     "frenchOnlyNotice": "Este texto legal solo está disponible en francés; la versión francesa prevalece sobre cualquier traducción."
+  },
+  "Welcome": {
+    "skip": "Omitir",
+    "back": "Volver",
+    "next": "Siguiente",
+    "start": "Empezar",
+    "haveAccount": "Ya tengo una cuenta",
+    "createAccount": "Crear mi cuenta",
+    "slideLabel": "Pantalla {current} de {total}",
+    "dotLabel": "Ir a la pantalla {n}",
+    "s1Title": "Haz amigos a quienes les gusten las mismas cosas que a ti.",
+    "s1Body": "Personas cerca de ti, intereses en común. Para la amistad, no para ligar.",
+    "s2Title": "Cuéntanos qué te apasiona.",
+    "s2Body": "Te sugerimos personas y grupos que comparten tus intereses, cerca de ti.",
+    "interests": {
+      "cooking": "Cocina",
+      "pickleball": "Pickleball",
+      "photo": "Fotografía",
+      "climbing": "Escalada",
+      "boardGames": "Juegos de mesa",
+      "yoga": "Yoga",
+      "reading": "Lectura",
+      "hiking": "Senderismo",
+      "museums": "Museos",
+      "improv": "Improvisación",
+      "tennis": "Tenis",
+      "cycling": "Ciclismo",
+      "moreCategories": "+ de 20 categorías"
+    },
+    "s3Body": "Conversa de todo un poco con personas como tú, o únete a una actividad de grupo cuando te sientas listo. Romper el aislamiento suele empezar con una simple conversación.",
+    "ev1": {
+      "day": "SÁB",
+      "title": "Pickleball para principiantes",
+      "meta": "Parque Maisonneuve · 10 h"
+    },
+    "ev2": {
+      "day": "JUE",
+      "title": "Noche de juegos de mesa",
+      "meta": "Café del barrio · 19 h"
+    },
+    "ev3": {
+      "day": "DOM",
+      "title": "Caminata al Mont Royal",
+      "meta": "Grupo · 9:30 h"
+    },
+    "join": "Participo",
+    "s4Title": "Descubre lo que pasa cerca de ti.",
+    "s4Body": "Exposiciones, espectáculos, festivales y comercios del barrio, todo en un mismo lugar. Encuentra una salida e invita a tus nuevos amigos.",
+    "tabAll": "Ver todo",
+    "tabEvents": "Eventos",
+    "tabActivities": "Actividades",
+    "searchPlaceholder": "Buscar un evento o un comercio…",
+    "disc1": {
+      "date": "24 oct. → 30 nov.",
+      "title": "EXPOSICIÓN INMERSIVA",
+      "category": "Exposiciones",
+      "place": "Montreal — Puerto Viejo"
+    },
+    "disc2": {
+      "date": "8 nov.",
+      "title": "NOCHE DE JAZZ",
+      "category": "Jazz",
+      "place": "Montreal — Mile End"
+    },
+    "openNow": "ABIERTO AHORA",
+    "shopName": "Café de la esquina",
+    "shopMeta": "Comercio local · Plateau",
+    "call": "Llamar",
+    "website": "Sitio web",
+    "s5Title": "Aquí venimos por la amistad.",
+    "s5Body": "Unas pocas reglas sencillas mantienen la comunidad acogedora para todos.",
+    "rule1": "No es para ligar",
+    "rule2": "Denuncia confidencial",
+    "rule2Sub": "Bloquea o denuncia con un gesto.",
+    "rule3": "Mayores de 18 años",
+    "replay": "Volver a ver la presentación"
   }
 }

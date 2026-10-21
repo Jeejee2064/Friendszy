@@ -17,11 +17,12 @@ import {
 } from "@/lib/friends/queries";
 import { getOrCreateConversation } from "@/lib/messages/queries";
 import { getMyInterestIds } from "@/lib/profile/queries";
-import { GENDERS, type Gender, type Interest } from "@/lib/profile/types";
+import { GENDERS, type Gender, type Interest, type LookingFor } from "@/lib/profile/types";
 import { localizedInterestLabel } from "@/lib/interests/label";
 import { ResultInterests } from "@/components/search/result-interests";
 import { InterestPicker } from "@/components/search/interest-picker";
 import { CityAutocomplete } from "@/components/search/city-autocomplete";
+import { LookingForFilter } from "@/components/search/looking-for-filter";
 import { AgeRangeSlider, AGE_MIN, AGE_MAX } from "@/components/search/age-range-slider";
 import { Modal } from "@/components/ui/modal";
 import { PersonCard } from "@/components/social/person-card";
@@ -60,6 +61,8 @@ export function SearchPageClient({
   const [maxAge, setMaxAge] = useState(AGE_MAX);
   const [genders, setGenders] = useState<Gender[]>([]);
   const [interestIds, setInterestIds] = useState<number[]>([]);
+  const [lookingFor, setLookingFor] = useState<LookingFor[]>([]);
+  const [partnerInterestIds, setPartnerInterestIds] = useState<number[]>([]);
   const [changeSearchOpen, setChangeSearchOpen] = useState(false);
 
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -152,6 +155,8 @@ export function SearchPageClient({
           minAge: minAge > AGE_MIN ? minAge : undefined,
           maxAge: maxAge < AGE_MAX ? maxAge : undefined,
           gender: genders.length > 0 ? genders : undefined,
+          lookingFor: lookingFor.length > 0 ? lookingFor : undefined,
+          partnerInterestIds: partnerInterestIds.length > 0 ? partnerInterestIds : undefined,
         },
         userId
       );
@@ -234,7 +239,19 @@ export function SearchPageClient({
   }
 
   const activeFilterCount =
-    (genders.length > 0 ? 1 : 0) + (minAge > AGE_MIN || maxAge < AGE_MAX ? 1 : 0);
+    (genders.length > 0 ? 1 : 0) +
+    (lookingFor.length > 0 ? 1 : 0) +
+    (minAge > AGE_MIN || maxAge < AGE_MAX ? 1 : 0);
+
+  const lookingForFilter = (
+    <LookingForFilter
+      interests={interests}
+      lookingFor={lookingFor}
+      partnerInterestIds={partnerInterestIds}
+      onLookingForChange={setLookingFor}
+      onPartnerInterestsChange={setPartnerInterestIds}
+    />
+  );
 
   const personPoints: MapPoint[] = nearbyProfiles.map((profile) => ({
     id: profile.id,
@@ -448,20 +465,23 @@ export function SearchPageClient({
       ) : step === "ageGender" ? (
         <div className="max-w-md">
           <h2 className="mb-3 text-lg font-bold text-text">{t("ageGenderStepTitle")}</h2>
-          <AgeGenderFilters
-            minAge={minAge}
-            maxAge={maxAge}
-            onAgeChange={(nextMin, nextMax) => {
-              setMinAge(nextMin);
-              setMaxAge(nextMax);
-            }}
-            genders={genders}
-            onGendersChange={setGenders}
-            tGender={tGender}
-            anyLabel={t("anyGender")}
-            ageRangeLabel={t("ageRange")}
-            genderLabel={t("genderLabel")}
-          />
+          <div className="flex flex-col gap-5">
+            <AgeGenderFilters
+              minAge={minAge}
+              maxAge={maxAge}
+              onAgeChange={(nextMin, nextMax) => {
+                setMinAge(nextMin);
+                setMaxAge(nextMax);
+              }}
+              genders={genders}
+              onGendersChange={setGenders}
+              tGender={tGender}
+              anyLabel={t("anyGender")}
+              ageRangeLabel={t("ageRange")}
+              genderLabel={t("genderLabel")}
+            />
+            {lookingForFilter}
+          </div>
           <button
             type="button"
             onClick={launchDiscoverSearch}
@@ -549,6 +569,7 @@ export function SearchPageClient({
                 ageRangeLabel={t("ageRange")}
                 genderLabel={t("genderLabel")}
               />
+              {lookingForFilter}
             </div>
 
             <button

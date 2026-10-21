@@ -12,6 +12,10 @@ export type SearchFilters = {
   maxAge?: number;
   gender?: string[];
   interestIds?: number[];
+  // "Ce que je recherche" : valeurs de looking_for, et — pour
+  // activity_partner — les intérêts précis pour lesquels on cherche un partenaire.
+  lookingFor?: string[];
+  partnerInterestIds?: number[];
 };
 
 export type SearchResult = ProfileSummary & { commonInterestCount: number };
@@ -53,6 +57,33 @@ export async function searchProfiles(
     if (cityIds.length === 0) return [];
   }
 
+  // OR entre les choix : quelqu'un qui cherche « Sorties » OU un partenaire de
+  // moto. activity_partner + intérêts passe par profile_partner_interests ;
+  // activity_partner seul retombe sur la valeur looking_for.
+  let lookingForClause: string | null = null;
+  if (filters.lookingFor && filters.lookingFor.length > 0) {
+    const partnerInterestIds = filters.partnerInterestIds ?? [];
+    const withPartnerInterests =
+      filters.lookingFor.includes("activity_partner") && partnerInterestIds.length > 0;
+    const values = filters.lookingFor.filter(
+      (value) => !(withPartnerInterests && value === "activity_partner")
+    );
+
+    const parts: string[] = [];
+    if (values.length > 0) parts.push(`looking_for.ov.{${values.join(",")}}`);
+    if (withPartnerInterests) {
+      const { data, error } = await supabase
+        .from("profile_partner_interests")
+        .select("profile_id")
+        .in("interest_id", partnerInterestIds);
+      if (error) throw error;
+      const ids = [...new Set((data ?? []).map((row) => row.profile_id))];
+      if (ids.length > 0) parts.push(`id.in.(${ids.join(",")})`);
+    }
+    if (parts.length === 0) return [];
+    lookingForClause = parts.join(",");
+  }
+
   const blockedProfiles = await listBlockedProfiles(supabase);
   const blockedIds = blockedProfiles.map((row) => row.id);
 
@@ -86,6 +117,7 @@ export async function searchProfiles(
       query = query.in("id", nameIds);
     }
   }
+  if (lookingForClause) query = query.or(lookingForClause);
   if (cityIds) query = query.in("id", cityIds);
   if (filters.minAge != null) query = query.gte("age", filters.minAge);
   if (filters.maxAge != null) query = query.lte("age", filters.maxAge);

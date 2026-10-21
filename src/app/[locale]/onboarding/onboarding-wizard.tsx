@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   upsertMyProfile,
   setMyInterests,
+  setMyPartnerInterests,
   uploadAvatar,
   uploadProfilePhoto,
   removeProfilePhoto,
@@ -32,6 +33,7 @@ type FormState = {
   bio: string;
   looking_for: LookingFor[];
   looking_for_other: string;
+  partner_interest_ids: number[];
   languages: string[];
 };
 
@@ -123,6 +125,11 @@ export function OnboardingWizard({
         languages: form.languages,
       });
       await setMyInterests(supabase, userId, form.interestIds);
+      await setMyPartnerInterests(
+        supabase,
+        userId,
+        form.looking_for.includes("activity_partner") ? form.partner_interest_ids : []
+      );
       track(
         "onboarding_completed",
         { bioProvided: form.bio.trim().length > 0, interestCount: form.interestIds.length },
@@ -276,8 +283,11 @@ export function OnboardingWizard({
               <LookingForSelect
                 value={form.looking_for}
                 other={form.looking_for_other}
+                interests={interests}
+                partnerInterestIds={form.partner_interest_ids}
                 onChange={(v) => update("looking_for", v)}
                 onOtherChange={(v) => update("looking_for_other", v)}
+                onPartnerInterestsChange={(ids) => update("partner_interest_ids", ids)}
               />
             </div>
             <div>

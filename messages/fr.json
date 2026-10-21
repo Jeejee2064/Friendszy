@@ -165,6 +165,7 @@
     "lookingForLabel": "Ce que je recherche",
     "lookingForPlaceholder": "Choisir une ou plusieurs options",
     "lookingForOtherPlaceholder": "Précise ce que tu recherches",
+    "partnerInterestsPlaceholder": "Choisir jusqu'à 5 intérêts",
     "languagesLabel": "Langues parlées",
     "languagesPlaceholder": "Choisir les langues"
   },
@@ -279,7 +280,9 @@
     "allInterestsTitle": "Intérêts",
     "allInterestsClose": "Fermer",
     "interestsStepTitle": "Centres d'intérêt",
-    "ageGenderStepTitle": "Âge et genre (optionnel)",
+    "ageGenderStepTitle": "Âge, genre et recherche (optionnel)",
+    "lookingForLabel": "Ce que je recherche",
+    "lookingForAny": "Tous",
     "skip": "Passer cette étape",
     "next": "Suivant",
     "back": "Retour",
@@ -1178,7 +1181,9 @@
   },
   "LookingFor": {
     "new_friends": "Nouvelles amitiés",
-    "sport_partner": "Partenaire de sport",
+    "activity_partner": "Partenaire de…",
+    "activityPartnerOf": "Partenaire de {list}",
+    "activityPartnerAny": "Partenaire d'activité",
     "outings": "Sorties et activités",
     "parent_friends": "Amis parents",
     "online_chat": "Discuter en ligne",
@@ -1194,5 +1199,81 @@
     "settingsCardBody": "Consulte les conditions d'utilisation, les règles de la communauté et les conseils de sécurité de Friendszy.",
     "settingsCardLink": "Lire les conditions et les règles",
     "frenchOnlyNotice": "Ce texte juridique n'est disponible qu'en français ; la version française prévaut sur toute traduction."
+  },
+  "Welcome": {
+    "skip": "Passer",
+    "back": "Retour",
+    "next": "Suivant",
+    "start": "Commencer",
+    "haveAccount": "J'ai déjà un compte",
+    "createAccount": "Créer mon compte",
+    "slideLabel": "Écran {current} sur {total}",
+    "dotLabel": "Aller à l'écran {n}",
+    "s1Title": "Fais-toi des amis qui aiment les mêmes choses que toi.",
+    "s1Body": "Des gens près de chez toi, des intérêts en commun. Pour l'amitié, pas pour dater.",
+    "s2Title": "Dis-nous ce qui te passionne.",
+    "s2Body": "On te suggère des gens et des groupes qui partagent tes intérêts, près de chez toi.",
+    "interests": {
+      "cooking": "Cuisine",
+      "pickleball": "Pickleball",
+      "photo": "Photo",
+      "climbing": "Escalade",
+      "boardGames": "Jeux de société",
+      "yoga": "Yoga",
+      "reading": "Lecture",
+      "hiking": "Randonnée",
+      "museums": "Musées",
+      "improv": "Impro",
+      "tennis": "Tennis",
+      "cycling": "Vélo",
+      "moreCategories": "+ de 20 catégories"
+    },
+    "s3Body": "Jase de tout et de rien avec des gens qui te ressemblent, ou joins une activité de groupe quand tu te sens prêt. Briser l'isolement commence souvent par une simple conversation.",
+    "ev1": {
+      "day": "SAM",
+      "title": "Pickleball débutant",
+      "meta": "Parc Maisonneuve · 10 h"
+    },
+    "ev2": {
+      "day": "JEU",
+      "title": "Soirée jeux de société",
+      "meta": "Café du quartier · 19 h"
+    },
+    "ev3": {
+      "day": "DIM",
+      "title": "Rando au mont Royal",
+      "meta": "Groupe · 9 h 30"
+    },
+    "join": "Je participe",
+    "s4Title": "Découvre ce qui se passe près de toi.",
+    "s4Body": "Expos, spectacles, festivals et commerces du coin, réunis au même endroit. Trouve une sortie et invite tes nouveaux amis.",
+    "tabAll": "Tout voir",
+    "tabEvents": "Événements",
+    "tabActivities": "Activités",
+    "searchPlaceholder": "Rechercher un événement ou un commerce…",
+    "disc1": {
+      "date": "24 oct. → 30 nov.",
+      "title": "EXPO IMMERSIVE",
+      "category": "Expositions",
+      "place": "Montréal — Vieux-Port"
+    },
+    "disc2": {
+      "date": "8 nov.",
+      "title": "SOIRÉE JAZZ",
+      "category": "Jazz",
+      "place": "Montréal — Mile End"
+    },
+    "openNow": "OUVERT MAINTENANT",
+    "shopName": "Café du coin",
+    "shopMeta": "Commerce local · Plateau",
+    "call": "Appeler",
+    "website": "Site web",
+    "s5Title": "Ici, on vient pour l'amitié.",
+    "s5Body": "Quelques règles simples gardent la communauté accueillante pour tout le monde.",
+    "rule1": "Pas pour dater",
+    "rule2": "Signalement confidentiel",
+    "rule2Sub": "Bloque ou signale en un geste.",
+    "rule3": "18 ans et plus",
+    "replay": "Revoir la présentation"
   }
 }
