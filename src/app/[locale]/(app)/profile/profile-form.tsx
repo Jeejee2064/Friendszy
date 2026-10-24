@@ -194,6 +194,7 @@ export function ProfileForm({
           <ProfileInfoSection
             userId={userId}
             interests={interests}
+            myInterestIds={form.interestIds}
             form={form}
             onUpdate={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
             tripActive={tripActive}

@@ -285,6 +285,7 @@ export function OnboardingWizard({
                 other={form.looking_for_other}
                 interests={interests}
                 partnerInterestIds={form.partner_interest_ids}
+                myInterestIds={form.interestIds}
                 onChange={(v) => update("looking_for", v)}
                 onOtherChange={(v) => update("looking_for_other", v)}
                 onPartnerInterestsChange={(ids) => update("partner_interest_ids", ids)}

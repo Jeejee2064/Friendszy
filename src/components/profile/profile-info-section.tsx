@@ -38,6 +38,7 @@ type InfoFormState = {
 export function ProfileInfoSection({
   userId,
   interests,
+  myInterestIds,
   form,
   onUpdate,
   tripActive,
@@ -47,6 +48,7 @@ export function ProfileInfoSection({
 }: {
   userId: string;
   interests: Interest[];
+  myInterestIds: number[];
   form: InfoFormState;
   onUpdate: (patch: Partial<InfoFormState>) => void;
   tripActive: boolean;
@@ -138,6 +140,7 @@ export function ProfileInfoSection({
             other={form.looking_for_other}
             interests={interests}
             partnerInterestIds={form.partner_interest_ids}
+            myInterestIds={myInterestIds}
             onChange={(v) => onUpdate({ looking_for: v })}
             onOtherChange={(v) => onUpdate({ looking_for_other: v })}
             onPartnerInterestsChange={(ids) => onUpdate({ partner_interest_ids: ids })}

@@ -3,25 +3,33 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { SelectOption } from "@/components/ui/custom-select";
+import { normalizeForSearch } from "@/lib/text";
 
 // Multi-choice sibling of CustomSelect: same custom-rendered dropdown (no
 // native <select> popup), but the list stays open while ticking options and
 // the trigger shows a comma-separated summary of what is selected. `max`
 // stops further selection (already-selected options can still be removed).
+// `searchPlaceholder` turns on a type-to-filter field at the top of the list
+// (accent/case-insensitive); `priorityValues` float to the top of the list.
 export function CustomMultiSelect({
   value,
   onChange,
   options,
   placeholder,
   max,
+  searchPlaceholder,
+  priorityValues,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
   options: SelectOption[];
   placeholder?: string;
   max?: number;
+  searchPlaceholder?: string;
+  priorityValues?: string[];
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,6 +37,7 @@ export function CustomMultiSelect({
     function handleOutsideClick(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setQuery("");
       }
     }
     document.addEventListener("mousedown", handleOutsideClick);
@@ -43,6 +52,16 @@ export function CustomMultiSelect({
     }
   }
 
+  const needle = normalizeForSearch(query.trim());
+  const visibleOptions = (
+    priorityValues && priorityValues.length > 0
+      ? [
+          ...options.filter((o) => priorityValues.includes(o.value)),
+          ...options.filter((o) => !priorityValues.includes(o.value)),
+        ]
+      : options
+  ).filter((o) => !needle || normalizeForSearch(o.label).includes(needle));
+
   const summary = options
     .filter((o) => value.includes(o.value))
     .map((o) => o.label)
@@ -52,7 +71,10 @@ export function CustomMultiSelect({
     <div ref={wrapperRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          setOpen((prev) => !prev);
+          setQuery("");
+        }}
         aria-haspopup="listbox"
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-left text-sm outline-none transition-colors focus:border-teal2"
@@ -73,7 +95,18 @@ export function CustomMultiSelect({
           aria-multiselectable="true"
           className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-lg"
         >
-          {options.map((option) => {
+          {searchPlaceholder && (
+            <input
+              type="text"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
+              className="mb-1 w-full rounded-md border border-border px-3 py-2 text-sm outline-none focus:border-teal2"
+            />
+          )}
+          {visibleOptions.map((option) => {
             const isSelected = value.includes(option.value);
             return (
               <button

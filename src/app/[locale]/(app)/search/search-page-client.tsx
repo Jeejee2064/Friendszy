@@ -248,6 +248,7 @@ export function SearchPageClient({
       interests={interests}
       lookingFor={lookingFor}
       partnerInterestIds={partnerInterestIds}
+      myInterestIds={myInterestIds}
       onLookingForChange={setLookingFor}
       onPartnerInterestsChange={setPartnerInterestIds}
     />

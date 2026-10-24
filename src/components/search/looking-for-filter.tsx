@@ -17,12 +17,14 @@ export function LookingForFilter({
   interests,
   lookingFor,
   partnerInterestIds,
+  myInterestIds,
   onLookingForChange,
   onPartnerInterestsChange,
 }: {
   interests: Interest[];
   lookingFor: LookingFor[];
   partnerInterestIds: number[];
+  myInterestIds: number[];
   onLookingForChange: (value: LookingFor[]) => void;
   onPartnerInterestsChange: (ids: number[]) => void;
 }) {
@@ -57,6 +59,8 @@ export function LookingForFilter({
             value={partnerInterestIds.map(String)}
             onChange={(v) => onPartnerInterestsChange(v.map(Number))}
             max={MAX_PARTNER_INTERESTS}
+            searchPlaceholder={tFields("partnerInterestsSearch")}
+            priorityValues={myInterestIds.map(String)}
             placeholder={tFields("partnerInterestsPlaceholder")}
             options={interests.map((interest) => ({
               value: String(interest.id),
