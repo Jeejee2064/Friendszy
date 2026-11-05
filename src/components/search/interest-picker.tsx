@@ -74,7 +74,7 @@ export function InterestPicker({
       className={
         allSelected
           ? "rounded-full px-3 py-1 text-xs font-bold text-white"
-          : "text-xs font-semibold text-teal2 hover:underline"
+          : "text-xs font-semibold text-teal-ink hover:underline"
       }
       style={allSelected ? { backgroundImage: "var(--grad)" } : undefined}
     >
@@ -130,7 +130,7 @@ export function InterestPicker({
               <button
                 type="button"
                 onClick={() => addInterest(interest.id)}
-                className="font-semibold text-teal2 hover:underline"
+                className="font-semibold text-teal-ink hover:underline"
               >
                 {labelFor(interest)}
               </button>

@@ -154,7 +154,7 @@ export function OnboardingWizard({
   return (
     <main className="flex min-h-dvh flex-col items-center gap-8 bg-bg px-6 py-16">
       <div className="text-center">
-        <h1 className="font-pacifico text-4xl text-teal2">Friendszy</h1>
+        <h1 className="font-pacifico text-4xl text-teal-ink">Friendszy</h1>
         <p className="mt-1 text-sm text-muted">
           {t("stepOf", { step: step + 1, total: STEP_COUNT })}
         </p>
@@ -189,7 +189,7 @@ export function OnboardingWizard({
               <button
                 type="button"
                 onClick={() => setShowExtraPhotos(true)}
-                className="text-sm font-bold text-teal2 hover:underline"
+                className="text-sm font-bold text-teal-ink hover:underline"
               >
                 {t("addMorePhotos")}
               </button>
@@ -257,7 +257,7 @@ export function OnboardingWizard({
           <div className="flex flex-col gap-3">
             <p
               className={`text-sm font-bold ${
-                form.interestIds.length >= MIN_INTERESTS ? "text-teal2" : "text-muted"
+                form.interestIds.length >= MIN_INTERESTS ? "text-teal-ink" : "text-muted"
               }`}
             >
               {t("interestsCounter", {
@@ -319,7 +319,7 @@ export function OnboardingWizard({
             style={{
               background: "#fdecec",
               borderColor: "#f3c8c8",
-              color: "#e55",
+              color: "#c42b2b",
             }}
           >
             {error}

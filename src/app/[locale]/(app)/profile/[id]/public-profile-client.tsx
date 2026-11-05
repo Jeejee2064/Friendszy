@@ -206,7 +206,7 @@ export function PublicProfileClient({
                     <span
                       key={id}
                       className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
-                        shared ? "border-teal2 text-teal2" : "border-border text-text"
+                        shared ? "border-teal2 text-teal-ink" : "border-border text-text"
                       }`}
                     >
                       {shared ? "✓ " : ""}
@@ -219,7 +219,7 @@ export function PublicProfileClient({
                 <button
                   type="button"
                   onClick={() => setExpanded((prev) => !prev)}
-                  className="text-xs font-semibold text-teal2 hover:underline"
+                  className="text-xs font-semibold text-teal-ink hover:underline"
                 >
                   {expanded ? tFields("showLess") : tFields("showMore", { count: hiddenCount })}
                 </button>
@@ -256,14 +256,14 @@ export function PublicProfileClient({
                 </button>
 
                 {added ? (
-                  <span className="text-center text-xs font-semibold text-teal2">
+                  <span className="text-center text-xs font-semibold text-teal-ink">
                     {t("friendsBadge")}
                   </span>
                 ) : (
                   <button
                     onClick={handleAddFriend}
                     disabled={sendingRequest}
-                    className="w-full rounded-full border-2 border-teal2 px-6 py-2 text-sm font-bold text-teal2 disabled:opacity-60"
+                    className="w-full rounded-full border-2 border-teal2 px-6 py-2 text-sm font-bold text-teal-ink disabled:opacity-60"
                   >
                     + {t("addFriend")}
                   </button>

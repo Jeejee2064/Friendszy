@@ -24,11 +24,18 @@ export async function GET(
   { params }: { params: Promise<{ locale: string; kind: string; id: string }> }
 ) {
   const { locale, kind, id } = await params;
+  // `locale` vient de l'URL et est décodé : "/%2Fevil.com/i/..." donnait
+  // "//evil.com/login" (redirection ouverte). On n'accepte que les locales
+  // connues ; sinon on retombe sur la racine du site.
+  if (!(routing.locales as readonly string[]).includes(locale)) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   // "as-needed" locale prefix: the default locale (fr) has no URL prefix at
   // all — same convention as withLocalePrefix() in proxy.ts.
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
-  if (!isPendingIntentKind(kind) || !id) {
+  if (!isPendingIntentKind(kind) || !UUID_RE.test(id)) {
     return NextResponse.redirect(new URL(`${prefix}/`, request.url));
   }
 

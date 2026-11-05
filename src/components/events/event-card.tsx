@@ -43,7 +43,7 @@ export function EventCard({ event }: { event: EventCardData }) {
             <Calendar className="h-9 w-9 text-white" strokeWidth={1.75} aria-hidden />
           </div>
         )}
-        <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+        <span className="absolute left-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
           {format.dateTime(new Date(event.starts_at), { dateStyle: "medium" })}
           {event.ends_at && !isSameDay
             ? ` → ${format.dateTime(new Date(event.ends_at), { dateStyle: "medium" })}`
@@ -51,7 +51,7 @@ export function EventCard({ event }: { event: EventCardData }) {
         </span>
         {isFull && (
           <span
-            className="absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-white shadow-sm"
+            className="absolute right-2.5 top-2.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase text-white shadow-sm"
             style={{ backgroundImage: "var(--grad)" }}
           >
             {t("full")}
@@ -59,16 +59,16 @@ export function EventCard({ event }: { event: EventCardData }) {
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <h2 className="text-[15px] font-extrabold leading-tight text-text group-hover:text-teal2">
+        <h2 className="text-[15px] font-extrabold leading-tight text-text group-hover:text-teal-ink">
           {event.title}
         </h2>
         {interestLabel && (
-          <span className="w-fit rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal2">
+          <span className="w-fit rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal-ink">
             {interestLabel}
           </span>
         )}
         <p className="flex items-center gap-1 text-xs text-muted">
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-teal-ink" strokeWidth={2} aria-hidden />
           {event.city}
           {event.address ? ` — ${event.address}` : ""}
         </p>

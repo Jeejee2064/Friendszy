@@ -141,7 +141,7 @@ export function GroupCitySelect({
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm outline-none focus:border-teal2 ${
-          selectedCities.length > 0 ? "border-teal2 font-semibold text-teal2" : "border-border text-muted"
+          selectedCities.length > 0 ? "border-teal2 font-semibold text-teal-ink" : "border-border text-muted"
         }`}
       >
         <span className="truncate">{closedLabel}</span>

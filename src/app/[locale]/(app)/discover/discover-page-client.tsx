@@ -390,7 +390,7 @@ export function DiscoverPageClient({
       {view === "map" && filtersOpen && (
         <div
           ref={filterBarRef}
-          className="fixed inset-x-0 top-0 z-30 flex flex-col gap-3 bg-card/95 p-4 shadow-md backdrop-blur-sm"
+          className="fixed inset-x-0 top-0 z-30 flex flex-col gap-3 bg-card/95 p-4 pt-[max(1rem,env(safe-area-inset-top))] shadow-md backdrop-blur-sm"
         >
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
@@ -400,7 +400,7 @@ export function DiscoverPageClient({
               type="button"
               onClick={() => setFiltersOpen(false)}
               aria-label={t("hideFilters")}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
             >
               <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden />
             </button>
@@ -430,7 +430,7 @@ export function DiscoverPageClient({
         <button
           type="button"
           onClick={() => setFiltersOpen(true)}
-          className="fixed right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-card/95 text-text shadow-md backdrop-blur-sm transition-transform hover:scale-105"
+          className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 flex h-11 w-11 items-center justify-center rounded-full bg-card/95 text-text shadow-md backdrop-blur-sm transition-transform hover:scale-105"
           aria-label={t("showFilters")}
         >
           <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
@@ -441,7 +441,7 @@ export function DiscoverPageClient({
         <button
           type="button"
           onClick={() => setView("list")}
-          className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
+          className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
           style={{ backgroundImage: "var(--grad)" }}
         >
           📋 {t("viewList")}

@@ -39,7 +39,7 @@ export default function AdminGatePage() {
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <label>
-            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-teal2">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-teal-ink">
               {t("passwordLabel")}
             </span>
             <input
@@ -65,7 +65,7 @@ export default function AdminGatePage() {
         {error && (
           <div
             className="mt-4 rounded-lg border p-3 text-sm"
-            style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }}
+            style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#c42b2b" }}
           >
             {t("error")}
           </div>

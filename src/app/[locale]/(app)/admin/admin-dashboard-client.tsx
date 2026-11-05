@@ -38,7 +38,7 @@ function KpiCard({
           {variation && (
             <span
               className={`mb-1 text-xs font-bold ${
-                variation.startsWith("+") ? "text-teal2" : "text-[#e55]"
+                variation.startsWith("+") ? "text-teal-ink" : "text-[#c42b2b]"
               }`}
             >
               {variation}
@@ -48,7 +48,7 @@ function KpiCard({
       )}
       {badge && (
         <span
-          className="mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white"
+          className="mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-bold uppercase text-white"
           style={{ backgroundImage: "var(--grad)" }}
         >
           {badge}
@@ -175,7 +175,7 @@ export function AdminDashboardClient({
                 </div>
                 <Link
                   href="/admin/moderation"
-                  className="shrink-0 rounded-full border border-teal2 px-3 py-1.5 text-xs font-bold text-teal2"
+                  className="shrink-0 rounded-full border border-teal2 px-3 py-1.5 text-xs font-bold text-teal-ink"
                 >
                   {t("moderateLink")}
                 </Link>

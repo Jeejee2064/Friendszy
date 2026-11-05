@@ -209,14 +209,14 @@ export function AdminCategoriesSection({
               <button
                 type="button"
                 onClick={() => openEdit(category)}
-                className="rounded-full px-2 py-1 text-xs font-semibold text-teal2 hover:bg-bg"
+                className="min-h-11 rounded-full px-3 py-1 text-xs font-semibold text-teal-ink hover:bg-bg"
               >
                 {t("edit")}
               </button>
               <button
                 type="button"
                 onClick={() => setDeleteTarget(category)}
-                className="rounded-full px-2 py-1 text-xs font-semibold text-[#e55] hover:bg-bg"
+                className="min-h-11 rounded-full px-3 py-1 text-xs font-semibold text-[#c42b2b] hover:bg-bg"
               >
                 {t("delete")}
               </button>
@@ -323,7 +323,7 @@ export function AdminCategoriesSection({
                 onClick={handleDelete}
                 disabled={deleting}
                 className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-                style={{ background: "#e55" }}
+                style={{ background: "#c42b2b" }}
               >
                 {deleting ? "…" : t("confirmDelete")}
               </button>

@@ -221,7 +221,7 @@ export default function LoginPage() {
             }
           }}
           aria-label={t("close")}
-          className="absolute right-5 top-5 text-lg text-muted hover:text-text"
+          className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center text-lg text-muted hover:text-text"
         >
           ✕
         </button>
@@ -293,7 +293,7 @@ export default function LoginPage() {
             </form>
             <button
               onClick={() => switchMode("signIn")}
-              className="mt-4 text-sm font-semibold text-teal2 hover:underline"
+              className="mt-4 text-sm font-semibold text-teal-ink hover:underline"
             >
               {t("backToSignIn")}
             </button>
@@ -350,7 +350,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => switchMode("forgot")}
-                  className="-mt-2 self-end text-xs font-semibold text-teal2 hover:underline"
+                  className="-mt-2 flex min-h-11 items-center self-end text-xs font-semibold text-teal-ink hover:underline"
                 >
                   {t("forgotPasswordLink")}
                 </button>
@@ -370,7 +370,7 @@ export default function LoginPage() {
                         <Link
                           href="/privacy"
                           target="_blank"
-                          className="font-semibold text-teal2 hover:underline"
+                          className="font-semibold text-teal-ink hover:underline"
                         >
                           {chunks}
                         </Link>
@@ -394,7 +394,7 @@ export default function LoginPage() {
                   {t("switchToSignUp")}{" "}
                   <button
                     onClick={() => switchMode("signUp")}
-                    className="font-semibold text-teal2 hover:underline"
+                    className="inline-block py-3 font-semibold text-teal-ink hover:underline"
                   >
                     {t("switchToSignUpLink")}
                   </button>
@@ -404,7 +404,7 @@ export default function LoginPage() {
                   {t("switchToSignIn")}{" "}
                   <button
                     onClick={() => switchMode("signIn")}
-                    className="font-semibold text-teal2 hover:underline"
+                    className="inline-block py-3 font-semibold text-teal-ink hover:underline"
                   >
                     {t("switchToSignInLink")}
                   </button>
@@ -420,7 +420,7 @@ export default function LoginPage() {
             style={
               notice.kind === "success"
                 ? { background: "#fffbeb", borderColor: "#fcd34d", color: "#92400e" }
-                : { background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }
+                : { background: "#fdecec", borderColor: "#f3c8c8", color: "#c42b2b" }
             }
           >
             <p className={notice.kind === "success" ? "text-base font-semibold" : undefined}>
@@ -437,7 +437,7 @@ export default function LoginPage() {
           </div>
         )}
       </div>
-      <Link href="/welcome" className="text-sm font-semibold text-muted hover:underline">
+      <Link href="/welcome" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted hover:underline">
         {tWelcome("replay")}
       </Link>
     </main>
@@ -482,7 +482,7 @@ function PasswordField({
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? hideLabel : showLabel}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-text"
+          className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted hover:text-text"
         >
           {visible ? <EyeOffIcon /> : <EyeIcon />}
         </button>
@@ -528,7 +528,7 @@ function EyeOffIcon() {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-teal2">
+    <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-teal-ink">
       {children}
     </span>
   );
@@ -547,8 +547,8 @@ function AuthTab({
     <button
       type="button"
       onClick={onClick}
-      className={`-mb-px flex-1 border-b-2 pb-3 text-sm font-bold transition-colors ${
-        active ? "border-teal2 text-teal2" : "border-transparent text-muted"
+      className={`-mb-px min-h-11 flex-1 border-b-2 pb-3 pt-2 text-sm font-bold transition-colors ${
+        active ? "border-teal2 text-teal-ink" : "border-transparent text-muted"
       }`}
     >
       {children}

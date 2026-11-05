@@ -79,7 +79,7 @@ export function PhotoPicker({
           </div>
         ))}
         {value.length < maxPhotos && (
-          <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-center text-xs font-semibold text-teal2">
+          <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-center text-xs font-semibold text-teal-ink">
             {pending ? "…" : `+ ${addLabel}`}
             <input
               type="file"
@@ -93,7 +93,7 @@ export function PhotoPicker({
         )}
       </div>
       {error && (
-        <p className="text-xs" style={{ color: "#e55" }}>
+        <p className="text-xs" style={{ color: "#c42b2b" }}>
           {errorLabel}
         </p>
       )}

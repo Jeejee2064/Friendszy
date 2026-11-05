@@ -275,7 +275,7 @@ export function AdminReportsClient({
               )}
               {isNewAccount && (
                 <span
-                  className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase text-white"
+                  className="rounded-full px-1.5 py-0.5 text-xs font-bold uppercase text-white"
                   style={{ backgroundImage: "var(--grad)" }}
                 >
                   {t("newAccountBadge")}
@@ -311,7 +311,7 @@ export function AdminReportsClient({
             )}
             {isNewAccount && (
               <span
-                className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase text-white"
+                className="rounded-full px-1.5 py-0.5 text-xs font-bold uppercase text-white"
                 style={{ backgroundImage: "var(--grad)" }}
               >
                 {t("newAccountBadge")}
@@ -360,7 +360,7 @@ export function AdminReportsClient({
             <button
               type="button"
               onClick={() => setConfirmAction({ kind: "reactivate", report })}
-              className="rounded-full border border-border px-3 py-2 text-xs font-semibold text-teal2"
+              className="rounded-full border border-border px-3 py-2 text-xs font-semibold text-teal-ink"
             >
               {t("actions.reactivate")}
             </button>
@@ -377,7 +377,7 @@ export function AdminReportsClient({
                 type="button"
                 onClick={() => setConfirmAction({ kind: "ban", report })}
                 className="rounded-full px-3 py-2 text-xs font-bold text-white"
-                style={{ background: "#e55" }}
+                style={{ background: "#c42b2b" }}
               >
                 {t("actions.ban")}
               </button>
@@ -399,7 +399,7 @@ export function AdminReportsClient({
             type="button"
             onClick={() => setConfirmAction({ kind: "deactivateListing", report })}
             className="rounded-full px-3 py-2 text-xs font-bold text-white"
-            style={{ background: "#e55" }}
+            style={{ background: "#c42b2b" }}
           >
             {t("actions.deactivateListing")}
           </button>
@@ -511,7 +511,7 @@ export function AdminReportsClient({
                     {isUrgent && (
                       <span
                         className="rounded-full px-2 py-0.5 text-xs font-bold text-white"
-                        style={{ background: "#e55" }}
+                        style={{ background: "#c42b2b" }}
                       >
                         {t("urgentBadge")}
                       </span>
@@ -614,7 +614,7 @@ export function AdminReportsClient({
                 style={
                   confirmAction.kind === "reactivate"
                     ? { backgroundImage: "var(--grad)" }
-                    : { background: "#e55" }
+                    : { background: "#c42b2b" }
                 }
               >
                 {pending ? "…" : t(`actions.${confirmAction.kind}`)}

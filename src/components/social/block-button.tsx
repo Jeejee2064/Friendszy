@@ -59,11 +59,11 @@ export function BlockButton({
         onClick={() => setOpen(true)}
         title={compact ? t("blockAction") : undefined}
         aria-label={compact ? t("blockAction") : undefined}
-        style={{ color: "#e55" }}
+        style={{ color: "#c42b2b" }}
         className={
           compact
-            ? "flex h-7 w-7 items-center justify-center rounded-full border border-border transition-colors hover:border-[#e55] hover:bg-[#fdecec]"
-            : "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:border-[#e55] hover:bg-[#fdecec]"
+            ? "flex h-11 w-11 items-center justify-center rounded-full border border-border transition-colors hover:border-[#c42b2b] hover:bg-[#fdecec]"
+            : "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold transition-colors hover:border-[#c42b2b] hover:bg-[#fdecec]"
         }
       >
         <Ban className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} strokeWidth={2} aria-hidden />
@@ -92,7 +92,7 @@ export function BlockButton({
               onClick={handleConfirm}
               disabled={pending}
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-              style={{ background: "#e55" }}
+              style={{ background: "#c42b2b" }}
             >
               {pending ? "…" : t("blockAction")}
             </button>

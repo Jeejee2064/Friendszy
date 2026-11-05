@@ -10,6 +10,7 @@
   --text: #1a2e2b;
   --muted: #3b7469; /* assombri pour le contraste AA (≥4,5:1 sur blanc et sur --bg) */
   --border: #d0f0ee;
+  --teal-ink: #0e7585; /* teal pour TEXTE/icônes sur fond clair (≥4,5:1 sur blanc et sur --bg) — --teal2 reste réservé aux fonds, bordures et anneaux */
   --card: #fff;
   --grad: linear-gradient(135deg, #1ecfb0, #1ab8c0, #1a90c8);
 
@@ -20,6 +21,7 @@
 @theme inline {
   --color-teal1: var(--teal1);
   --color-teal2: var(--teal2);
+  --color-teal-ink: var(--teal-ink);
   --color-blue: var(--blue);
   --color-dark: var(--dark);
   --color-bg: var(--bg);
@@ -33,9 +35,14 @@
 
 html {
   overflow-x: hidden;
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
+  /* Pas de rebond élastique ni de pull-to-refresh natif parasite en app installée */
+  overscroll-behavior-y: none;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-nunito);
@@ -135,7 +142,7 @@ select {
 /* Anneau de focus clavier cohérent avec la palette (visible uniquement à la
    navigation clavier, pas au clic/toucher). */
 :focus-visible {
-  outline: 2px solid var(--teal2);
+  outline: 2px solid var(--teal-ink);
   outline-offset: 2px;
 }
 
@@ -167,5 +174,24 @@ p {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Rendu "app native" (PWA installée / Capacitor) : pas de menu contextuel de
+   pression longue ni de sélection de texte accidentelle sur les contrôles ;
+   le contenu (messages, textes) reste sélectionnable. */
+button,
+[role="button"],
+nav a {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Champs de formulaire : hauteur tactile confortable (44 px) sur écran tactile. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+  select {
+    min-height: 44px;
   }
 }

@@ -127,7 +127,7 @@ export function GroupViewClient({
           )}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {interest && (
-              <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal2">
+              <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal-ink">
                 {interest.emoji ? `${interest.emoji} ` : ""}
                 {localizedInterestLabel(interest, locale)}
               </span>
@@ -178,7 +178,7 @@ export function GroupViewClient({
                   type="button"
                   onClick={handleRequestJoin}
                   disabled={requesting}
-                  className="rounded-full border border-teal2 px-6 py-2.5 text-sm font-bold text-teal2 disabled:opacity-60"
+                  className="rounded-full border border-teal2 px-6 py-2.5 text-sm font-bold text-teal-ink disabled:opacity-60"
                 >
                   {t("requestToJoin")}
                 </button>

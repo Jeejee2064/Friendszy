@@ -4,7 +4,7 @@ import type { SVGProps } from "react";
  * Custom "groups" glyph (three overlapping heads) — not part of lucide-react.
  * Filled (not stroked) like the source SVG, but with the hardcoded
  * fill:#000000 swapped for currentColor so it can be recolored the same way
- * as the lucide icons elsewhere (text-teal2, text-muted, ...).
+ * as the lucide icons elsewhere (text-teal-ink, text-muted, ...).
  * Source: public/groupIcon.svg
  */
 export function GroupIcon({ className, ...props }: SVGProps<SVGSVGElement>) {

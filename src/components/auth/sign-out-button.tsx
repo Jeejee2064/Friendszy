@@ -47,7 +47,7 @@ export function SignOutButton({
       disabled={loading}
       className={
         className ??
-        "flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold disabled:opacity-60 md:justify-start"
+        "flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold disabled:opacity-60 md:justify-start"
       }
       style={{ color: "#a8543a" }}
     >

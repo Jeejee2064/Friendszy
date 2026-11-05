@@ -137,7 +137,7 @@ export function TemporaryCityCard({
             type="button"
             onClick={handleCancel}
             disabled={pending}
-            className="rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2 disabled:opacity-60"
+            className="rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal-ink disabled:opacity-60"
           >
             {pending
               ? "…"

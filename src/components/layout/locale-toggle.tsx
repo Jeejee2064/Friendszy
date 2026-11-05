@@ -19,7 +19,7 @@ function LocalePill({
           key={l}
           type="button"
           onClick={() => onSelect(l)}
-          className={`flex-1 rounded-full px-3 py-1.5 uppercase transition-colors ${
+          className={`flex min-h-11 flex-1 items-center justify-center rounded-full px-3 uppercase transition-colors ${
             locale === l ? "text-white" : "text-muted"
           }`}
           style={locale === l ? { backgroundImage: "var(--grad)" } : undefined}
@@ -65,7 +65,7 @@ export function LocaleToggle({
             key={l}
             type="button"
             onClick={() => switchTo(l)}
-            className={`flex min-h-9 items-center justify-center rounded-lg text-center text-[11px] font-bold uppercase transition-colors ${
+            className={`flex min-h-11 items-center justify-center rounded-lg text-center text-xs font-bold uppercase transition-colors ${
               locale === l ? "text-white" : "text-muted"
             }`}
             style={locale === l ? { backgroundImage: "var(--grad)" } : undefined}

@@ -43,11 +43,11 @@ export function CookieConsentBanner() {
   if (!needsChoice) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-card p-3 shadow-lg sm:p-4">
+    <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg sm:p-4 sm:pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
         <p className="text-[13px] leading-snug text-text sm:text-sm">
           {t("body")}{" "}
-          <Link href="/privacy" className="font-semibold text-teal2 underline">
+          <Link href="/privacy" className="inline-block py-3 font-semibold text-teal-ink underline">
             {t("privacyLink")}
           </Link>
         </p>
@@ -55,14 +55,14 @@ export function CookieConsentBanner() {
           <button
             type="button"
             onClick={() => choose("declined")}
-            className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted hover:border-teal2 hover:text-teal2"
+            className="min-h-11 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted hover:border-teal2 hover:text-teal-ink"
           >
             {t("decline")}
           </button>
           <button
             type="button"
             onClick={() => choose("accepted")}
-            className="rounded-full px-4 py-2 text-sm font-bold text-white"
+            className="min-h-11 rounded-full px-4 py-2 text-sm font-bold text-white"
             style={{ backgroundImage: "var(--grad)" }}
           >
             {t("accept")}

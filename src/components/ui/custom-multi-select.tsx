@@ -19,6 +19,7 @@ export function CustomMultiSelect({
   max,
   searchPlaceholder,
   priorityValues,
+  defaultOpen = false,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
@@ -27,8 +28,10 @@ export function CustomMultiSelect({
   max?: number;
   searchPlaceholder?: string;
   priorityValues?: string[];
+  // Ouvert dès le montage (ex. champ qui apparaît juste après un choix).
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +119,7 @@ export function CustomMultiSelect({
                 aria-selected={isSelected}
                 onClick={() => toggle(option.value)}
                 className={`flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  isSelected ? "bg-bg font-semibold text-teal2" : "text-text hover:bg-bg"
+                  isSelected ? "bg-bg font-semibold text-teal-ink" : "text-text hover:bg-bg"
                 }`}
               >
                 {option.label}

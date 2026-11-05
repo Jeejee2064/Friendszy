@@ -47,7 +47,7 @@ export function AdminSidebar({
             key={item.href}
             href={item.href}
             className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-              active ? "bg-bg text-teal2" : "text-muted hover:bg-bg"
+              active ? "bg-bg text-teal-ink" : "text-muted hover:bg-bg"
             }`}
           >
             <span className="text-base">{item.icon}</span>
@@ -55,7 +55,7 @@ export function AdminSidebar({
             {badgeCount > 0 && (
               <span
                 className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
-                style={{ background: "#e55" }}
+                style={{ background: "#c42b2b" }}
               >
                 {badgeCount}
               </span>

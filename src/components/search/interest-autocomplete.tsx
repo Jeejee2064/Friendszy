@@ -94,7 +94,7 @@ export function InterestAutocomplete({
               <button
                 type="button"
                 onClick={() => addInterest(interest.id)}
-                className="font-semibold text-teal2 hover:underline"
+                className="font-semibold text-teal-ink hover:underline"
               >
                 {labelFor(interest)}
               </button>

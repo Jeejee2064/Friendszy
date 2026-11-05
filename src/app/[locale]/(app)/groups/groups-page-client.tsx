@@ -298,7 +298,7 @@ function FilterTabButton({
       type="button"
       onClick={onClick}
       className={`-mb-px flex-1 border-b-2 pb-2 text-center text-[13px] leading-tight sm:text-sm font-bold transition-colors ${
-        active ? "border-teal2 text-teal2" : "border-transparent text-muted hover:text-text"
+        active ? "border-teal2 text-teal-ink" : "border-transparent text-muted hover:text-text"
       }`}
     >
       {children}

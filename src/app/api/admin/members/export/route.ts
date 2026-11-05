@@ -2,9 +2,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { listMembers, type RegisteredWithin } from "@/lib/admin/members-queries";
 import type { ModerationStatus } from "@/lib/admin/types";
+import { ADMIN_GATE_COOKIE, verifyAdminGateToken } from "@/lib/security/admin-gate";
 
 function csvEscape(value: string): string {
-  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  // Neutralise l'injection de formule Excel/Sheets (=, +, -, @, tab, CR).
+  if (/^[=+\-@\t\r]/.test(value)) value = `'${value}`;
+  if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
   return value;
 }
 
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile?.is_admin) return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  if (request.cookies.get("admin_gate")?.value !== "granted")
+  if (!(await verifyAdminGateToken(request.cookies.get(ADMIN_GATE_COOKIE)?.value, user.id)))
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const { searchParams } = request.nextUrl;

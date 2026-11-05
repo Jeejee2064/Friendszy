@@ -8,7 +8,7 @@ import { SettingsSections } from "@/components/settings/settings-sections";
 // Style pilule d'origine (avant le découpage en onglets) : ces boutons
 // vivaient en haut de toute la page, désormais dans l'onglet Paramètres.
 const chipButtonClass =
-  "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal2";
+  "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal-ink";
 const signOutChipClass =
   "inline-flex items-center gap-1.5 rounded-full border border-[#a8543a]/30 px-3.5 py-1.5 text-xs font-semibold transition-colors hover:border-[#a8543a] disabled:opacity-60";
 

@@ -611,7 +611,8 @@
         "nameRequired": "Le nom du commerce est requis.",
         "categoryRequired": "Choisis une catégorie.",
         "cityRequired": "La ville est requise.",
-        "saveFailed": "Une erreur est survenue. Réessaie."
+        "saveFailed": "Une erreur est survenue. Réessaie.",
+        "websiteInvalid": "Le site web doit commencer par http:// ou https://."
       }
     },
     "days": {

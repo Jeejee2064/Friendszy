@@ -353,7 +353,7 @@ export function MessagesPageClient({
           onClick={() => setHideTarget(c)}
           title={t("hideConversation")}
           aria-label={t("hideConversation")}
-          className="mr-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-[#e55]"
+          className="mr-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-[#c42b2b]"
         >
           <X className="h-4 w-4" strokeWidth={2} aria-hidden />
         </button>
@@ -407,7 +407,7 @@ export function MessagesPageClient({
               <>
                 {unreadConversations.length > 0 && (
                   <>
-                    <p className="px-4 pb-1 pt-3 text-xs font-bold uppercase tracking-wide text-teal2">
+                    <p className="px-4 pb-1 pt-3 text-xs font-bold uppercase tracking-wide text-teal-ink">
                       {t("unreadSection", { count: totalUnread })}
                     </p>
                     {unreadConversations.map(renderConversationRow)}
@@ -480,7 +480,7 @@ export function MessagesPageClient({
               onClick={handleHideConfirm}
               disabled={hidePending}
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-              style={{ background: "#e55" }}
+              style={{ background: "#c42b2b" }}
             >
               {hidePending ? "…" : t("hideConversation")}
             </button>
@@ -1180,7 +1180,7 @@ function ConversationPane({
       <div className="flex items-center gap-3 border-b border-border p-4">
         <Link
           href="/messages"
-          className="text-lg font-semibold text-teal2"
+          className="text-lg font-semibold text-teal-ink"
           aria-label={t("back")}
         >
           ←
@@ -1199,7 +1199,7 @@ function ConversationPane({
           <div className="min-w-0 flex-1">
             <p className="truncate font-bold text-text">{otherDisplayName}</p>
             {isOnline && (
-              <p className="flex items-center gap-1 text-xs font-semibold text-teal2">
+              <p className="flex items-center gap-1 text-xs font-semibold text-teal-ink">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
                 {t("onlineStatus")}
               </p>
@@ -1213,7 +1213,7 @@ function ConversationPane({
             title={t("searchInConversation")}
             aria-label={t("searchInConversation")}
             className={`flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors ${
-              searchOpen ? "bg-bg text-teal2" : "text-muted hover:bg-bg"
+              searchOpen ? "bg-bg text-teal-ink" : "text-muted hover:bg-bg"
             }`}
           >
             🔍
@@ -1260,7 +1260,7 @@ function ConversationPane({
             onClick={() => goToMatch(-1)}
             disabled={searchMatches.length === 0}
             aria-label={t("previousMatch")}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card disabled:opacity-40"
           >
             ↑
           </button>
@@ -1269,7 +1269,7 @@ function ConversationPane({
             onClick={() => goToMatch(1)}
             disabled={searchMatches.length === 0}
             aria-label={t("nextMatch")}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card disabled:opacity-40"
           >
             ↓
           </button>
@@ -1277,7 +1277,7 @@ function ConversationPane({
             type="button"
             onClick={closeSearch}
             aria-label={t("closeSearch")}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card"
           >
             ✕
           </button>

@@ -19,18 +19,18 @@ function escapeHtml(value: string) {
 // seul son auteur (ou un admin) peut déclencher l'envoi pour un id donné, et
 // seules les catégories "bug" donnent lieu à un courriel.
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return NextResponse.json({ sent: false, reason: "not_configured" });
 
   const body = await request.json().catch(() => null);
   const id = typeof body?.id === "string" ? body.id : null;
   if (!id) return NextResponse.json({ error: "bad_request" }, { status: 400 });
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const { data: feedback } = await supabase
     .from("beta_feedback")

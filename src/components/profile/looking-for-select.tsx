@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { CustomMultiSelect } from "@/components/ui/custom-multi-select";
 import { localizedInterestLabel } from "@/lib/interests/label";
@@ -33,13 +34,20 @@ export function LookingForSelect({
   const t = useTranslations("LookingFor");
   const tFields = useTranslations("ProfileFields");
   const locale = useLocale();
+  // Incrémenté quand « Partenaire de… » vient d'être coché : remonte le premier
+  // menu (donc le referme) pendant que le second s'ouvre tout seul.
+  const [closeKey, setCloseKey] = useState(0);
 
   return (
     <div className="flex flex-col gap-2">
       <CustomMultiSelect
+        key={closeKey}
         value={value}
         onChange={(v) => {
           const next = v as LookingFor[];
+          if (next.includes("activity_partner") && !value.includes("activity_partner")) {
+            setCloseKey((k) => k + 1);
+          }
           onChange(next);
           // Les intérêts de partenaire n'ont de sens que si « Partenaire de… »
           // est coché : on les vide pour ne pas en garder de cachés.
@@ -52,6 +60,7 @@ export function LookingForSelect({
       />
       {value.includes("activity_partner") && (
         <CustomMultiSelect
+          defaultOpen
           value={partnerInterestIds.map(String)}
           onChange={(v) => onPartnerInterestsChange(v.map(Number))}
           max={MAX_PARTNER_INTERESTS}

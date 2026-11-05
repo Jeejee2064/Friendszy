@@ -237,7 +237,7 @@ export function PublicLanding({
               <div className="relative h-24 w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={selectedProfile.photo} alt="" className="h-full w-full object-cover" />
-                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm">
                   {t("previewBadge")}
                 </span>
               </div>
@@ -246,10 +246,10 @@ export function PublicLanding({
                   {selectedProfile.firstName} {selectedProfile.lastInitial}, {selectedProfile.age}
                 </p>
                 <p className="flex items-center gap-1 text-xs text-muted">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-teal-ink" strokeWidth={2} aria-hidden />
                   {selectedProfile.neighbourhood}
                 </p>
-                <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-[11px] font-semibold text-teal2">
+                <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-xs font-semibold text-teal-ink">
                   {selectedProfile.interest.emoji}{" "}
                   {locale === "en"
                     ? selectedProfile.interest.en
@@ -257,7 +257,7 @@ export function PublicLanding({
                       ? selectedProfile.interest.es
                       : selectedProfile.interest.fr}
                 </span>
-                <p className="text-[11px] text-muted">{t("previewNote")}</p>
+                <p className="text-xs text-muted">{t("previewNote")}</p>
               </div>
               <div className="flex items-center justify-between gap-2 px-3 pb-3">
                 <Link
@@ -271,7 +271,7 @@ export function PublicLanding({
                   type="button"
                   onClick={() => setSelectedProfile(null)}
                   aria-label={tMap("close")}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
                 >
                   <X className="h-4 w-4" strokeWidth={2} aria-hidden />
                 </button>
@@ -300,14 +300,14 @@ export function PublicLanding({
                 ) : (
                   <PopupIcon kind={selected.kind} />
                 )}
-                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm">
                   {tMap(selected.kind === "event" ? "kindEvent" : "kindPartner")}
                 </span>
               </div>
               <div className="flex flex-col gap-1.5 p-3">
                 <p className="truncate text-sm font-extrabold text-text">{selected.title}</p>
                 {categoryLabel(selected) && (
-                  <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-[11px] font-semibold text-teal2">
+                  <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-xs font-semibold text-teal-ink">
                     {categoryLabel(selected)}
                   </span>
                 )}
@@ -332,7 +332,7 @@ export function PublicLanding({
                   type="button"
                   onClick={() => setSelected(null)}
                   aria-label={tMap("close")}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
                 >
                   <X className="h-4 w-4" strokeWidth={2} aria-hidden />
                 </button>
@@ -350,7 +350,7 @@ export function PublicLanding({
       {discovered && points.length > 0 && (
         <Link
           href="/login?mode=signUp"
-          className="fixed bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
+          className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105"
           style={{ backgroundImage: "var(--grad)" }}
         >
           {t("signUp")}
@@ -398,7 +398,7 @@ export function PublicLanding({
           plan: engaging enough for launch, when the whole map has nothing
           yet, without the complexity of tracking the visible viewport. */}
       {discovered && points.length === 0 && (
-        <div className="fixed bottom-6 left-1/2 z-30 w-[calc(100%-3rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-border bg-card p-4 text-center shadow-lg">
+        <div className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[calc(100%-3rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-border bg-card p-4 text-center shadow-lg">
           <p className="text-sm text-text">{t("emptyState")}</p>
           <Link
             href="/login?mode=signUp"

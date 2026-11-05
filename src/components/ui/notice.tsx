@@ -13,7 +13,7 @@ export function Notice({
       style={
         kind === "success"
           ? { background: "#e8f8f5", borderColor: "var(--border)", color: "var(--dark)" }
-          : { background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }
+          : { background: "#fdecec", borderColor: "#f3c8c8", color: "#c42b2b" }
       }
     >
       {message}

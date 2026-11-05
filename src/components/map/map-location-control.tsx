@@ -161,7 +161,7 @@ export function MapLocationControl({
           aria-label={t(
             sharing ? "locateButtonAriaLabelSharing" : "locateButtonAriaLabel",
           )}
-          className="fixed bottom-24 right-6 z-30 flex h-11 items-center gap-2 rounded-full bg-card/95 px-4 shadow-md backdrop-blur-sm transition-transform hover:scale-105"
+          className="fixed bottom-[max(6rem,calc(env(safe-area-inset-bottom)+5rem))] right-[max(1.5rem,env(safe-area-inset-right))] z-30 flex h-11 items-center gap-2 rounded-full bg-card/95 px-4 shadow-md backdrop-blur-sm transition-transform hover:scale-105"
           style={{ color: sharing ? "var(--teal2)" : "var(--text)" }}
         >
           <LocateFixed
@@ -194,7 +194,7 @@ export function MapLocationControl({
           )}
 
           {error && (
-            <p className="text-sm font-semibold text-[#e55]">{t("error")}</p>
+            <p className="text-sm font-semibold text-[#c42b2b]">{t("error")}</p>
           )}
 
           {step === "picker" ? (

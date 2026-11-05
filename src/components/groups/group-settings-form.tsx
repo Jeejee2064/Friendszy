@@ -212,7 +212,7 @@ export function GroupSettingsForm({
             type="button"
             onClick={() => setConfirmOpen(true)}
             className="rounded-full px-4 py-2.5 text-sm font-bold text-white"
-            style={{ background: "#e55" }}
+            style={{ background: "#c42b2b" }}
           >
             {t("deleteGroupButton")}
           </button>
@@ -247,7 +247,7 @@ export function GroupSettingsForm({
               onClick={handleDelete}
               disabled={!canDelete || deleting}
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-              style={{ background: "#e55" }}
+              style={{ background: "#c42b2b" }}
             >
               {deleting ? "…" : t("deleteGroupConfirmButton")}
             </button>

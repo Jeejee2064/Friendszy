@@ -15,7 +15,7 @@ export function ReplyPreviewBar({
   return (
     <div className="flex items-center gap-2 border-t border-border bg-bg px-4 py-2">
       <div className="min-w-0 flex-1 border-l-2 border-teal2 pl-2">
-        <p className="truncate text-xs font-bold text-teal2">{senderLabel}</p>
+        <p className="truncate text-xs font-bold text-teal-ink">{senderLabel}</p>
         <p className="truncate text-xs text-muted">{content}</p>
       </div>
       <button
@@ -23,7 +23,7 @@ export function ReplyPreviewBar({
         onClick={onCancel}
         aria-label={cancelLabel}
         title={cancelLabel}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card hover:text-text"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:bg-card hover:text-text"
       >
         ✕
       </button>

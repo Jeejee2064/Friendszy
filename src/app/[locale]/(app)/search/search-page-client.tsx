@@ -338,13 +338,13 @@ export function SearchPageClient({
                           💬 {tFriends("message")}
                         </button>
                         {alreadyAdded ? (
-                          <span className="text-center text-xs font-semibold text-teal2">
+                          <span className="text-center text-xs font-semibold text-teal-ink">
                             {tFriends("friendsBadge")}
                           </span>
                         ) : (
                           <button
                             onClick={() => handleAddFriend(result.id)}
-                            className="w-full rounded-full border border-teal2 px-4 py-2 text-sm font-bold text-teal2"
+                            className="w-full rounded-full border border-teal2 px-4 py-2 text-sm font-bold text-teal-ink"
                           >
                             + {tFriends("addFriend")}
                           </button>
@@ -486,7 +486,7 @@ export function SearchPageClient({
           <button
             type="button"
             onClick={launchDiscoverSearch}
-            className="mb-3 mt-5 block w-full text-center text-sm font-bold text-teal2 hover:underline"
+            className="mb-3 mt-5 block w-full text-center text-sm font-bold text-teal-ink hover:underline"
           >
             {t("skip")}
           </button>

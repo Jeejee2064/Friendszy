@@ -52,7 +52,7 @@ export default async function SuspendedPage({
         <p className="mt-3 text-sm text-muted">
           {banned ? t("bannedBody") : t("suspendedBody")}
         </p>
-        <p className="mt-4 text-sm font-semibold text-teal2">
+        <p className="mt-4 text-sm font-semibold text-teal-ink">
           {t("contact")}: securite@friendszy.ca
         </p>
 

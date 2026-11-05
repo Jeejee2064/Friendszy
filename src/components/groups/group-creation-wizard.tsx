@@ -210,7 +210,7 @@ export function GroupCreationWizard({
         {error && (
           <div
             className="mt-4 rounded-lg border p-3 text-sm"
-            style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }}
+            style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#c42b2b" }}
           >
             {error}
           </div>

@@ -68,7 +68,7 @@ export function PersonCard({
           {[profile.city, profile.age].filter(Boolean).join(" · ")}
           {isVisiting && (
             <span
-              className="ml-1.5 inline-block rounded-full px-2 py-0.5 align-middle text-[10px] font-bold text-white"
+              className="ml-1.5 inline-block rounded-full px-2 py-0.5 align-middle text-xs font-bold text-white"
               style={{ backgroundImage: "var(--grad)" }}
             >
               {t("visitingBadge")}
@@ -76,7 +76,7 @@ export function PersonCard({
           )}
         </p>
         {sharedInterests && sharedInterests.length > 0 && (
-          <p className="mt-1 truncate text-xs text-teal2">
+          <p className="mt-1 truncate text-xs text-teal-ink">
             {sharedInterests.join(", ")}
           </p>
         )}

@@ -89,7 +89,7 @@ export function ProfileInterestsSection({
       </AnimatePresence>
 
       {saved && !dirty && (
-        <p className="mt-2 text-center text-xs font-semibold text-teal2">
+        <p className="mt-2 text-center text-xs font-semibold text-teal-ink">
           {t("interestsSaved")}
         </p>
       )}

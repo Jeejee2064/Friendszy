@@ -54,7 +54,7 @@ export function GroupCard({
   const badgesRow = (
     <div className="mt-1 flex flex-wrap items-center gap-2">
       {interestLabel && (
-        <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal2">
+        <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal-ink">
           {interestLabel}
         </span>
       )}
@@ -123,7 +123,7 @@ export function GroupCard({
       </div>
 
       {isMember ? (
-        <span className="text-center text-xs font-semibold text-teal2">
+        <span className="text-center text-xs font-semibold text-teal-ink">
           {t("memberBadge")}
         </span>
       ) : isBanned ? null : showRequested ? (
@@ -133,7 +133,7 @@ export function GroupCard({
           type="button"
           onClick={() => onRequestJoin(group.id)}
           disabled={!canRequest}
-          className="w-full rounded-full border border-teal2 px-4 py-2 text-sm font-bold text-teal2 disabled:opacity-60"
+          className="w-full rounded-full border border-teal2 px-4 py-2 text-sm font-bold text-teal-ink disabled:opacity-60"
         >
           {t("requestToJoin")}
         </button>

@@ -70,7 +70,7 @@ export function AvatarPicker({
           "?"
         )}
       </div>
-      <label className="cursor-pointer text-sm font-semibold text-teal2 hover:underline">
+      <label className="cursor-pointer text-sm font-semibold text-teal-ink hover:underline">
         {pending ? t("photoUploading") : t("photoChoose")}
         <input
           type="file"
@@ -80,7 +80,7 @@ export function AvatarPicker({
           onChange={handleFileChange}
         />
       </label>
-      {error && <p className="text-xs" style={{ color: "#e55" }}>{t("photoError")}</p>}
+      {error && <p className="text-xs" style={{ color: "#c42b2b" }}>{t("photoError")}</p>}
       <AvatarCropModal
         imageUrl={cropSrc}
         open={!!cropSrc}

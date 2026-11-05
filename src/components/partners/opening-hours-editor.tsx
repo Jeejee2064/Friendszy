@@ -106,7 +106,7 @@ export function OpeningHoursEditor({
         );
       })}
       {monday && (
-        <label className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-teal2">
+        <label className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-teal-ink">
           <input
             type="checkbox"
             checked={sameAllDays}

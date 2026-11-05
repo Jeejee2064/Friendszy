@@ -25,10 +25,10 @@ export async function AppShell({
 
   return (
     <div className="flex min-h-dvh bg-bg">
-      <aside className="sticky top-0 flex h-dvh w-16 shrink-0 flex-col overflow-y-auto border-r border-border bg-card py-4 md:w-64">
+      <aside className="sticky top-0 flex h-dvh w-16 shrink-0 flex-col overflow-y-auto border-r border-border bg-card pb-[max(1rem,env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] pt-[max(1rem,env(safe-area-inset-top))] md:w-64">
         <Link
           href="/"
-          className="mb-6 flex items-center justify-center gap-2 px-2 md:justify-start md:px-4"
+          className="mb-6 flex min-h-11 items-center justify-center gap-2 px-2 md:justify-start md:px-4"
         >
           <Image
             src="/icons/icon-maskable-512.png"

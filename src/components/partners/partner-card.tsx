@@ -54,13 +54,13 @@ export function PartnerCard({
             </div>
           )}
           {isOwn && listing.status !== "active" && (
-            <span className="absolute right-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="absolute right-2.5 top-2.5 rounded-full bg-black/50 px-2.5 py-1 text-xs font-bold uppercase text-white backdrop-blur-sm">
               {t("pendingBadge")}
             </span>
           )}
           {openNow !== null && (
             <span
-              className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase text-white backdrop-blur-sm"
+              className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase text-white backdrop-blur-sm"
               style={{ backgroundColor: openNow ? "rgba(30,207,176,0.9)" : "rgba(0,0,0,0.5)" }}
             >
               {openNow ? t("openNow") : t("closedNow")}
@@ -74,11 +74,11 @@ export function PartnerCard({
           )}
         </div>
         <div className="flex flex-1 flex-col gap-2 p-4 pb-0">
-          <h2 className="text-[15px] font-extrabold leading-tight text-text group-hover:text-teal2">
+          <h2 className="text-[15px] font-extrabold leading-tight text-text group-hover:text-teal-ink">
             {listing.name}
           </h2>
           {listing.tagline && (
-            <p className="line-clamp-1 text-xs font-semibold text-teal2">{listing.tagline}</p>
+            <p className="line-clamp-1 text-xs font-semibold text-teal-ink">{listing.tagline}</p>
           )}
           {interest && (
             <span className="w-fit rounded-full border border-blue px-2.5 py-0.5 text-xs font-semibold text-blue">
@@ -90,7 +90,7 @@ export function PartnerCard({
             <p className="line-clamp-2 text-sm text-muted">{listing.description}</p>
           )}
           <p className="flex items-center gap-1 text-xs text-muted">
-            <MapPin className="h-3.5 w-3.5 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-teal-ink" strokeWidth={2} aria-hidden />
             {listing.city}
             {listing.address ? ` — ${listing.address}` : ""}
           </p>
@@ -101,7 +101,7 @@ export function PartnerCard({
           {listing.phone && (
             <a
               href={`tel:${listing.phone}`}
-              className="inline-flex items-center gap-1 font-semibold text-teal2 hover:underline"
+              className="inline-flex items-center gap-1 font-semibold text-teal-ink hover:underline"
             >
               <Phone className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
               {t("contactPhone")}
@@ -112,7 +112,7 @@ export function PartnerCard({
               href={listing.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-teal2 hover:underline"
+              className="inline-flex items-center gap-1 font-semibold text-teal-ink hover:underline"
             >
               <Globe className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
               {t("contactWebsite")}
@@ -123,7 +123,7 @@ export function PartnerCard({
           {isOwn ? (
             <Link
               href={`/partners/${listing.id}/edit`}
-              className="text-xs font-semibold text-teal2 hover:underline"
+              className="text-xs font-semibold text-teal-ink hover:underline"
             >
               {t("editLink")}
             </Link>

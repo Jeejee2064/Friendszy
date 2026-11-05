@@ -246,7 +246,7 @@ export function EventViewClient({
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="flex flex-wrap items-center gap-2">
               {interestLabel && (
-                <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal2">
+                <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal-ink">
                   {interestLabel}
                 </span>
               )}
@@ -266,7 +266,7 @@ export function EventViewClient({
 
             <div className="mt-4 flex flex-col gap-1.5 text-sm text-text">
               <p className="flex items-start gap-1.5 font-semibold">
-                <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+                <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-teal-ink" strokeWidth={2} aria-hidden />
                 <span>
                   {format.dateTime(new Date(event.starts_at), {
                     dateStyle: "long"
@@ -282,7 +282,7 @@ export function EventViewClient({
                 </span>
               </p>
               <p className="flex items-center gap-1.5 text-muted">
-                <MapPin className="h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+                <MapPin className="h-4 w-4 shrink-0 text-teal-ink" strokeWidth={2} aria-hidden />
                 {event.city}
                 {event.address ? ` — ${event.address}` : ""}
               </p>
@@ -301,7 +301,7 @@ export function EventViewClient({
                   href={event.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 font-semibold text-teal2 hover:underline"
+                  className="flex items-center gap-1.5 font-semibold text-teal-ink hover:underline"
                 >
                   <LinkIcon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
                   {t("websiteLink")}
@@ -316,8 +316,8 @@ export function EventViewClient({
                 disabled={interestPending}
                 className={`rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
                   interested
-                    ? "border-teal2 bg-teal2/10 text-teal2"
-                    : "border-border text-text hover:border-teal2 hover:text-teal2"
+                    ? "border-teal2 bg-teal2/10 text-teal-ink"
+                    : "border-border text-text hover:border-teal2 hover:text-teal-ink"
                 }`}
               >
                 {interested ? t("interestedActiveButton") : t("interestedButton")}
@@ -326,7 +326,7 @@ export function EventViewClient({
                 <button
                   type="button"
                   onClick={openAttendees}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal-ink"
                 >
                   <Users className="h-4 w-4" strokeWidth={2} aria-hidden />
                   {t("attendeesButton")}
@@ -335,7 +335,7 @@ export function EventViewClient({
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal-ink"
               >
                 <Share2 className="h-4 w-4" strokeWidth={2} aria-hidden />
                 {t("shareButton")}
@@ -346,7 +346,7 @@ export function EventViewClient({
               <p className="mt-4 text-sm text-muted">{t("endedNotice")}</p>
             ) : registered ? (
               <div className="mt-4 flex flex-col gap-2">
-                <p className="text-sm font-semibold text-teal2">{t("registeredNotice")}</p>
+                <p className="text-sm font-semibold text-teal-ink">{t("registeredNotice")}</p>
                 <button
                   type="button"
                   onClick={handleUnregister}
@@ -374,7 +374,7 @@ export function EventViewClient({
             {error && (
               <div
                 className="mt-3 rounded-lg border p-3 text-sm"
-                style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }}
+                style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#c42b2b" }}
               >
                 {error}
               </div>
@@ -385,7 +385,7 @@ export function EventViewClient({
                 type="button"
                 onClick={handleContactOrganizer}
                 disabled={messaging}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2 disabled:opacity-60"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal-ink disabled:opacity-60"
               >
                 <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden />
                 {messaging ? t("messaging") : t("contactOrganizer")}
@@ -423,7 +423,7 @@ export function EventViewClient({
         <div className="mx-6 mb-4 rounded-2xl border border-border bg-card p-6 md:mx-10">
           <Link
             href={`/events/${event.id}/edit`}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-bold text-text transition-colors hover:border-teal2 hover:text-teal2"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-bold text-text transition-colors hover:border-teal2 hover:text-teal-ink"
           >
             {t("editEventButton")}
           </Link>
@@ -438,7 +438,7 @@ export function EventViewClient({
             type="button"
             onClick={() => setConfirmOpen(true)}
             className="rounded-full px-4 py-2.5 text-sm font-bold text-white"
-            style={{ background: "#e55" }}
+            style={{ background: "#c42b2b" }}
           >
             {t("deleteEventButton")}
           </button>
@@ -473,7 +473,7 @@ export function EventViewClient({
               onClick={handleDelete}
               disabled={!canDelete || deleting}
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-              style={{ background: "#e55" }}
+              style={{ background: "#c42b2b" }}
             >
               {deleting ? "…" : t("deleteEventConfirmButton")}
             </button>

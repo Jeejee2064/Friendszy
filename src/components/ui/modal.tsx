@@ -34,7 +34,7 @@ export function Modal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto overscroll-contain bg-black/40 p-4 ${
+      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto overscroll-contain bg-black/40 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] ${
         align === "top" ? "items-start pt-3 sm:pt-6" : "items-start"
       }`}
       onClick={onClose}

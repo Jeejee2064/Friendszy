@@ -104,7 +104,7 @@ export function PartnerViewClient({
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex flex-wrap items-center gap-2">
             {interestLabel && (
-              <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal2">
+              <span className="rounded-full border border-teal2 px-2.5 py-0.5 text-xs font-semibold text-teal-ink">
                 {interestLabel}
               </span>
             )}
@@ -124,7 +124,7 @@ export function PartnerViewClient({
           </div>
 
           {listing.tagline && (
-            <p className="mt-3 text-sm font-semibold text-teal2">{listing.tagline}</p>
+            <p className="mt-3 text-sm font-semibold text-teal-ink">{listing.tagline}</p>
           )}
 
           {listing.description && (
@@ -132,7 +132,7 @@ export function PartnerViewClient({
           )}
 
           <p className="mt-4 flex items-center gap-1.5 text-sm text-muted">
-            <MapPin className="h-4 w-4 shrink-0 text-teal2" strokeWidth={2} aria-hidden />
+            <MapPin className="h-4 w-4 shrink-0 text-teal-ink" strokeWidth={2} aria-hidden />
             {listing.city}
             {listing.address ? ` — ${listing.address}` : ""}
           </p>
@@ -141,7 +141,7 @@ export function PartnerViewClient({
             {listing.phone && (
               <a
                 href={`tel:${listing.phone}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal-ink"
               >
                 <Phone className="h-4 w-4" strokeWidth={2} aria-hidden />
                 {t("contactPhone")}
@@ -152,7 +152,7 @@ export function PartnerViewClient({
                 href={listing.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal-ink"
               >
                 <Globe className="h-4 w-4" strokeWidth={2} aria-hidden />
                 {t("contactWebsite")}
@@ -161,7 +161,7 @@ export function PartnerViewClient({
             <button
               type="button"
               onClick={() => setShareOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal2"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text transition-colors hover:border-teal2 hover:text-teal-ink"
             >
               <Share2 className="h-4 w-4" strokeWidth={2} aria-hidden />
               {t("shareButton")}
@@ -171,7 +171,7 @@ export function PartnerViewClient({
           {isOwn && (
             <Link
               href={`/partners/${listing.id}/edit`}
-              className="mt-4 inline-block text-sm font-semibold text-teal2 hover:underline"
+              className="mt-4 inline-block text-sm font-semibold text-teal-ink hover:underline"
             >
               {t("editLink")}
             </Link>

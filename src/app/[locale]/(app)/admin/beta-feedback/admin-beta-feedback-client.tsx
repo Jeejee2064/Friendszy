@@ -176,12 +176,12 @@ export function AdminBetaFeedbackClient({
 
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white"
+                      className="rounded-full px-2 py-0.5 text-xs font-bold uppercase text-white"
                       style={{ backgroundImage: "var(--grad)" }}
                     >
                       {t(CATEGORY_LABEL_KEYS[f.category])}
                     </span>
-                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase text-muted">
+                    <span className="rounded-full border border-border px-2 py-0.5 text-xs font-bold uppercase text-muted">
                       {t(STATUS_LABEL_KEYS[f.status])}
                     </span>
                   </div>

@@ -43,7 +43,7 @@ export default async function PrivacyPolicyPage({
   return (
     <main className="min-h-dvh bg-bg px-6 py-16">
       <div className="mx-auto w-full max-w-2xl rounded-3xl border border-border bg-card p-8 shadow-lg sm:p-10">
-        <Link href="/login" className="text-sm font-semibold text-teal2 hover:underline">
+        <Link href="/login" className="inline-flex min-h-11 items-center text-sm font-semibold text-teal-ink hover:underline">
           ← {t("backLink")}
         </Link>
 

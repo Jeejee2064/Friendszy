@@ -142,7 +142,7 @@ export function InvitePickerModal({
               deletedUserLabel={tCommon("deletedUser")}
               footer={
                 invited.has(profile.id) ? (
-                  <span className="text-center text-xs font-semibold text-teal2">
+                  <span className="text-center text-xs font-semibold text-teal-ink">
                     {t("invited")}
                   </span>
                 ) : (

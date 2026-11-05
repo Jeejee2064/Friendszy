@@ -66,7 +66,7 @@ export default async function AdminLayout({
           <p className="text-sm font-bold text-text">{adminName}</p>
           <SignOutButton
             iconOnly={false}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal2"
+            className="flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:border-teal2 hover:text-teal-ink"
           />
         </header>
         <div className="min-h-0 flex-1">{children}</div>

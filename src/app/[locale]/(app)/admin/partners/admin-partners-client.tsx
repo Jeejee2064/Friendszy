@@ -232,7 +232,7 @@ export function AdminPartnersClient({
                     onClick={() => handleToggleActive(listing)}
                     className="rounded-full px-3 py-2 text-xs font-bold text-white"
                     style={{
-                      background: listing.status === "active" ? "#e55" : "var(--teal2)",
+                      background: listing.status === "active" ? "#c42b2b" : "var(--teal2)",
                     }}
                   >
                     {t(listing.status === "active" ? "actions.deactivate" : "actions.activate")}
@@ -240,7 +240,7 @@ export function AdminPartnersClient({
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(listing)}
-                    className="rounded-full border border-[#e55] px-3 py-2 text-xs font-bold text-[#e55]"
+                    className="rounded-full border border-[#c42b2b] px-3 py-2 text-xs font-bold text-[#c42b2b]"
                   >
                     {t("actions.delete")}
                   </button>
@@ -308,7 +308,7 @@ export function AdminPartnersClient({
               <div>
                 <p className="text-lg font-extrabold text-text">{detailListing.name}</p>
                 {detailListing.tagline && (
-                  <p className="text-sm font-semibold text-teal2">{detailListing.tagline}</p>
+                  <p className="text-sm font-semibold text-teal-ink">{detailListing.tagline}</p>
                 )}
               </div>
             </div>
@@ -349,7 +349,7 @@ export function AdminPartnersClient({
                 {detailListing.phone && (
                   <a
                     href={`tel:${detailListing.phone}`}
-                    className="font-semibold text-teal2 hover:underline"
+                    className="font-semibold text-teal-ink hover:underline"
                   >
                     📞 {detailListing.phone}
                   </a>
@@ -359,7 +359,7 @@ export function AdminPartnersClient({
                     href={detailListing.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-teal2 hover:underline"
+                    className="font-semibold text-teal-ink hover:underline"
                   >
                     🌐 {detailListing.website}
                   </a>
@@ -373,7 +373,7 @@ export function AdminPartnersClient({
                 {detailListing.profile_id && submitters.has(detailListing.profile_id) ? (
                   <Link
                     href={`/profile/${detailListing.profile_id}`}
-                    className="font-semibold text-teal2 hover:underline"
+                    className="font-semibold text-teal-ink hover:underline"
                   >
                     {submitterName(detailListing.profile_id)}
                   </Link>
@@ -389,7 +389,7 @@ export function AdminPartnersClient({
               onClick={() => handleToggleActive(detailListing)}
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white"
               style={{
-                background: detailListing.status === "active" ? "#e55" : "var(--teal2)",
+                background: detailListing.status === "active" ? "#c42b2b" : "var(--teal2)",
               }}
             >
               {t(detailListing.status === "active" ? "actions.deactivate" : "actions.activate")}
@@ -397,7 +397,7 @@ export function AdminPartnersClient({
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(detailListing)}
-                  className="rounded-full border border-[#e55] px-4 py-2.5 text-sm font-bold text-[#e55]"
+                  className="rounded-full border border-[#c42b2b] px-4 py-2.5 text-sm font-bold text-[#c42b2b]"
                 >
                   {t("actions.delete")}
                 </button>
@@ -425,7 +425,7 @@ export function AdminPartnersClient({
               type="button"
               disabled={deleting}
               onClick={handleDelete}
-              className="rounded-full bg-[#e55] px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
+              className="rounded-full bg-[#c42b2b] px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
             >
               {t("actions.delete")}
             </button>

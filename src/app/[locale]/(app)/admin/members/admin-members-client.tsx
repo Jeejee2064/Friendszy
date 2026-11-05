@@ -256,7 +256,7 @@ export function AdminMembersClient({
         <div className="flex flex-col gap-2">
           {/* Column header — desktop only, mirrors each row's grid so values line up underneath.
               Sticky so it stays visible while scrolling a long member list. */}
-          <div className="sticky top-0 z-10 hidden gap-4 border-b border-border bg-bg px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted md:grid md:grid-cols-[minmax(180px,1.3fr)_60px_100px_90px_80px_100px_140px]">
+          <div className="sticky top-0 z-10 hidden gap-4 border-b border-border bg-bg px-4 py-2 text-xs font-bold uppercase tracking-wide text-muted min-[1500px]:grid min-[1500px]:grid-cols-[minmax(180px,1.3fr)_60px_100px_90px_80px_100px_140px]">
             <span>{t("columnMember")}</span>
             <span className="text-right">{t("columnAge")}</span>
             <span>{t("columnRegistered")}</span>
@@ -269,7 +269,7 @@ export function AdminMembersClient({
           {pageMembers.map((m) => (
             <div
               key={m.id}
-              className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:grid md:grid-cols-[minmax(180px,1.3fr)_60px_100px_90px_80px_100px_140px] md:items-center md:gap-4"
+              className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 min-[1500px]:grid min-[1500px]:grid-cols-[minmax(180px,1.3fr)_60px_100px_90px_80px_100px_140px] min-[1500px]:items-center min-[1500px]:gap-4"
             >
               <Link href={`/profile/${m.id}`} className="flex min-w-0 items-center gap-3">
                 <div
@@ -317,7 +317,7 @@ export function AdminMembersClient({
                 {tAdmin(`statusBadge.${m.moderation_status}`)}
               </span>
 
-              <div className="flex gap-2 md:justify-end">
+              <div className="flex gap-2 min-[1500px]:justify-end">
                 <button
                   type="button"
                   onClick={() => openDetail(m)}
@@ -330,7 +330,7 @@ export function AdminMembersClient({
                   onClick={() => handleBan(m)}
                   className="rounded-full px-3 py-2 text-xs font-bold text-white"
                   style={{
-                    background: m.moderation_status === "banned" ? "var(--teal2)" : "#e55",
+                    background: m.moderation_status === "banned" ? "var(--teal2)" : "#c42b2b",
                   }}
                 >
                   {tAdmin(m.moderation_status === "banned" ? "actions.reactivate" : "actions.ban")}
@@ -446,7 +446,7 @@ export function AdminMembersClient({
                         <Link
                           key={f.id}
                           href={`/profile/${f.id}`}
-                          className="text-sm text-teal2 hover:underline"
+                          className="text-sm text-teal-ink hover:underline"
                         >
                           {displayName(f as MemberRow, tCommon("deletedUser"))}
                         </Link>
@@ -469,7 +469,7 @@ export function AdminMembersClient({
                         <Link
                           key={g.id}
                           href={`/groups/${g.id}`}
-                          className="text-sm text-teal2 hover:underline"
+                          className="text-sm text-teal-ink hover:underline"
                         >
                           {g.name}
                         </Link>
@@ -514,7 +514,7 @@ export function AdminMembersClient({
                   className="rounded-full px-4 py-2.5 text-sm font-bold text-white"
                   style={{
                     background:
-                      detailMember.moderation_status === "banned" ? "var(--teal2)" : "#e55",
+                      detailMember.moderation_status === "banned" ? "var(--teal2)" : "#c42b2b",
                   }}
                 >
                   {tAdmin(

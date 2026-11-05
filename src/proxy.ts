@@ -5,6 +5,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { isProfileComplete } from "@/lib/profile/completeness";
 import { HAS_SEEN_WELCOME_COOKIE_NAME } from "@/lib/welcome/cookie";
 import { BOT_UA } from "@/lib/seo/site";
+import { ADMIN_GATE_COOKIE, verifyAdminGateToken } from "@/lib/security/admin-gate";
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -68,7 +69,7 @@ export async function proxy(request: NextRequest) {
     // for it (see src/app/api/admin/gate/route.ts).
     if (
       (path === "/admin" || path.startsWith("/admin/")) &&
-      request.cookies.get("admin_gate")?.value !== "granted"
+      !(await verifyAdminGateToken(request.cookies.get(ADMIN_GATE_COOKIE)?.value, user.id))
     ) {
       return NextResponse.redirect(
         new URL(withLocalePrefix(pathname, "/admin-gate"), request.url)

@@ -21,7 +21,7 @@ export function ResultInterests({
   return (
     <div className="flex flex-col gap-1.5">
       {commonLabels.length > 0 && (
-        <p className="text-xs font-semibold text-teal2">{commonText}</p>
+        <p className="text-xs font-semibold text-teal-ink">{commonText}</p>
       )}
       {otherLabels.length > 0 && (
         <button
@@ -42,7 +42,7 @@ export function ResultInterests({
                 key={`${label}-${i}`}
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                   i < commonLabels.length
-                    ? "border border-teal2 text-teal2"
+                    ? "border border-teal2 text-teal-ink"
                     : "border border-border text-muted"
                 }`}
               >
@@ -53,7 +53,7 @@ export function ResultInterests({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="mt-2 text-xs font-semibold text-teal2"
+            className="mt-2 text-xs font-semibold text-teal-ink"
           >
             {closeLabel}
           </button>

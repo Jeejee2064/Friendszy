@@ -133,7 +133,7 @@ export function SettingsSections({ locale }: { locale: string }) {
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="mb-2 font-bold text-text">{t("pwaTitle")}</h2>
             {alreadyInstalled ? (
-              <p className="text-sm font-semibold text-teal2">{t("pwaInstalledLabel")}</p>
+              <p className="text-sm font-semibold text-teal-ink">{t("pwaInstalledLabel")}</p>
             ) : (
               <>
                 <p className="mb-4 text-sm text-muted">{t("pwaBody")}</p>
@@ -155,7 +155,7 @@ export function SettingsSections({ locale }: { locale: string }) {
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="mb-2 font-bold text-text">{t("pushTitle")}</h2>
             {pushPermission === "granted" ? (
-              <p className="text-sm font-semibold text-teal2">{t("pushEnabledLabel")}</p>
+              <p className="text-sm font-semibold text-teal-ink">{t("pushEnabledLabel")}</p>
             ) : pushPermission === "denied" ? (
               <p className="text-sm text-muted">{t("pushBlockedLabel")}</p>
             ) : (
@@ -220,7 +220,7 @@ export function SettingsSections({ locale }: { locale: string }) {
           <p className="mb-4 text-sm text-muted">{tPrivacy("settingsCardBody")}</p>
           <Link
             href="/privacy"
-            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal-ink"
           >
             {tPrivacy("settingsCardLink")}
           </Link>
@@ -231,7 +231,7 @@ export function SettingsSections({ locale }: { locale: string }) {
           <p className="mb-4 text-sm text-muted">{tTerms("settingsCardBody")}</p>
           <Link
             href="/terms"
-            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal-ink"
           >
             {tTerms("settingsCardLink")}
           </Link>
@@ -246,7 +246,7 @@ export function SettingsSections({ locale }: { locale: string }) {
               resetCookieConsent();
               window.location.reload();
             }}
-            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal2"
+            className="inline-block rounded-full border border-border px-4 py-2.5 text-sm font-bold text-text hover:border-teal2 hover:text-teal-ink"
           >
             {tCookies("settingsCardButton")}
           </button>
@@ -259,7 +259,7 @@ export function SettingsSections({ locale }: { locale: string }) {
             type="button"
             onClick={() => setConfirmOpen(true)}
             className="rounded-full px-4 py-2.5 text-sm font-bold text-white"
-            style={{ background: "#e55" }}
+            style={{ background: "#c42b2b" }}
           >
             {t("deleteButton")}
           </button>
@@ -305,7 +305,7 @@ export function SettingsSections({ locale }: { locale: string }) {
               onClick={handleDelete}
               disabled={!canDelete || isPending}
               className="rounded-full px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-              style={{ background: "#e55" }}
+              style={{ background: "#c42b2b" }}
             >
               {isPending ? "…" : t("deleteConfirmButton")}
             </button>

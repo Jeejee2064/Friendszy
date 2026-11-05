@@ -80,6 +80,10 @@ export async function generateMetadata({
 
 export const viewport: Viewport = {
   themeColor: "#1ecfb0",
+  // viewport-fit=cover : le contenu passe sous l'encoche / barre d'état (PWA et
+  // Capacitor) ; les marges sont gérées via env(safe-area-inset-*) dans le CSS.
+  viewportFit: "cover",
+  colorScheme: "light",
 };
 
 export default async function LocaleLayout({

@@ -30,7 +30,7 @@ export function ReactionPills({
           onClick={() => onToggle(emoji)}
           className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
             mine === emoji
-              ? "border-teal2 bg-bg font-bold text-teal2"
+              ? "border-teal2 bg-bg font-bold text-teal-ink"
               : "border-border bg-card text-muted hover:bg-bg"
           }`}
         >

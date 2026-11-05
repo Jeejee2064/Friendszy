@@ -240,7 +240,7 @@ export function FriendsPageClient({
                             disabled={busyId === friendshipId}
                             onClick={() => handleRemove(friendshipId)}
                             title={t("remove")}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm text-muted disabled:opacity-60"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-sm text-muted disabled:opacity-60"
                           >
                             🗑️
                           </button>
@@ -298,7 +298,7 @@ export function FriendsPageClient({
                   type="button"
                   disabled={unblockingId === profile.id}
                   onClick={() => handleUnblock(profile.id)}
-                  className="shrink-0 rounded-full border border-teal2 px-3 py-2 text-sm font-semibold text-teal2 disabled:opacity-60"
+                  className="shrink-0 rounded-full border border-teal2 px-3 py-2 text-sm font-semibold text-teal-ink disabled:opacity-60"
                 >
                   {tBlocked("unblock")}
                 </button>
@@ -329,14 +329,14 @@ function TabButton({
       onClick={onClick}
       className={`relative rounded-t-lg border-b-2 px-3 pb-3 pt-2 text-sm font-bold transition-colors ${
         active
-          ? "border-teal2 bg-bg text-teal2"
+          ? "border-teal2 bg-bg text-teal-ink"
           : "border-transparent text-muted hover:bg-bg hover:text-text"
       }`}
     >
       {children}
       {count > 0 && (
         <span
-          className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+          className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
           style={{ backgroundImage: "var(--grad)" }}
         >
           {count}

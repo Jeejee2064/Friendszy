@@ -16,9 +16,9 @@ import type { GroupMemberWithProfile, GroupMemberRole } from "@/lib/groups/types
 
 const actionButtonBase =
   "rounded-full border px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-60";
-const actionButtonTeal = `${actionButtonBase} border-teal2 text-teal2 hover:bg-teal2/10`;
+const actionButtonTeal = `${actionButtonBase} border-teal2 text-teal-ink hover:bg-teal2/10`;
 const actionButtonMuted = `${actionButtonBase} border-border text-muted hover:bg-bg`;
-const actionButtonDanger = `${actionButtonBase} border-[#e55]/50 text-[#e55] hover:bg-[#e55]/10`;
+const actionButtonDanger = `${actionButtonBase} border-[#c42b2b]/50 text-[#c42b2b] hover:bg-[#c42b2b]/10`;
 
 export function MemberList({
   groupId,
@@ -271,7 +271,7 @@ function MemberRow({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-bold text-text">{displayName}</p>
-          {roleLabel && <p className="text-xs font-semibold text-teal2">{roleLabel}</p>}
+          {roleLabel && <p className="text-xs font-semibold text-teal-ink">{roleLabel}</p>}
         </div>
       </div>
       {actions && <div className="sm:ml-auto">{actions}</div>}

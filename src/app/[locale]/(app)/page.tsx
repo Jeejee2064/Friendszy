@@ -169,7 +169,7 @@ export default async function DashboardPage({
                   ))}
                   <Link
                     href="/notifications"
-                    className="mt-1 block text-center text-xs font-bold text-teal2 hover:underline"
+                    className="mt-1 block text-center text-xs font-bold text-teal-ink hover:underline"
                   >
                     {t("viewAllNotifications")}
                   </Link>
@@ -199,7 +199,7 @@ function StatTile({
       href={href}
       className="rounded-2xl border border-border bg-card p-4 transition-colors hover:border-teal2"
     >
-      <p className="text-2xl font-extrabold text-teal2">{value}</p>
+      <p className="text-2xl font-extrabold text-teal-ink">{value}</p>
       <p className="text-sm text-muted">{label}</p>
     </Link>
   );

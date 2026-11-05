@@ -42,7 +42,7 @@ export function SuggestInterestPrompt({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="text-sm font-semibold text-teal2 hover:underline"
+          className="text-sm font-semibold text-teal-ink hover:underline"
         >
           {t("openForm")}
         </button>

@@ -117,7 +117,7 @@ export function BetaFeedbackButton() {
         type="button"
         aria-label={t("buttonAriaLabel")}
         onClick={() => setOpen(true)}
-        className="fixed bottom-60 left-6 lg:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full text-2xl leading-none text-white shadow-lg"
+        className="fixed bottom-60 left-[calc(4.5rem+env(safe-area-inset-left))] lg:bottom-6 lg:left-[calc(17rem+env(safe-area-inset-left))] z-40 flex h-14 w-14 items-center justify-center rounded-full text-2xl leading-none text-white shadow-lg"
         style={{ backgroundImage: "var(--grad)" }}
       >
         💬

@@ -69,7 +69,7 @@ export function GroupMessageBubble({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-white">
+              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
                 {senderName.charAt(0).toUpperCase()}
               </div>
             )}

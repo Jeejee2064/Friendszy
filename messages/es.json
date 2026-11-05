@@ -611,7 +611,8 @@
         "nameRequired": "El nombre del negocio es obligatorio.",
         "categoryRequired": "Elige una categoría.",
         "cityRequired": "La ciudad es obligatoria.",
-        "saveFailed": "Se produjo un error. Inténtalo de nuevo."
+        "saveFailed": "Se produjo un error. Inténtalo de nuevo.",
+        "websiteInvalid": "El sitio web debe empezar por http:// o https://."
       }
     },
     "days": {

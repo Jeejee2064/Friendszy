@@ -177,7 +177,7 @@ function DateTile({
       className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl leading-none"
       style={style}
     >
-      <span className="text-[11px] font-extrabold tracking-wide">{day}</span>
+      <span className="text-xs font-extrabold tracking-wide">{day}</span>
       <span className="mt-0.5 text-xl font-black">{num}</span>
     </div>
   );
@@ -273,7 +273,7 @@ function DiscoverVisual() {
         <span className="flex-1 py-2 text-center">{t("tabActivities")}</span>
       </div>
       <div className="flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2.5 text-sm text-muted">
-        <Search className="h-4 w-4 text-teal2" aria-hidden />
+        <Search className="h-4 w-4 text-teal-ink" aria-hidden />
         <span className="truncate">{t("searchPlaceholder")}</span>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
@@ -301,7 +301,7 @@ function DiscoverVisual() {
               className="relative flex h-[72px] items-center justify-center"
               style={{ background: bg }}
             >
-              <span className="absolute left-2 top-2 rounded-full bg-black/40 px-2 py-0.5 text-[11px] font-extrabold text-white">
+              <span className="absolute left-2 top-2 rounded-full bg-black/40 px-2 py-0.5 text-xs font-extrabold text-white">
                 {t(`${k}.date`)}
               </span>
               <Icon
@@ -322,7 +322,7 @@ function DiscoverVisual() {
       <div className="flex items-center justify-between rounded-2xl border border-border bg-white p-3">
         <div>
           <span
-            className="inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-black tracking-wide"
+            className="inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-black tracking-wide"
             style={{ backgroundColor: "#cdeeea", color: "var(--dark)" }}
           >
             {t("openNow")}
@@ -352,7 +352,7 @@ function SafetyVisual() {
       className="mx-auto flex h-[112px] w-[112px] items-center justify-center rounded-full bg-border/70"
       aria-hidden
     >
-      <ShieldCheck className="h-12 w-12 text-teal2" strokeWidth={1.75} />
+      <ShieldCheck className="h-12 w-12 text-teal-ink" strokeWidth={1.75} />
     </div>
   );
 }
@@ -559,10 +559,15 @@ export function WelcomeCarousel() {
               onClick={() => go(i)}
               aria-label={t("dotLabel", { n: i + 1 })}
               aria-current={i === index}
-              className={`h-3 rounded-full transition-all ${
-                i === index ? "w-10 bg-[#1a2e2b]" : "w-3 bg-teal2"
-              }`}
-            />
+              className="flex h-11 items-center justify-center px-1"
+            >
+              <span
+                aria-hidden
+                className={`block h-3 rounded-full transition-all ${
+                  i === index ? "w-10 bg-[#1a2e2b]" : "w-3 bg-teal2"
+                }`}
+              />
+            </button>
           ))}
         </div>
 
@@ -578,7 +583,7 @@ export function WelcomeCarousel() {
             </button>
             <Link
               href="/login"
-              className="mt-4 block text-center text-lg font-bold text-text"
+              className="mt-2 block py-3 text-center text-lg font-bold text-text"
             >
               {t("haveAccount")}
             </Link>
@@ -605,7 +610,7 @@ export function WelcomeCarousel() {
             </Link>
             <Link
               href="/login"
-              className="mt-4 block text-center text-lg font-bold text-text"
+              className="mt-2 block py-3 text-center text-lg font-bold text-text"
             >
               {t("haveAccount")}
             </Link>

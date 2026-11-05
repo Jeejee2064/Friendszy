@@ -21,7 +21,7 @@ export function TabButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`min-w-0 flex-1 whitespace-nowrap rounded-full px-2 py-2.5 text-[13px] font-bold transition-colors sm:px-4 sm:text-sm ${
+      className={`min-h-11 min-w-0 flex-1 whitespace-nowrap rounded-full px-2 py-2.5 text-[13px] font-bold transition-colors sm:px-4 sm:text-sm ${
         active ? "text-white" : "text-muted"
       }`}
       style={active ? { backgroundImage: "var(--grad)" } : undefined}

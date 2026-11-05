@@ -90,6 +90,8 @@ export function PartnerListingWizard({
     if (step === 0 && !form.name.trim()) return t("errors.nameRequired");
     if (step === 0 && form.interestId == null) return t("errors.categoryRequired");
     if (step === 2 && !form.city.trim()) return t("errors.cityRequired");
+    if (step === 3 && form.website.trim() && !/^https?:\/\//i.test(form.website.trim()))
+      return t("errors.websiteInvalid");
     return null;
   }
 
@@ -97,6 +99,8 @@ export function PartnerListingWizard({
     if (!form.name.trim()) return t("errors.nameRequired");
     if (form.interestId == null) return t("errors.categoryRequired");
     if (!form.city.trim()) return t("errors.cityRequired");
+    if (form.website.trim() && !/^https?:\/\//i.test(form.website.trim()))
+      return t("errors.websiteInvalid");
     return null;
   }
 
@@ -358,7 +362,7 @@ export function PartnerListingWizard({
         {error && (
           <div
             className="mt-4 rounded-lg border p-3 text-sm"
-            style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#e55" }}
+            style={{ background: "#fdecec", borderColor: "#f3c8c8", color: "#c42b2b" }}
           >
             {error}
           </div>
@@ -382,7 +386,7 @@ export function PartnerListingWizard({
               type="button"
               onClick={finish}
               disabled={pending}
-              className="rounded-full border px-4 py-2.5 text-sm font-bold text-teal2 transition-opacity hover:opacity-80 disabled:opacity-60"
+              className="rounded-full border px-4 py-2.5 text-sm font-bold text-teal-ink transition-opacity hover:opacity-80 disabled:opacity-60"
               style={{ borderColor: "var(--teal2)" }}
             >
               {t("saveAndClose")}

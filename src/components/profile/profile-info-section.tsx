@@ -173,7 +173,7 @@ export function ProfileInfoSection({
               : {
                   background: "#fdecec",
                   borderColor: "#f3c8c8",
-                  color: "#e55",
+                  color: "#c42b2b",
                 }
           }
         >

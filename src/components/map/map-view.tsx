@@ -337,7 +337,7 @@ export function MapView({
                     </div>
                   )
                 )}
-                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm">
                   {t(
                     activePopup.kind === "event"
                       ? "kindEvent"
@@ -348,7 +348,7 @@ export function MapView({
                 </span>
                 {activePopup.isOpenNow != null && (
                   <span
-                    className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm"
+                    className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white backdrop-blur-sm"
                     style={{
                       backgroundColor: activePopup.isOpenNow
                         ? "rgba(30,207,176,0.9)"
@@ -360,17 +360,17 @@ export function MapView({
                 )}
               </div>
               <div className="flex flex-col gap-1.5 p-3 pb-1.5">
-                <p className="truncate text-sm font-extrabold text-text group-hover:text-teal2">
+                <p className="truncate text-sm font-extrabold text-text group-hover:text-teal-ink">
                   {activePopup.title}
                 </p>
                 {activePopup.whenLabel && (
-                  <p className="flex items-center gap-1 text-xs font-bold text-teal2">
+                  <p className="flex items-center gap-1 text-xs font-bold text-teal-ink">
                     <Calendar className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
                     {activePopup.whenLabel}
                   </p>
                 )}
                 {activePopup.categoryLabel && (
-                  <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-[11px] font-semibold text-teal2">
+                  <span className="w-fit rounded-full border border-teal2 px-2 py-0.5 text-xs font-semibold text-teal-ink">
                     {activePopup.categoryLabel}
                   </span>
                 )}
@@ -401,7 +401,7 @@ export function MapView({
                 type="button"
                 onClick={() => setSelected(null)}
                 aria-label={t("close")}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-text"
               >
                 <X className="h-4 w-4" strokeWidth={2} aria-hidden />
               </button>

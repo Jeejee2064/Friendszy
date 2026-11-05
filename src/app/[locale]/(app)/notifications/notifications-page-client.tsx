@@ -98,7 +98,7 @@ export function NotificationsPageClient({
               type="button"
               onClick={handleMarkAllRead}
               disabled={markingAll}
-              className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-teal2 disabled:opacity-60"
+              className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-teal-ink disabled:opacity-60"
             >
               {markingAll ? "…" : t("markAllRead")}
             </button>

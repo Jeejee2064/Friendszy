@@ -22,7 +22,7 @@ export function PageHeader({
             type="button"
             onClick={onBack}
             aria-label={backLabel}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-teal2"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-bg hover:text-teal-ink"
           >
             <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden />
           </button>

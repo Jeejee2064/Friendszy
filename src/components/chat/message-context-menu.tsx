@@ -81,7 +81,7 @@ export function MessageContextMenu({
                   setOpen(false);
                   onReact(emoji);
                 }}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg leading-none transition-transform hover:scale-125"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg leading-none transition-transform hover:scale-125"
               >
                 {emoji}
               </button>
@@ -104,7 +104,7 @@ export function MessageContextMenu({
                 setOpen(false);
                 onDelete();
               }}
-              className="flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-1.5 text-left text-sm font-semibold text-[#e55] hover:bg-[#e55]/10"
+              className="flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-1.5 text-left text-sm font-semibold text-[#c42b2b] hover:bg-[#c42b2b]/10"
             >
               🗑️ {deleteLabel}
             </button>
