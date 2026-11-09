@@ -40,8 +40,15 @@ function detectPlatform(): Platform {
   return "desktop";
 }
 
+// Dans le shell Capacitor (Android), l'app est déjà « installée » : on ne
+// propose ni bannière d'installation ni état « installable ».
+function isNativeApp() {
+  return !!(window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
+}
+
 function isStandalone() {
   return (
+    isNativeApp() ||
     window.matchMedia("(display-mode: standalone)").matches ||
     (navigator as { standalone?: boolean }).standalone === true
   );
