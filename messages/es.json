@@ -1278,5 +1278,26 @@
     "rule2Sub": "Bloquea o denuncia con un gesto.",
     "rule3": "Mayores de 18 años",
     "replay": "Volver a ver la presentación"
+  },
+  "DeleteAccount": {
+    "pageTitle": "Eliminar mi cuenta de Friendszy",
+    "intro": "Puedes solicitar la eliminación de tu cuenta y tus datos desde la aplicación Friendszy (de Friendszy Inc.), o aquí, sin necesidad de iniciar sesión.",
+    "inAppTitle": "En la aplicación (lo más rápido)",
+    "inAppStep1": "Abre Friendszy e inicia sesión.",
+    "inAppStep2": "Ve a Perfil y luego a la pestaña Ajustes (icono de engranaje).",
+    "inAppStep3": "Toca «Eliminar mi cuenta» y confirma escribiendo ELIMINAR.",
+    "noAppTitle": "Sin abrir la aplicación",
+    "noAppBody": "Escríbenos desde el correo asociado a tu cuenta de Friendszy, con el asunto «Eliminación de cuenta de Friendszy». Comprobaremos que la solicitud es tuya y luego eliminaremos tu cuenta.",
+    "noAppButton": "Enviar mi solicitud por correo",
+    "noAppDelay": "Respondemos a tu solicitud en un plazo máximo de 30 días.",
+    "whatTitle": "Qué se elimina",
+    "whatBody": "Tu perfil se anonimiza, tus amistades y bloqueos se eliminan y ya no puedes iniciar sesión en Friendszy con esta cuenta. No se puede deshacer. Para conocer los datos que conservamos y durante cuánto tiempo, consulta la <link>política de privacidad</link>.",
+    "backHome": "Volver a Friendszy"
+  },
+  "NativeApp": {
+    "helpTitle": "Ayuda e información",
+    "contactSupport": "Contactar con soporte",
+    "terms": "Condiciones de uso y normas de la comunidad",
+    "privacy": "Política de privacidad"
   }
 }

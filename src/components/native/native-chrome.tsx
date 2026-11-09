@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
 import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
+import { useActiveConversationId } from "@/lib/messages/active-conversation-context";
 import { Capacitor } from "@capacitor/core";
 import { isNativeApp } from "@/lib/native/is-native-app";
 
@@ -68,12 +69,20 @@ function activeTab(pathname: string): TabId | null {
 
 const ROOT_PATHS = new Set(Object.values(TAB_ROUTES));
 
+// Chat de groupe plein écran (/groups/<id>, pas /groups/new ni les sous-pages).
+const GROUP_CHAT_RE = /^\/groups\/(?!new(\/|$))[^/]+\/?$/;
+
 export function NativeChrome() {
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("Nav");
   const unreadNotifications = useUnreadNotificationsCount();
   const unreadMessages = useUnreadConversationsCount();
+  const activeConversationId = useActiveConversationId();
+  // Vues de chat plein écran (conversation 1:1 ouverte, chat de groupe) : elles ont leur
+  // propre en-tête (retour, signaler, bloquer) et leur zone de saisie en bas, que les
+  // barres natives recouvriraient. On les masque le temps du chat.
+  const chatMode = activeConversationId !== null || GROUP_CHAT_RE.test(pathname);
   const pathnameRef = useRef(pathname);
   useEffect(() => {
     pathnameRef.current = pathname;
@@ -122,6 +131,32 @@ export function NativeChrome() {
     };
   }, [router]);
 
+  // Liens externes (hors friendszy.ca) et liens target="_blank" : navigateur
+  // intégré (@capacitor/browser), jamais dans la WebView. mailto:/tel: restent
+  // gérés par le système.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a) return;
+      let url: URL;
+      try {
+        url = new URL(a.href, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.protocol !== "http:" && url.protocol !== "https:") return;
+      const internal =
+        url.hostname === window.location.hostname || /(^|\.)friendszy\.ca$/.test(url.hostname);
+      if (internal && a.target !== "_blank") return;
+      e.preventDefault();
+      void import("@capacitor/browser").then(({ Browser }) => Browser.open({ url: url.href }));
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
   // État des barres : onglet actif, libellés (langue courante), badges.
   useEffect(() => {
     if (!isNativeApp()) return;
@@ -131,7 +166,10 @@ export function NativeChrome() {
       if (cancelled) return;
       const active = activeTab(pathname);
       await NativeNavigation.setTabbar({
-        selectedId: active ?? "",
+        hidden: chatMode,
+        // Limite du plugin (Android) : il ne sait pas « désélectionner ». Hors onglets (profil,
+        // notifications, amis…), on n'envoie pas d'id et le dernier onglet visité reste surligné.
+        ...(active ? { selectedId: active } : {}),
         labels: true,
         icons: true,
         tabs: [
@@ -148,6 +186,7 @@ export function NativeChrome() {
         ],
       });
       await NativeNavigation.setNavbar({
+        hidden: chatMode,
         title: "Friendszy",
         backButton: { visible: false },
         rightItems: [
@@ -163,7 +202,7 @@ export function NativeChrome() {
     return () => {
       cancelled = true;
     };
-  }, [pathname, t, unreadMessages, unreadNotifications]);
+  }, [pathname, t, unreadMessages, unreadNotifications, chatMode]);
 
   return null;
 }

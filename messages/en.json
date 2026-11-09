@@ -1278,5 +1278,26 @@
     "rule2Sub": "Block or report in one tap.",
     "rule3": "18 and over",
     "replay": "Watch the intro again"
+  },
+  "DeleteAccount": {
+    "pageTitle": "Delete my Friendszy account",
+    "intro": "You can request deletion of your account and data from the Friendszy app (by Friendszy Inc.), or here, without having to sign in.",
+    "inAppTitle": "In the app (fastest)",
+    "inAppStep1": "Open Friendszy and sign in.",
+    "inAppStep2": "Go to Profile, then the Settings tab (gear icon).",
+    "inAppStep3": "Tap “Delete my account” and confirm by typing DELETE.",
+    "noAppTitle": "Without opening the app",
+    "noAppBody": "Email us from the address linked to your Friendszy account, with the subject “Friendszy account deletion”. We will check that the request comes from you, then delete your account.",
+    "noAppButton": "Send my request by email",
+    "noAppDelay": "We answer your request within 30 days at most.",
+    "whatTitle": "What is deleted",
+    "whatBody": "Your profile is anonymized, your friendships and blocks are deleted, and you can no longer sign in to Friendszy with this account. This cannot be undone. For details on the data we keep and for how long, see the <link>privacy policy</link>.",
+    "backHome": "Back to Friendszy"
+  },
+  "NativeApp": {
+    "helpTitle": "Help and information",
+    "contactSupport": "Contact support",
+    "terms": "Terms of use and community rules",
+    "privacy": "Privacy policy"
   }
 }

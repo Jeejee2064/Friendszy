@@ -1278,5 +1278,26 @@
     "rule2Sub": "Bloque ou signale en un geste.",
     "rule3": "18 ans et plus",
     "replay": "Revoir la présentation"
+  },
+  "DeleteAccount": {
+    "pageTitle": "Supprimer mon compte Friendszy",
+    "intro": "Tu peux demander la suppression de ton compte et de tes données dans l'application Friendszy (de Friendszy Inc.), ou ici, sans avoir à te connecter.",
+    "inAppTitle": "Dans l'application (le plus rapide)",
+    "inAppStep1": "Ouvre Friendszy et connecte-toi.",
+    "inAppStep2": "Va dans Profil, puis dans l'onglet Réglages (icône d'engrenage).",
+    "inAppStep3": "Touche « Supprimer mon compte » et confirme en tapant SUPPRIMER.",
+    "noAppTitle": "Sans ouvrir l'application",
+    "noAppBody": "Écris-nous depuis l'adresse courriel associée à ton compte Friendszy, avec l'objet « Suppression de compte Friendszy ». Nous vérifierons que la demande vient bien de toi, puis nous supprimerons ton compte.",
+    "noAppButton": "Envoyer ma demande par courriel",
+    "noAppDelay": "Nous répondons à ta demande dans un délai maximal de 30 jours.",
+    "whatTitle": "Ce qui est supprimé",
+    "whatBody": "Ton profil est anonymisé, tes amitiés et tes blocages sont supprimés, et tu ne peux plus te connecter à Friendszy avec ce compte. L'opération est irréversible. Pour le détail des données conservées et leur durée, consulte la <link>politique de confidentialité</link>.",
+    "backHome": "Retour à Friendszy"
+  },
+  "NativeApp": {
+    "helpTitle": "Aide et informations",
+    "contactSupport": "Contacter le soutien",
+    "terms": "Conditions d'utilisation et règles de la communauté",
+    "privacy": "Politique de confidentialité"
   }
 }
