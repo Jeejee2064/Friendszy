@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/lib/profile/queries";
 import { AppShell } from "@/components/layout/app-shell";
+import { NativeChromePoc } from "@/components/native/native-chrome-poc";
 
 export default async function AppLayout({
   children,
@@ -41,6 +42,7 @@ export default async function AppLayout({
       isAdmin={profile?.is_admin ?? false}
       hasSeenNavTour={profile?.has_seen_nav_tour ?? true}
     >
+      <NativeChromePoc />
       {children}
     </AppShell>
   );
