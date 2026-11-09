@@ -195,3 +195,22 @@ nav a {
     min-height: 44px;
   }
 }
+
+/* App native (Capacitor) : la barre d'onglets et la barre du haut sont natives
+   (@capgo/native-navigation). On cache la sidebar web et on décale le contenu
+   avec --native-top/--native-bottom (calculées par NativeChrome, le plugin se
+   trompe d'unité sur Android). Sans effet sur
+   le web et la PWA (la classe n'existe que dans l'app). */
+.native-only {
+  display: none;
+}
+html.native-app .native-only {
+  display: flex;
+}
+html.native-app aside.app-sidebar {
+  display: none;
+}
+html.native-app main {
+  padding-top: var(--native-top, 0px);
+  padding-bottom: var(--native-bottom, 0px);
+}

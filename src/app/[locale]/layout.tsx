@@ -100,7 +100,17 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`${nunito.variable} ${pacifico.variable}`}>
+    <html lang={locale} className={`${nunito.variable} ${pacifico.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Capacitor injecte window.Capacitor avant les scripts de la page : on pose la
+            classe tout de suite pour cacher la nav web sans flash (voir globals.css). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())document.documentElement.classList.add('native-app')}catch(e){}",
+          }}
+        />
+      </head>
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider>
           <PwaInstallProvider>

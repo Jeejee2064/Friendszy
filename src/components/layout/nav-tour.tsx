@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { usePwaInstall } from "@/lib/pwa/install-context";
+import { isNativeApp } from "@/lib/native/is-native-app";
 import { navTourTargetId } from "./nav-items";
 
 type Rect = { top: number; left: number; width: number; height: number };
@@ -39,6 +40,8 @@ export function NavTour({
   const { setNavTourActive } = usePwaInstall();
 
   const [dismissed, setDismissed] = useState(initialSeen);
+  // En natif la sidebar ciblée par la visite est cachée : pas de visite guidée.
+  const native = useSyncExternalStore(() => () => {}, isNativeApp, () => false);
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
@@ -48,7 +51,7 @@ export function NavTour({
   // the user later navigates back to "/" (the layout that owns this
   // component isn't remounted by client-side nav, so we can't rely on
   // `initialSeen` alone after the first dismissal).
-  const active = !dismissed && pathname === "/" && navKeys.length > 0;
+  const active = !native && !dismissed && pathname === "/" && navKeys.length > 0;
   // "logout" isn't a SidebarNav item (see nav-items.ts), so it's appended
   // here rather than folded into navKeys — it stays a final, separate step
   // pointing at AppShell's sign-out button instead of a nav link.

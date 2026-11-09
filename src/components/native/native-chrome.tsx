@@ -1,0 +1,169 @@
+"use client";
+
+// Barre d'onglets + barre du haut natives (Phase 2). Inerte hors app native :
+// le web et la PWA gardent leur sidebar HTML. Onglets (5 max imposé par les
+// plateformes) : Accueil, Recherche, Découvrir, Messages, Groupes. En haut :
+// Notifications (point si non lues) et Profil. Amis, Admin, langue : voir
+// NativeProfileLinks.
+
+import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
+import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
+import { Capacitor } from "@capacitor/core";
+import { isNativeApp } from "@/lib/native/is-native-app";
+
+type Insets = { top: number; bottom: number } | undefined;
+
+// BUG @capgo/native-navigation 8.0.8 (Android) : les marges sont calculées en
+// pixels d'écran puis écrites telles quelles comme "px" CSS (--cap-native-*),
+// donc ×densité trop grandes (≈2,6× sur un écran xxhdpi). On recalcule ici dans
+// nos propres variables (--native-top/-bottom), utilisées par globals.css. iOS
+// renvoie déjà des points = px CSS. À retirer si le plugin corrige le bug.
+function applyInsets(insets: Insets) {
+  if (!insets) return;
+  const k = Capacitor.getPlatform() === "android" ? window.devicePixelRatio || 1 : 1;
+  const root = document.documentElement.style;
+  root.setProperty("--native-top", `${Math.round(insets.top / k)}px`);
+  root.setProperty("--native-bottom", `${Math.round(insets.bottom / k)}px`);
+}
+
+const svg = (body: string) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+
+// Mêmes pictogrammes lucide que la nav web (nav-items.ts).
+const ICONS = {
+  home: svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/>'),
+  search: svg('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
+  discover: svg('<circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/>'),
+  messages: svg('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>'),
+  groups: svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17.5 14.5a5 5 0 0 1 4 5"/>'),
+  bell: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
+  // Le plugin n'a pas de badge sur la barre du haut : un point plein signale les non lues.
+  bellDot: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><circle cx="19" cy="5" r="3.2" fill="currentColor"/>'),
+  user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+};
+
+type TabId = "home" | "search" | "discover" | "messages" | "groups";
+
+const TAB_ROUTES: Record<TabId, string> = {
+  home: "/",
+  search: "/search",
+  discover: "/discover",
+  messages: "/messages",
+  groups: "/groups",
+};
+
+// Route courante → onglet actif (null = page hors onglets : profil, notifications, amis…).
+function activeTab(pathname: string): TabId | null {
+  if (pathname === "/") return "home";
+  const starts = (p: string) => pathname === p || pathname.startsWith(`${p}/`);
+  if (starts("/search") || starts("/partners")) return "search";
+  if (starts("/discover") || starts("/events")) return "discover";
+  if (starts("/messages")) return "messages";
+  if (starts("/groups")) return "groups";
+  return null;
+}
+
+const ROOT_PATHS = new Set(Object.values(TAB_ROUTES));
+
+export function NativeChrome() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const t = useTranslations("Nav");
+  const unreadNotifications = useUnreadNotificationsCount();
+  const unreadMessages = useUnreadConversationsCount();
+  const pathnameRef = useRef(pathname);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
+  // Écouteurs : tap sur onglet / bouton du haut, bouton retour Android.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    let cancelled = false;
+    const cleanups: Array<() => void> = [];
+    (async () => {
+      const [{ NativeNavigation }, { App }] = await Promise.all([
+        import("@capgo/native-navigation"),
+        import("@capacitor/app"),
+      ]);
+      if (cancelled) return;
+      const initial = await NativeNavigation.configure({ contentInsetMode: "css" });
+      applyInsets(initial.insets);
+      const onInsets = (e: Event) =>
+        applyInsets((e as CustomEvent<{ insets: Insets }>).detail?.insets);
+      window.addEventListener("capNativeNavigation:safeAreaChanged", onInsets);
+      cleanups.push(() => window.removeEventListener("capNativeNavigation:safeAreaChanged", onInsets));
+      const tab = await NativeNavigation.addListener("tabSelect", ({ id }) => {
+        router.push(TAB_ROUTES[id as TabId] ?? "/");
+      });
+      const item = await NativeNavigation.addListener("navbarItemTap", ({ id }) => {
+        router.push(id === "profile" ? "/profile" : "/notifications");
+      });
+      // Retour : on remonte l'historique ; à la racine d'un onglet, on quitte l'app.
+      const back = await App.addListener("backButton", () => {
+        if (ROOT_PATHS.has(pathnameRef.current) || window.history.length <= 1) {
+          void App.exitApp();
+        } else {
+          window.history.back();
+        }
+      });
+      cleanups.push(
+        () => void tab.remove(),
+        () => void item.remove(),
+        () => void back.remove(),
+      );
+    })();
+    return () => {
+      cancelled = true;
+      cleanups.forEach((fn) => fn());
+    };
+  }, [router]);
+
+  // État des barres : onglet actif, libellés (langue courante), badges.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    let cancelled = false;
+    (async () => {
+      const { NativeNavigation } = await import("@capgo/native-navigation");
+      if (cancelled) return;
+      const active = activeTab(pathname);
+      await NativeNavigation.setTabbar({
+        selectedId: active ?? "",
+        labels: true,
+        icons: true,
+        tabs: [
+          { id: "home", title: t("home"), icon: { svg: ICONS.home } },
+          { id: "search", title: t("search"), icon: { svg: ICONS.search } },
+          { id: "discover", title: t("discover"), icon: { svg: ICONS.discover } },
+          {
+            id: "messages",
+            title: t("messages"),
+            icon: { svg: ICONS.messages },
+            ...(unreadMessages > 0 ? { badge: unreadMessages } : {}),
+          },
+          { id: "groups", title: t("groups"), icon: { svg: ICONS.groups } },
+        ],
+      });
+      await NativeNavigation.setNavbar({
+        title: "Friendszy",
+        backButton: { visible: false },
+        rightItems: [
+          {
+            id: "notifications",
+            title: t("notifications"),
+            icon: { svg: unreadNotifications > 0 ? ICONS.bellDot : ICONS.bell },
+          },
+          { id: "profile", title: t("profile"), icon: { svg: ICONS.user } },
+        ],
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, t, unreadMessages, unreadNotifications]);
+
+  return null;
+}

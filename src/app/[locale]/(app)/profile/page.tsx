@@ -9,6 +9,7 @@ import {
 } from "@/lib/profile/queries";
 import type { Gender, LookingFor } from "@/lib/profile/types";
 import { ProfileForm } from "./profile-form";
+import { NativeProfileLinks } from "@/components/native/native-profile-links";
 
 export default async function ProfilePage({
   params,
@@ -54,6 +55,8 @@ export default async function ProfilePage({
   );
 
   return (
+    <>
+    <NativeProfileLinks isAdmin={profile?.is_admin ?? false} />
     <ProfileForm
       userId={user.id}
       interests={interests}
@@ -79,5 +82,6 @@ export default async function ProfilePage({
         languages: profile?.languages ?? [],
       }}
     />
+    </>
   );
 }
