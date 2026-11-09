@@ -15,6 +15,10 @@ const eslintConfig = defineConfig([
     // Standalone Node/CommonJS ops scripts, run directly via `node`, never
     // bundled into the app — not worth converting to ESM just for lint.
     "scripts/**",
+    // Projets natifs Capacitor (code généré, hors périmètre du lint web).
+    "android/**",
+    "ios/**",
+    "cap-www/**",
   ]),
 ]);
 

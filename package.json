@@ -9,9 +9,15 @@
     "lint": "eslint",
     "supabase:types": "supabase gen types typescript --project-id <PROJECT_REF> --schema public > src/types/supabase.ts",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "cap:sync": "cap sync android",
+    "cap:sync:dev": "CAP_ENV=dev cap sync android",
+    "cap:run": "cap run android",
+    "cap:run:dev": "CAP_ENV=dev cap run android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.109.0",
     "framer-motion": "^12.42.2",
@@ -24,6 +30,7 @@
     "react-map-gl": "^8.1.2"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

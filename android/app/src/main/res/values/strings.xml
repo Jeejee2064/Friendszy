@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Friendszy</string>
+    <string name="title_activity_main">Friendszy</string>
+    <string name="package_name">ca.friendszy.app</string>
+    <string name="custom_url_scheme">ca.friendszy.app</string>
+</resources>
