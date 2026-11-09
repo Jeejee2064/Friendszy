@@ -11,7 +11,7 @@ import { usePwaInstall } from "@/lib/pwa/install-context";
 import { IosInstallSteps } from "@/components/pwa/ios-install-steps";
 import { useGoOffline } from "@/lib/presence/presence-context";
 import { createClient } from "@/lib/supabase/client";
-import { isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
+import { getPushPermission, isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
 
 /**
  * The actual settings cards (PWA install, push, data export, privacy link,
@@ -101,7 +101,7 @@ export function SettingsSections({ locale }: { locale: string }) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPushSupported(isPushSupported());
-    if (typeof Notification !== "undefined") setPushPermission(Notification.permission);
+    getPushPermission().then(setPushPermission);
   }, []);
 
   async function handleEnablePush() {
@@ -120,7 +120,7 @@ export function SettingsSections({ locale }: { locale: string }) {
       // click. subscribeToPush fetches the user id itself, after the
       // permission prompt, for exactly this reason.
       await subscribeToPush(createClient(), localeForPush);
-      if (typeof Notification !== "undefined") setPushPermission(Notification.permission);
+      setPushPermission(await getPushPermission());
     } finally {
       setPushEnabling(false);
     }

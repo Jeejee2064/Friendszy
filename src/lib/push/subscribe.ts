@@ -1,16 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { track } from "@/lib/analytics/track";
+import { getNativePermission, isNativeApp, subscribeToNativePush } from "@/lib/push/native";
 
 type Client = SupabaseClient<Database>;
 
 export function isPushSupported(): boolean {
+  if (isNativeApp()) return true;
   return (
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
     "PushManager" in window &&
     "Notification" in window
   );
+}
+
+// État de la permission, web ou natif (Notification n'existe pas toujours
+// dans le WebView Android). null = indéterminable.
+export async function getPushPermission(): Promise<NotificationPermission | null> {
+  if (isNativeApp()) return getNativePermission().catch(() => null);
+  return typeof Notification !== "undefined" ? Notification.permission : null;
 }
 
 // Converts the VAPID public key (URL-safe base64, as printed by
@@ -43,6 +52,7 @@ function urlBase64ToUint8Array(base64String: string): BufferSource {
 // a parameter callers would have to await first.
 export async function subscribeToPush(supabase: Client, locale: string): Promise<boolean> {
   if (!isPushSupported()) return false;
+  if (isNativeApp()) return subscribeToNativePush(supabase, locale);
 
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!vapidPublicKey) return false;

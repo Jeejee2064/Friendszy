@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { attachNativePushTapHandler } from "@/lib/push/native";
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
+    // Shell Capacitor : pas de service worker utile, mais il faut écouter le
+    // clic sur les notifications push natives (ouvre la bonne conversation).
+    attachNativePushTapHandler().catch(() => {});
     if (
       process.env.NODE_ENV === "production" &&
       "serviceWorker" in navigator

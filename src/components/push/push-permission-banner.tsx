@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Modal } from "@/components/ui/modal";
 import { usePwaInstall } from "@/lib/pwa/install-context";
 import { createClient } from "@/lib/supabase/client";
-import { isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
+import { getPushPermission, isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
 
 // Shown at most once ever per browser — same "set the moment we decide to
 // show it" rule as the PWA install banner (src/components/pwa/install-prompt-banner.tsx),
@@ -25,17 +25,19 @@ export function PushPermissionBanner() {
   const { platform, alreadyInstalled, navTourActive } = usePwaInstall();
   const [open, setOpen] = useState(false);
   const [supported, setSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission | null>(null);
   const ios = platform === "ios";
   const iosNeedsInstall = ios && !alreadyInstalled;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSupported(isPushSupported());
+    getPushPermission().then(setPermission);
   }, []);
 
   useEffect(() => {
     if (!supported) return;
-    if (typeof Notification === "undefined" || Notification.permission !== "default") return;
+    if (permission !== "default") return;
     if (localStorage.getItem(SHOWN_STORAGE_KEY)) return;
     // iOS only grants push permission to an installed (home-screen) PWA —
     // asking before that just shows a request that can't succeed. Don't
@@ -49,16 +51,16 @@ export function PushPermissionBanner() {
       setOpen(true);
     }, OPEN_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [supported, iosNeedsInstall, navTourActive]);
+  }, [supported, permission, iosNeedsInstall, navTourActive]);
 
   // Permission already granted (earlier session, or another device) — make
   // sure this device/browser has a row in push_subscriptions, silently, no
   // prompt needed.
   useEffect(() => {
     if (!supported) return;
-    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    if (permission !== "granted") return;
     subscribeToPush(createClient(), locale).catch(() => {});
-  }, [supported, locale]);
+  }, [supported, permission, locale]);
 
   function handleEnable() {
     setOpen(false);

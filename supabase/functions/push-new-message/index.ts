@@ -29,6 +29,92 @@ webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+// --- FCM (appareils natifs Capacitor) -------------------------------------
+// Compte de service Firebase en JSON (secret `FCM_SERVICE_ACCOUNT`). Absent
+// → l'envoi natif est simplement ignoré, le Web Push continue de marcher.
+const FCM_SERVICE_ACCOUNT = Deno.env.get("FCM_SERVICE_ACCOUNT");
+
+function b64url(input: ArrayBuffer | string): string {
+  const bytes =
+    typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+let cachedToken: { value: string; exp: number } | null = null;
+
+async function getFcmAccessToken(sa: { client_email: string; private_key: string }) {
+  if (cachedToken && cachedToken.exp > Date.now() + 60_000) return cachedToken.value;
+  const now = Math.floor(Date.now() / 1000);
+  const unsigned =
+    b64url(JSON.stringify({ alg: "RS256", typ: "JWT" })) +
+    "." +
+    b64url(
+      JSON.stringify({
+        iss: sa.client_email,
+        scope: "https://www.googleapis.com/auth/firebase.messaging",
+        aud: "https://oauth2.googleapis.com/token",
+        iat: now,
+        exp: now + 3600,
+      })
+    );
+  const pem = sa.private_key.replace(/-----[A-Z ]+-----|\s/g, "");
+  const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    der,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned));
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: `${unsigned}.${b64url(sig)}`,
+    }),
+  });
+  if (!res.ok) throw new Error(`FCM oauth ${res.status}`);
+  const json = await res.json();
+  cachedToken = { value: json.access_token, exp: Date.now() + json.expires_in * 1000 };
+  return cachedToken.value;
+}
+
+// Retourne false si le jeton est mort (à supprimer).
+async function sendFcm(
+  token: string,
+  title: string,
+  url: string,
+  unreadCount: number
+): Promise<boolean> {
+  if (!FCM_SERVICE_ACCOUNT) return true;
+  const sa = JSON.parse(FCM_SERVICE_ACCOUNT);
+  const accessToken = await getFcmAccessToken(sa);
+  const res = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: {
+        token,
+        // Contenu générique uniquement (jamais le texte du message).
+        notification: { title },
+        data: { url, unreadCount: String(unreadCount) },
+        android: { priority: "HIGH", notification: { channel_id: "messages" } },
+      },
+    }),
+  });
+  if (res.ok) return true;
+  if (res.status === 404 || res.status === 400) {
+    const err = await res.json().catch(() => null);
+    const code = JSON.stringify(err);
+    if (code.includes("UNREGISTERED") || code.includes("NOT_FOUND")) return false;
+  }
+  return true; // erreur transitoire : on garde le jeton
+}
+
 // Le client fait un heartbeat (upsert) toutes les 15s tant que la
 // conversation est ouverte à l'écran (voir trackConversationPresence,
 // src/lib/messages/queries.ts) — une ligne plus vieille que ça veut dire
@@ -139,20 +225,44 @@ Deno.serve(async (req) => {
     return new Response("recipient viewing conversation, push skipped", { status: 200 });
   }
 
-  const [{ data: sender }, { data: subscriptions }, unreadCount] = await Promise.all([
+  const [{ data: sender }, { data: subscriptions }, { data: nativeTokens }, unreadCount] =
+    await Promise.all([
     admin.from("profiles").select("full_name").eq("id", senderId).maybeSingle(),
     admin
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth, locale")
       .eq("user_id", userId),
+    admin.from("native_push_tokens").select("id, token, locale").eq("user_id", userId),
     getUnreadConversationCount(userId),
   ]);
 
-  if (!subscriptions || subscriptions.length === 0) {
-    return new Response("no subscriptions", { status: 200 });
-  }
-
   const name = (sender?.full_name as string | null) ?? "";
+
+  await Promise.all(
+    (nativeTokens ?? []).map(async (row) => {
+      const locale: "fr" | "en" = row.locale === "en" ? "en" : "fr";
+      try {
+        const alive = await sendFcm(
+          row.token as string,
+          TITLE[locale](name),
+          conversationPath(locale, conversationId),
+          unreadCount
+        );
+        if (!alive) await admin.from("native_push_tokens").delete().eq("id", row.id);
+        else
+          await admin
+            .from("native_push_tokens")
+            .update({ last_used_at: new Date().toISOString() })
+            .eq("id", row.id);
+      } catch {
+        // erreur transitoire : le prochain message réessaiera
+      }
+    })
+  );
+
+  if (!subscriptions || subscriptions.length === 0) {
+    return new Response("ok", { status: 200 });
+  }
 
   await Promise.all(
     (subscriptions as PushSubscriptionRow[]).map(async (sub) => {
