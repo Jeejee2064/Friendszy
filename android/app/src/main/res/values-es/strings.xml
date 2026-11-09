@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="offline_title">Sin conexión</string>
+    <string name="offline_message">Friendszy necesita Internet para conectarte con tus amigos. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="offline_retry">Reintentar</string>
+    <string name="offline_still">Sigue sin haber conexión</string>
+</resources>

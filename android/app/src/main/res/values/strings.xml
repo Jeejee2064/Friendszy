@@ -4,4 +4,9 @@
     <string name="title_activity_main">Friendszy</string>
     <string name="package_name">ca.friendszy.app</string>
     <string name="custom_url_scheme">ca.friendszy.app</string>
+    <!-- Écran hors-ligne natif (français par défaut) -->
+    <string name="offline_title">Pas de connexion</string>
+    <string name="offline_message">Friendszy a besoin d\'Internet pour te retrouver tes amis. Vérifie ta connexion, puis réessaie.</string>
+    <string name="offline_retry">Réessayer</string>
+    <string name="offline_still">Toujours pas de connexion</string>
 </resources>
