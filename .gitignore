@@ -52,3 +52,6 @@ next-env.d.ts
 # claude local settings (peuvent contenir des identifiants)
 .claude/settings.json
 .claude/settings.local.json
+
+# Config Firebase (push natif) : jamais dans le repo, voir android/PUSH_SETUP.md
+android/app/google-services.json

@@ -21,8 +21,13 @@ type NativeTokensClient = {
       row: { user_id: string; token: string; platform: string; locale: string },
       opts: { onConflict: string }
     ) => PromiseLike<{ error: unknown }>;
+    delete: () => { eq: (c: string, v: string) => PromiseLike<{ error: unknown }> };
   };
 };
+
+// Jeton de CET appareil, gardé pour pouvoir le retirer à la déconnexion sans
+// toucher aux autres appareils du même compte.
+const TOKEN_STORAGE_KEY = "friendszy:native-push-token";
 
 export async function getNativePermission(): Promise<"granted" | "denied" | "default"> {
   const { PushNotifications } = await import("@capacitor/push-notifications");
@@ -79,9 +84,36 @@ export async function subscribeToNativePush(
         { user_id: userId, token, platform: "android", locale },
         { onConflict: "token" }
       );
+    if (!error) {
+      try {
+        localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      } catch {
+        // stockage indisponible : le jeton sera nettoyé par FCM s'il devient invalide
+      }
+    }
     return !error;
   } catch {
     return false;
+  }
+}
+
+// À appeler AVANT supabase.auth.signOut() (la RLS exige la session) : sans ça
+// l'appareil continuerait de recevoir « Nouveau message de … » du compte
+// déconnecté, et un autre compte se connectant sur cet appareil ne pourrait
+// pas enregistrer le même jeton (la RLS interdit de modifier la ligne d'autrui).
+// Ne lève jamais.
+export async function removeNativePushToken(supabase: SupabaseClient<Database>): Promise<void> {
+  if (!isNativeApp()) return;
+  try {
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!token) return;
+    await (supabase as unknown as NativeTokensClient)
+      .from("native_push_tokens")
+      .delete()
+      .eq("token", token);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // la déconnexion ne doit jamais échouer à cause du push
   }
 }
 

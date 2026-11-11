@@ -128,15 +128,23 @@ const PRESENCE_FRESH_MS = 20_000;
 // Edge Functions run on Deno, outside the Next.js app, so this can't
 // import next-intl's JSON directly — kept in sync by hand, both languages
 // always present together.
-const TITLE: Record<"fr" | "en", (name: string) => string> = {
+type PushLocale = "fr" | "en" | "es";
+
+const TITLE: Record<PushLocale, (name: string) => string> = {
   fr: (name) => `Nouveau message de ${name}`,
   en: (name) => `New message from ${name}`,
+  es: (name) => `Nuevo mensaje de ${name}`,
 };
 
-function conversationPath(locale: "fr" | "en", conversationId: string): string {
+// Toute valeur inconnue retombe sur le français (langue par défaut).
+function toPushLocale(value: string | null | undefined): PushLocale {
+  return value === "en" || value === "es" ? value : "fr";
+}
+
+function conversationPath(locale: PushLocale, conversationId: string): string {
   // src/i18n/routing.ts: localePrefix "as-needed" — fr (default) has no
-  // prefix, en does.
-  const prefix = locale === "en" ? "/en" : "";
+  // prefix, en and es do.
+  const prefix = locale === "fr" ? "" : `/${locale}`;
   return `${prefix}/messages?c=${conversationId}`;
 }
 
@@ -240,7 +248,7 @@ Deno.serve(async (req) => {
 
   await Promise.all(
     (nativeTokens ?? []).map(async (row) => {
-      const locale: "fr" | "en" = row.locale === "en" ? "en" : "fr";
+      const locale = toPushLocale(row.locale as string | null);
       try {
         const alive = await sendFcm(
           row.token as string,
@@ -266,7 +274,7 @@ Deno.serve(async (req) => {
 
   await Promise.all(
     (subscriptions as PushSubscriptionRow[]).map(async (sub) => {
-      const locale: "fr" | "en" = sub.locale === "en" ? "en" : "fr";
+      const locale = toPushLocale(sub.locale);
       const title = TITLE[locale](name);
       const url = conversationPath(locale, conversationId);
 
