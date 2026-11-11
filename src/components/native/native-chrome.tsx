@@ -164,9 +164,14 @@ export function NativeChrome() {
     (async () => {
       const { NativeNavigation } = await import("@capgo/native-navigation");
       if (cancelled) return;
+      // Les barres sont des vues Android indépendantes de la page : elles survivent à un
+      // rechargement complet (ex. déconnexion → /login). On ne les montre donc que sur les
+      // pages avec la sidebar web (AppShell, repérée par data-app-shell) ; partout ailleurs
+      // (connexion, accueil public, CGU, confidentialité…) elles sont masquées.
+      const hidden = chatMode || !document.querySelector("[data-app-shell]");
       const active = activeTab(pathname);
       await NativeNavigation.setTabbar({
-        hidden: chatMode,
+        hidden,
         // Limite du plugin (Android) : il ne sait pas « désélectionner ». Hors onglets (profil,
         // notifications, amis…), on n'envoie pas d'id et le dernier onglet visité reste surligné.
         ...(active ? { selectedId: active } : {}),
@@ -186,7 +191,7 @@ export function NativeChrome() {
         ],
       });
       await NativeNavigation.setNavbar({
-        hidden: chatMode,
+        hidden,
         title: "Friendszy",
         backButton: { visible: false },
         rightItems: [

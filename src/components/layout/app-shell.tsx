@@ -24,7 +24,7 @@ export async function AppShell({
   const t = await getTranslations("Shell");
 
   return (
-    <div className="flex min-h-dvh bg-bg">
+    <div className="flex min-h-dvh bg-bg" data-app-shell>
       <aside className="app-sidebar sticky top-0 flex h-dvh w-16 shrink-0 flex-col overflow-y-auto border-r border-border bg-card pb-[max(1rem,env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] pt-[max(1rem,env(safe-area-inset-top))] md:w-64">
         <Link
           href="/"
@@ -89,7 +89,7 @@ export async function AppShell({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">
+      <main className="app-main min-w-0 flex-1">
         <InstallPromptBanner />
         {children}
       </main>

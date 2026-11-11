@@ -210,7 +210,7 @@ html.native-app .native-only {
 html.native-app aside.app-sidebar {
   display: none;
 }
-html.native-app main {
+html.native-app main.app-main {
   padding-top: var(--native-top, 0px);
   padding-bottom: var(--native-bottom, 0px);
 }

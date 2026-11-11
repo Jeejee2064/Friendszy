@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID_A_REMPLACER.ca.friendszy.app"],
+        "components": [{ "/": "/*" }]
+      }
+    ]
+  }
+}

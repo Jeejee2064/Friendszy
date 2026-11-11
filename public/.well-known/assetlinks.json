@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ca.friendszy.app",
+      "sha256_cert_fingerprints": [
+        "21:A1:50:3B:80:17:ED:C0:E0:68:D7:79:A6:73:51:86:66:7B:86:9C:FC:B9:14:64:51:A1:87:55:4C:77:BF:CA"
+      ]
+    }
+  }
+]

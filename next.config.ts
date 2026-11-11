@@ -45,7 +45,14 @@ const nextConfig: NextConfig = {
   // serveur local via 10.0.2.2 ; sans ça Next bloque /_next/* (HMR, hydratation).
   allowedDevOrigins: ["10.0.2.2"],
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Universal Links iOS : fichier SANS extension, doit être servi en JSON.
+      {
+        source: "/.well-known/apple-app-site-association",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
+    ];
   },
 };
 

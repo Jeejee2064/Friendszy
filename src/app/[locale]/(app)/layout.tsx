@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyProfile } from "@/lib/profile/queries";
 import { AppShell } from "@/components/layout/app-shell";
-import { NativeChrome } from "@/components/native/native-chrome";
 
 export default async function AppLayout({
   children,
@@ -42,7 +41,6 @@ export default async function AppLayout({
       isAdmin={profile?.is_admin ?? false}
       hasSeenNavTour={profile?.has_seen_nav_tour ?? true}
     >
-      <NativeChrome />
       {children}
     </AppShell>
   );
