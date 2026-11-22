@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // CAP_ENV=dev → l'app charge le serveur Next local de ta machine :
 //   - émulateur Android : 10.0.2.2 (loopback de l'hôte vu depuis l'émulateur) ;
 //   - vrai téléphone sur le même Wi-Fi : CAP_SERVER_URL=http://<IP-du-PC>:3000.
-// Jamais de config dev en prod : sans CAP_ENV, on pointe sur friendszy.ca.
+// Jamais de config dev en prod : sans CAP_ENV, on pointe sur www.friendszy.ca.
 const isDev = process.env.CAP_ENV === "dev";
 const devUrl = process.env.CAP_SERVER_URL || "http://10.0.2.2:3000";
 
@@ -13,7 +13,9 @@ const config: CapacitorConfig = {
   // Requis par Capacitor même avec server.url (page de repli minimale, jamais servie en prod).
   webDir: "cap-www",
   server: {
-    url: isDev ? devUrl : "https://friendszy.ca",
+    // L'apex friendszy.ca redirige (308) vers www : on pointe directement sur www
+    // (évite une redirection à chaque lancement ; cookies et App Links sur le même hôte).
+    url: isDev ? devUrl : "https://www.friendszy.ca",
     cleartext: isDev,
     allowNavigation: ["friendszy.ca", "www.friendszy.ca"],
   },
