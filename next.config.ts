@@ -41,9 +41,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  // Dev uniquement : l'émulateur Android (Capacitor, CAP_ENV=dev) atteint le
-  // serveur local via 10.0.2.2 ; sans ça Next bloque /_next/* (HMR, hydratation).
-  allowedDevOrigins: ["10.0.2.2"],
+  // Dev uniquement : l'app Capacitor (CAP_ENV=dev) atteint le serveur local via
+  // 10.0.2.2 (émulateur) ou l'IP du PC (téléphone, à lister dans ALLOWED_DEV_ORIGINS,
+  // séparés par des virgules) ; sans ça Next bloque /_next/* (HMR, hydratation).
+  allowedDevOrigins: ["10.0.2.2", ...(process.env.ALLOWED_DEV_ORIGINS?.split(",").map((h) => h.trim()).filter(Boolean) ?? [])],
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
