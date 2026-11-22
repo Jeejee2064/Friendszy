@@ -35,14 +35,18 @@
 
 html {
   overflow-x: hidden;
+  /* Pas de rebond élastique ni de pull-to-refresh natif parasite en app installée.
+     Doit rester sur <html> (le défilement de la page), JAMAIS sur <body> : avec
+     overflow-x: hidden sur html ET body, body devient un conteneur de défilement et
+     un overscroll-behavior: none dessus bloque le chaînage des gestes vers la page
+     dans la WebView Android (Capacitor) — plus aucun défilement au doigt. */
+  overscroll-behavior-y: none;
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
 body {
-  /* Pas de rebond élastique ni de pull-to-refresh natif parasite en app installée */
-  overscroll-behavior-y: none;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-nunito);
