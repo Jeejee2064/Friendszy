@@ -11,6 +11,7 @@ import { usePwaInstall } from "@/lib/pwa/install-context";
 import { IosInstallSteps } from "@/components/pwa/ios-install-steps";
 import { useGoOffline } from "@/lib/presence/presence-context";
 import { createClient } from "@/lib/supabase/client";
+import { NotificationPreferencesCard } from "@/components/settings/notification-preferences-card";
 import { getPushPermission, isPushSupported, subscribeToPush } from "@/lib/push/subscribe";
 
 /**
@@ -179,6 +180,8 @@ export function SettingsSections({ locale }: { locale: string }) {
             )}
           </div>
         )}
+
+        {pushSupported && pushPermission === "granted" && <NotificationPreferencesCard />}
 
         {canInstall && (
           <div className="rounded-2xl border border-border bg-card p-6">

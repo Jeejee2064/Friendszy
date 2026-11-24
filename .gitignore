@@ -55,3 +55,9 @@ next-env.d.ts
 
 # Config Firebase (push natif) : jamais dans le repo, voir android/PUSH_SETUP.md
 android/app/google-services.json
+
+# Clé APNs Apple (push iOS) : secret, jamais dans le repo
+*.p8
+
+# Clé de compte de service Firebase : secret, jamais dans le repo
+*-firebase-adminsdk-*.json

@@ -11,11 +11,12 @@ import { NativeChrome } from "@/components/native/native-chrome";
 import { CookieConsentBanner } from "@/components/consent/cookie-consent-banner";
 import { BetaFeedbackButton } from "@/components/beta-feedback/beta-feedback-button";
 import { PresenceProvider } from "@/lib/presence/presence-context";
-import { NotificationsProvider } from "@/lib/notifications/notifications-context";
-import { UnreadMessagesProvider } from "@/lib/messages/unread-context";
+import { NotificationCenterProvider } from "@/lib/notifications/notification-center";
 import { ActiveConversationProvider } from "@/lib/messages/active-conversation-context";
 import { ToastProvider } from "@/components/ui/toast-context";
 import { PwaInstallProvider } from "@/lib/pwa/install-context";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
+import { MotionProvider } from "@/components/ui/motion-provider";
 import { AnalyticsSessionPing } from "@/components/analytics/session-ping";
 import "../globals.css";
 
@@ -115,12 +116,13 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider>
+          <MotionProvider>
           <PwaInstallProvider>
             <ToastProvider>
               <PresenceProvider>
                 <ActiveConversationProvider>
-                  <NotificationsProvider>
-                    <UnreadMessagesProvider>
+                  <NotificationCenterProvider>
+                      <NavigationProgress />
                       {children}
                       <ServiceWorkerRegister />
                       <NativeDeepLinks />
@@ -128,12 +130,12 @@ export default async function LocaleLayout({
                       <CookieConsentBanner />
                       <BetaFeedbackButton />
                       <AnalyticsSessionPing />
-                    </UnreadMessagesProvider>
-                  </NotificationsProvider>
+                  </NotificationCenterProvider>
                 </ActiveConversationProvider>
               </PresenceProvider>
             </ToastProvider>
           </PwaInstallProvider>
+        </MotionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

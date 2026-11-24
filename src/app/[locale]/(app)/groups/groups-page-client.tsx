@@ -1,5 +1,6 @@
 "use client";
 
+import { StaggerList } from "@/components/ui/stagger-list";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useTranslations } from "next-intl";
@@ -225,7 +226,7 @@ export function GroupsPageClient({
           ) : groups.length === 0 ? (
             <p className="text-center text-sm text-muted">{t("noGroupsFound")}</p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <StaggerList className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {groups.map((group) => (
                 <GroupCard
                   key={group.id}
@@ -234,7 +235,7 @@ export function GroupsPageClient({
                   requesting={requestingId === group.id}
                 />
               ))}
-            </div>
+            </StaggerList>
           )}
         </div>
       ) : myGroups.length === 0 ? (

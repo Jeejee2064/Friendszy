@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { QUICK_REACTION_EMOJIS } from "@/lib/chat/quick-reactions";
 
-// Menu contextuel affiché au clic sur un message (réagir / répondre /
-// supprimer si on en est l'auteur) — partagé par les 3 surfaces de chat.
+// Menu contextuel d'un message, comme WhatsApp : appui long (tactile) ou
+// clic droit / clic (souris) → réagir / répondre / copier / supprimer si on
+// en est l'auteur — partagé par les 3 surfaces de chat.
 // `children` est la bulle elle-même : c'est le déclencheur. Se ferme au
 // clic extérieur, sur Échap, ou après avoir choisi une action.
 export function MessageContextMenu({
   align,
   canDelete,
+  copyText,
   onReact,
   onReply,
   onDelete,
@@ -19,6 +22,7 @@ export function MessageContextMenu({
 }: {
   align: "start" | "end";
   canDelete: boolean;
+  copyText?: string | null;
   onReact: (emoji: string) => void;
   onReply: () => void;
   onDelete: () => void;
@@ -27,7 +31,39 @@ export function MessageContextMenu({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const t = useTranslations("MessageMenu");
   const containerRef = useRef<HTMLDivElement>(null);
+  const pointerType = useRef("mouse");
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressOrigin = useRef({ x: 0, y: 0 });
+
+  function cancelPress() {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    pressTimer.current = null;
+  }
+  useEffect(() => cancelPress, []);
+
+  async function copy() {
+    if (!copyText) return;
+    try {
+      await navigator.clipboard.writeText(copyText);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = copyText;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+      setOpen(false);
+    }, 700);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -52,8 +88,33 @@ export function MessageContextMenu({
       <div
         role="button"
         tabIndex={0}
+        onPointerDown={(e) => {
+          pointerType.current = e.pointerType;
+          if (e.pointerType === "mouse") return;
+          pressOrigin.current = { x: e.clientX, y: e.clientY };
+          cancelPress();
+          pressTimer.current = setTimeout(() => {
+            pressTimer.current = null;
+            navigator.vibrate?.(10);
+            setOpen(true);
+          }, 450);
+        }}
+        onPointerMove={(e) => {
+          if (!pressTimer.current) return;
+          if (Math.hypot(e.clientX - pressOrigin.current.x, e.clientY - pressOrigin.current.y) > 10) {
+            cancelPress();
+          }
+        }}
+        onPointerUp={cancelPress}
+        onPointerCancel={cancelPress}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setOpen(true);
+        }}
         onClick={(e) => {
           if ((e.target as HTMLElement).closest("a,button")) return;
+          // Au tactile, seul l'appui long ouvre le menu.
+          if (pointerType.current !== "mouse") return;
           setOpen((v) => !v);
         }}
         onKeyDown={(e) => {
@@ -62,7 +123,7 @@ export function MessageContextMenu({
             setOpen((v) => !v);
           }
         }}
-        className="cursor-pointer"
+        className="cursor-pointer select-none [-webkit-touch-callout:none]"
       >
         {children}
       </div>
@@ -97,6 +158,15 @@ export function MessageContextMenu({
           >
             ↩ {replyLabel}
           </button>
+          {copyText && (
+            <button
+              type="button"
+              onClick={copy}
+              className="flex items-center gap-2 whitespace-nowrap rounded-lg px-2 py-1.5 text-left text-sm font-semibold text-text hover:bg-bg"
+            >
+              {copied ? `✓ ${t("copied")}` : `📋 ${t("copy")}`}
+            </button>
+          )}
           {canDelete && (
             <button
               type="button"

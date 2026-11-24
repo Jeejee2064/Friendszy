@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/ui/back-button";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useFormatter, useNow, useTranslations } from "next-intl";
@@ -822,7 +823,7 @@ function ConversationPane({
   // l'écran : côté serveur, un heartbeat pour que push-new-message
   // n'envoie pas de notif push pour un message qu'on est déjà en train de
   // lire ; côté client, ActiveConversationContext pour que le toast
-  // in-app (unread-context.tsx) ne fasse pas la même redondance. Onglet
+  // in-app (notification-center.tsx) ne fasse pas la même redondance. Onglet
   // masqué → on efface tout de suite la présence serveur au lieu d'attendre
   // qu'elle devienne périmée, pour que le push reparte sans délai si on
   // quitte l'appli à ce moment-là ; ActiveConversationContext, lui, reste
@@ -1126,8 +1127,14 @@ function ConversationPane({
     };
   }, [conversationId, userId, otherProfile.id]);
 
+  // Premier affichage : saut direct en bas (pas d'animation). Ensuite,
+  // défilement doux seulement pour les nouveaux messages.
+  const hasScrolledInitiallyRef = useRef(false);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const first = !hasScrolledInitiallyRef.current;
+    if (first && messages.length === 0) return;
+    hasScrolledInitiallyRef.current = true;
+    bottomRef.current?.scrollIntoView({ behavior: first ? "instant" : "smooth" });
   }, [messages.length]);
 
   // Focus direct sur le champ de saisie quand on choisit de répondre à un
@@ -1178,13 +1185,7 @@ function ConversationPane({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-3 border-b border-border p-4">
-        <Link
-          href="/messages"
-          className="text-lg font-semibold text-teal-ink"
-          aria-label={t("back")}
-        >
-          ←
-        </Link>
+        <BackButton href="/messages" label={t("back")} />
         <Link
           href={`/profile/${otherProfile.id}`}
           className="flex min-w-0 flex-1 items-center gap-3"
@@ -1385,7 +1386,7 @@ function ConversationPane({
         />
       )}
 
-      <form onSubmit={handleSend} className="flex items-end gap-2 border-t border-border p-4">
+      <form onSubmit={handleSend} className="chat-composer flex items-end gap-2 border-t border-border px-4 pt-4">
         <textarea
           ref={messageInputRef}
           rows={1}

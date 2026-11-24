@@ -164,6 +164,35 @@ export type Database = {
           },
         ]
       }
+      chat_presence: {
+        Row: {
+          kind: string
+          target_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          kind: string
+          target_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          kind?: string
+          target_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_presence_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           created_at: string
@@ -1140,6 +1169,88 @@ export type Database = {
           },
         ]
       }
+      native_push_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          last_used_at: string | null
+          locale: string
+          platform: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          locale?: string
+          platform?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          locale?: string
+          platform?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "native_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          push_events: boolean
+          push_groups: boolean
+          push_messages: boolean
+          push_social: boolean
+          quiet_end: string | null
+          quiet_start: string | null
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          push_events?: boolean
+          push_groups?: boolean
+          push_messages?: boolean
+          push_social?: boolean
+          quiet_end?: string | null
+          quiet_start?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          push_events?: boolean
+          push_groups?: boolean
+          push_messages?: boolean
+          push_social?: boolean
+          quiet_end?: string | null
+          quiet_start?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1666,6 +1777,7 @@ export type Database = {
           id: string
         }[]
       }
+      push_dispatch: { Args: { p_body: Json }; Returns: undefined }
       revert_expired_temporary_cities: { Args: never; Returns: undefined }
       set_map_location: {
         Args: { p_latitude: number; p_longitude: number }

@@ -34,13 +34,7 @@ export async function deleteMyAccount(
     admin.from("profile_photos").delete().eq("profile_id", userId),
     admin.from("profile_locations").delete().eq("profile_id", userId),
     admin.from("push_subscriptions").delete().eq("user_id", userId),
-    // TODO: retirer le cast après régénération de src/types/supabase.ts (CLI).
-    (admin as unknown as {
-      from: (t: string) => { delete: () => { eq: (c: string, v: string) => PromiseLike<{ error: unknown }> } };
-    })
-      .from("native_push_tokens")
-      .delete()
-      .eq("user_id", userId),
+    admin.from("native_push_tokens").delete().eq("user_id", userId),
     admin.from("analytics_events").delete().eq("user_id", userId),
     admin.from("beta_feedback").delete().eq("user_id", userId),
     admin.from("friendships").delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),

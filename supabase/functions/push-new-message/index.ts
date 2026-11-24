@@ -1,19 +1,19 @@
-// Supabase Edge Function: sends a Web Push notification for a new message.
+// Supabase Edge Function : dispatcher unique de notifications push
+// (Web Push + FCM). Nom conservé (push-new-message) pour ne pas changer
+// l'URL stockée dans Vault, mais il couvre maintenant :
+//   - kind "notification"  : toute ligne insérée dans `notifications`
+//   - kind "group_message" : message de chat de groupe
+//   - kind "event_message" : message de chat d'événement
 //
-// Called ONLY by the `trg_push_new_message` Postgres trigger (AFTER INSERT
-// ON notifications WHERE type = 'new_message'), via pg_net — see
-// supabase/migrations/20260824200100_notify_push_new_message.sql. Never
-// called by the client directly; the request is authenticated with a
-// shared secret header rather than a user JWT, since it originates from
-// Postgres, not a browser.
+// Appelé UNIQUEMENT par les triggers Postgres (via pg_net, voir
+// supabase/migrations/20261124120000_notification_center.sql), jamais par
+// le client ; authentifié par un secret partagé, pas par un JWT.
 //
-// Content is intentionally generic — "Nouveau message de {prénom}" /
-// "New message from {firstName}" — never the message text itself, per the
-// client's explicit privacy requirement (a push notification is visible
-// even on a locked phone).
-//
-// One push per subscribed device, no batching. A dead/expired subscription
-// (the push service responds 404/410) is deleted rather than retried.
+// Pour chaque destinataire : préférences par catégorie, heures calmes,
+// présence à l'écran (pas de push pour un chat qu'on regarde), puis envoi à
+// tous ses appareils. Contenu volontairement générique (jamais le texte d'un
+// message : une notif est visible sur un téléphone verrouillé). Un jeton ou
+// un abonnement mort (404/410, UNREGISTERED) est supprimé.
 
 import webpush from "web-push";
 import { createClient } from "@supabase/supabase-js";
@@ -83,26 +83,42 @@ async function getFcmAccessToken(sa: { client_email: string; private_key: string
   return cachedToken.value;
 }
 
+type Category = "messages" | "social" | "groups" | "events" | "test";
+
+// Canaux Android créés côté app (src/lib/push/native.ts, CHANNELS).
+const ANDROID_CHANNEL: Record<Category, string> = {
+  messages: "messages",
+  social: "social",
+  groups: "groups",
+  events: "events",
+  test: "social",
+};
+
 // Retourne false si le jeton est mort (à supprimer).
 async function sendFcm(
   token: string,
-  title: string,
-  url: string,
-  unreadCount: number
+  msg: { title: string; url: string; tag: string; category: Category; unreadCount?: number }
 ): Promise<boolean> {
   if (!FCM_SERVICE_ACCOUNT) return true;
   const sa = JSON.parse(FCM_SERVICE_ACCOUNT);
   const accessToken = await getFcmAccessToken(sa);
+  const data: Record<string, string> = { url: msg.url, category: msg.category };
+  if (msg.unreadCount !== undefined) data.unreadCount = String(msg.unreadCount);
   const res = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       message: {
         token,
-        // Contenu générique uniquement (jamais le texte du message).
-        notification: { title },
-        data: { url, unreadCount: String(unreadCount) },
-        android: { priority: "HIGH", notification: { channel_id: "messages" } },
+        notification: { title: msg.title },
+        data,
+        android: {
+          priority: "HIGH",
+          // Même tag/collapse_key = la notif remplace la précédente de la
+          // même conversation au lieu de s'empiler.
+          collapse_key: msg.tag,
+          notification: { channel_id: ANDROID_CHANNEL[msg.category], tag: msg.tag },
+        },
       },
     }),
   });
@@ -115,147 +131,394 @@ async function sendFcm(
   return true; // erreur transitoire : on garde le jeton
 }
 
-// Le client fait un heartbeat (upsert) toutes les 15s tant que la
-// conversation est ouverte à l'écran (voir trackConversationPresence,
-// src/lib/messages/queries.ts) — une ligne plus vieille que ça veut dire
-// que l'onglet a été fermé/masqué sans avoir pu nettoyer, pas que la
-// conversation est encore regardée.
+// Heartbeat client toutes les 15 s tant que le chat est ouvert ; une ligne
+// plus vieille = onglet fermé sans nettoyage, pas une présence réelle.
 const PRESENCE_FRESH_MS = 20_000;
 
-// French first, English alongside — mirrors messages/fr.json's existing
-// "newMessage" in-app toast wording, but this is its own short copy (the
-// client asked for this exact generic phrasing for push specifically).
-// Edge Functions run on Deno, outside the Next.js app, so this can't
-// import next-intl's JSON directly — kept in sync by hand, both languages
-// always present together.
 type PushLocale = "fr" | "en" | "es";
 
-const TITLE: Record<PushLocale, (name: string) => string> = {
-  fr: (name) => `Nouveau message de ${name}`,
-  en: (name) => `New message from ${name}`,
-  es: (name) => `Nuevo mensaje de ${name}`,
-};
-
-// Toute valeur inconnue retombe sur le français (langue par défaut).
 function toPushLocale(value: string | null | undefined): PushLocale {
   return value === "en" || value === "es" ? value : "fr";
 }
 
-function conversationPath(locale: PushLocale, conversationId: string): string {
-  // src/i18n/routing.ts: localePrefix "as-needed" — fr (default) has no
-  // prefix, en and es do.
-  const prefix = locale === "fr" ? "" : `/${locale}`;
-  return `${prefix}/messages?c=${conversationId}`;
+// Les Edge Functions tournent sous Deno, hors de next-intl : textes tenus à
+// la main, les trois langues toujours ensemble.
+const COPY = {
+  new_message: {
+    fr: (n: string) => `Nouveau message de ${n}`,
+    en: (n: string) => `New message from ${n}`,
+    es: (n: string) => `Nuevo mensaje de ${n}`,
+  },
+  group_message: {
+    fr: (g: string) => `Nouveau message dans ${g}`,
+    en: (g: string) => `New message in ${g}`,
+    es: (g: string) => `Nuevo mensaje en ${g}`,
+  },
+  event_message: {
+    fr: (e: string) => `Nouveau message pour ${e}`,
+    en: (e: string) => `New message for ${e}`,
+    es: (e: string) => `Nuevo mensaje para ${e}`,
+  },
+  friend_added: {
+    fr: (n: string) => `${n} t'a ajouté comme ami`,
+    en: (n: string) => `${n} added you as a friend`,
+    es: (n: string) => `${n} te agregó como amigo`,
+  },
+  friend_request_accepted: {
+    fr: (n: string) => `${n} a accepté ta demande d'ami`,
+    en: (n: string) => `${n} accepted your friend request`,
+    es: (n: string) => `${n} aceptó tu solicitud de amistad`,
+  },
+  group_invitation: {
+    fr: (g: string) => `Tu as été invité·e à rejoindre ${g}`,
+    en: (g: string) => `You've been invited to join ${g}`,
+    es: (g: string) => `Te invitaron a unirte a ${g}`,
+  },
+  group_join_request: {
+    fr: (n: string, g: string) => `${n} veut rejoindre ${g}`,
+    en: (n: string, g: string) => `${n} wants to join ${g}`,
+    es: (n: string, g: string) => `${n} quiere unirse a ${g}`,
+  },
+  group_join_approved: {
+    fr: (g: string) => `Ta demande pour rejoindre ${g} a été approuvée`,
+    en: (g: string) => `Your request to join ${g} was approved`,
+    es: (g: string) => `Tu solicitud para unirte a ${g} fue aprobada`,
+  },
+  push_test: {
+    fr: () => "Les notifications fonctionnent 🎉",
+    en: () => "Notifications are working 🎉",
+    es: () => "¡Las notificaciones funcionan! 🎉",
+  },
+} as const;
+
+type Job = {
+  recipients: string[];
+  category: Category;
+  tag: string;
+  // Chemin sans préfixe de langue (ajouté par appareil).
+  path: string;
+  title: (locale: PushLocale) => string;
+  // Chat que le destinataire peut être en train de regarder.
+  presence?: { kind: "conversation" | "group" | "event"; targetId: string };
+  includeUnreadCount?: boolean;
+};
+
+function localizedPath(locale: PushLocale, path: string): string {
+  // localePrefix "as-needed" : fr (défaut) sans préfixe, en/es avec.
+  return locale === "fr" ? path : `/${locale}${path === "/" ? "" : path}`;
 }
 
-// Feeds the app-icon badge (navigator.setAppBadge, called from sw.js's
-// push handler) — the count of conversations with at least one unread
-// message for this recipient. Deliberately a simplified version of
-// getUnreadConversationsCount (src/lib/messages/queries.ts): it skips the
-// conversation_hides exclusion that function applies, since this runs with
-// service_role and re-deriving that logic here risks drifting out of sync.
-// A conversation hidden with an unread message left in it would overcount
-// by one until the app is next opened, where the client-side effect in
-// unread-context.tsx recomputes the exact count and corrects the badge —
-// good enough for a background badge that's inherently a snapshot.
+async function profileName(id: string | undefined): Promise<string> {
+  if (!id) return "";
+  const { data } = await admin.from("profiles").select("full_name").eq("id", id).maybeSingle();
+  return (data?.full_name as string | null) ?? "";
+}
+
+async function groupName(id: string | undefined): Promise<string | null> {
+  if (!id) return null;
+  const { data } = await admin.from("groups").select("name").eq("id", id).maybeSingle();
+  return (data?.name as string | null) ?? null;
+}
+
+// Retire les destinataires ayant bloqué l'expéditeur.
+async function withoutBlockers(recipients: string[], senderId: string): Promise<string[]> {
+  if (recipients.length === 0) return recipients;
+  const { data } = await admin
+    .from("blocks")
+    .select("blocker_id")
+    .eq("blocked_id", senderId)
+    .in("blocker_id", recipients);
+  const blockers = new Set((data ?? []).map((r) => r.blocker_id as string));
+  return recipients.filter((id) => !blockers.has(id));
+}
+
+async function buildJob(body: Record<string, unknown>): Promise<Job | null> {
+  const kind = body.kind ?? "notification";
+  const payload = (body.payload ?? {}) as Record<string, string | undefined>;
+
+  if (kind === "group_message") {
+    const groupId = body.group_id as string;
+    const senderId = body.sender_id as string;
+    const [name, { data: members }] = await Promise.all([
+      groupName(groupId),
+      admin
+        .from("group_members")
+        .select("profile_id")
+        .eq("group_id", groupId)
+        .eq("status", "active")
+        .neq("profile_id", senderId),
+    ]);
+    if (!name) return null;
+    const recipients = await withoutBlockers(
+      (members ?? []).map((m) => m.profile_id as string),
+      senderId
+    );
+    return {
+      recipients,
+      category: "groups",
+      tag: `group:${groupId}`,
+      path: `/groups/${groupId}`,
+      title: (l) => COPY.group_message[l](name),
+      presence: { kind: "group", targetId: groupId },
+    };
+  }
+
+  if (kind === "event_message") {
+    const eventId = body.event_id as string;
+    const senderId = body.sender_id as string;
+    const [{ data: event }, { data: regs }] = await Promise.all([
+      admin.from("events").select("title, creator_id").eq("id", eventId).maybeSingle(),
+      admin.from("event_registrations").select("profile_id").eq("event_id", eventId),
+    ]);
+    if (!event) return null;
+    const ids = new Set((regs ?? []).map((r) => r.profile_id as string));
+    if (event.creator_id) ids.add(event.creator_id as string);
+    ids.delete(senderId);
+    const recipients = await withoutBlockers([...ids], senderId);
+    const title = event.title as string;
+    return {
+      recipients,
+      category: "events",
+      tag: `event:${eventId}`,
+      path: `/events/${eventId}`,
+      title: (l) => COPY.event_message[l](title),
+      presence: { kind: "event", targetId: eventId },
+    };
+  }
+
+  // kind === "notification"
+  const userId = body.user_id as string | undefined;
+  // Ancien trigger (avant 20261124120000) : pas de `type`, uniquement new_message.
+  const type = (body.type as string | undefined) ?? "new_message";
+  if (!userId || !type) return null;
+
+  switch (type) {
+    case "new_message": {
+      const senderId = payload.sender_id;
+      const conversationId = payload.conversation_id;
+      if (!senderId || !conversationId) return null;
+      const name = await profileName(senderId);
+      return {
+        recipients: [userId],
+        category: "messages",
+        tag: `conversation:${conversationId}`,
+        path: `/messages?c=${conversationId}`,
+        title: (l) => COPY.new_message[l](name),
+        presence: { kind: "conversation", targetId: conversationId },
+        includeUnreadCount: true,
+      };
+    }
+    case "friend_added": {
+      const name = await profileName(payload.requester_id);
+      if (!name) return null;
+      return {
+        recipients: [userId],
+        category: "social",
+        tag: `friend:${payload.requester_id}`,
+        path: `/profile/${payload.requester_id}`,
+        title: (l) => COPY.friend_added[l](name),
+      };
+    }
+    case "friend_request_accepted": {
+      const name = await profileName(payload.addressee_id);
+      if (!name) return null;
+      return {
+        recipients: [userId],
+        category: "social",
+        tag: `friend:${payload.addressee_id}`,
+        path: "/friends",
+        title: (l) => COPY.friend_request_accepted[l](name),
+      };
+    }
+    case "group_invitation":
+    case "group_join_approved": {
+      const g = await groupName(payload.group_id);
+      if (!g) return null;
+      return {
+        recipients: [userId],
+        category: "groups",
+        tag: `group-notif:${payload.group_id}`,
+        path: `/groups/${payload.group_id}`,
+        title: (l) => COPY[type][l](g),
+      };
+    }
+    case "group_join_request": {
+      const [g, n] = await Promise.all([groupName(payload.group_id), profileName(payload.requester_id)]);
+      if (!g || !n) return null;
+      return {
+        recipients: [userId],
+        category: "groups",
+        tag: `group-request:${payload.group_id}:${payload.requester_id}`,
+        path: `/groups/${payload.group_id}`,
+        title: (l) => COPY.group_join_request[l](n, g),
+      };
+    }
+    case "push_test":
+      return {
+        recipients: [userId],
+        category: "test",
+        tag: "push-test",
+        path: "/notifications",
+        title: (l) => COPY.push_test[l](),
+      };
+    default:
+      // Types sans push (ex. suggestions d'intérêt) : rien à envoyer.
+      return null;
+  }
+}
+
+type Prefs = {
+  user_id: string;
+  push_messages: boolean;
+  push_social: boolean;
+  push_groups: boolean;
+  push_events: boolean;
+  quiet_start: string | null;
+  quiet_end: string | null;
+  timezone: string;
+};
+
+function categoryEnabled(prefs: Prefs | undefined, category: Category): boolean {
+  if (!prefs || category === "test") return true;
+  return prefs[`push_${category}` as const];
+}
+
+function toMinutes(time: string): number {
+  const [h, m] = time.split(":");
+  return Number(h) * 60 + Number(m);
+}
+
+function inQuietHours(prefs: Prefs | undefined, now: Date): boolean {
+  if (!prefs?.quiet_start || !prefs.quiet_end) return false;
+  let local: number;
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: prefs.timezone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(now);
+    local = toMinutes(parts);
+  } catch {
+    return false;
+  }
+  const start = toMinutes(prefs.quiet_start);
+  const end = toMinutes(prefs.quiet_end);
+  if (start === end) return false;
+  // Plage qui passe minuit (ex. 22:00 → 07:00).
+  return start < end ? local >= start && local < end : local >= start || local < end;
+}
+
+async function viewingUsers(job: Job): Promise<Set<string>> {
+  if (!job.presence) return new Set();
+  const cutoff = new Date(Date.now() - PRESENCE_FRESH_MS).toISOString();
+  if (job.presence.kind === "conversation") {
+    const { data } = await admin
+      .from("conversation_presence")
+      .select("user_id")
+      .eq("conversation_id", job.presence.targetId)
+      .in("user_id", job.recipients)
+      .gt("updated_at", cutoff);
+    return new Set((data ?? []).map((r) => r.user_id as string));
+  }
+  const { data } = await admin
+    .from("chat_presence")
+    .select("user_id")
+    .eq("kind", job.presence.kind)
+    .eq("target_id", job.presence.targetId)
+    .in("user_id", job.recipients)
+    .gt("updated_at", cutoff);
+  return new Set((data ?? []).map((r) => r.user_id as string));
+}
+
+// Nombre de conversations avec au moins un message non lu : alimente le
+// badge d'icône (navigator.setAppBadge). Version simplifiée de
+// getUnreadConversationsCount côté client (sans conversation_hides) ; le
+// client recalcule le chiffre exact à l'ouverture.
 async function getUnreadConversationCount(userId: string): Promise<number> {
   const { data: conversations } = await admin
     .from("conversations")
     .select("id")
     .or(`user_a.eq.${userId},user_b.eq.${userId}`);
-
-  const conversationIds = (conversations ?? []).map((c) => c.id as string);
-  if (conversationIds.length === 0) return 0;
-
+  const ids = (conversations ?? []).map((c) => c.id as string);
+  if (ids.length === 0) return 0;
   const { data: unread } = await admin
     .from("messages")
     .select("conversation_id")
-    .in("conversation_id", conversationIds)
+    .in("conversation_id", ids)
     .neq("sender_id", userId)
     .is("read_at", null);
-
   return new Set((unread ?? []).map((m) => m.conversation_id as string)).size;
 }
 
-type NotifyRequestBody = {
-  notification_id?: string;
-  user_id?: string;
-  payload?: Record<string, unknown> | null;
-};
-
 type PushSubscriptionRow = {
   id: string;
+  user_id: string;
   endpoint: string;
   p256dh: string;
   auth: string;
   locale: string | null;
 };
 
+type NativeTokenRow = { id: string; user_id: string; token: string; locale: string | null };
+
 Deno.serve(async (req) => {
   if (req.headers.get("x-push-trigger-secret") !== PUSH_TRIGGER_SECRET) {
     return new Response("unauthorized", { status: 401 });
   }
 
-  let body: NotifyRequestBody;
+  let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
     return new Response("bad request", { status: 400 });
   }
 
-  const userId = body.user_id;
-  const payload = body.payload ?? {};
+  const job = await buildJob(body);
+  if (!job || job.recipients.length === 0) return new Response("nothing to send", { status: 200 });
 
-  // Shape set by public.notify_new_message() — see
-  // supabase/migrations/20260824200200_notify_new_message.sql.
-  const senderId = (payload as Record<string, string | undefined>).sender_id;
-  const conversationId = (payload as Record<string, string | undefined>).conversation_id;
+  const [{ data: prefRows }, viewing] = await Promise.all([
+    admin.from("notification_preferences").select("*").in("user_id", job.recipients),
+    viewingUsers(job),
+  ]);
+  const prefsByUser = new Map((prefRows as Prefs[] | null ?? []).map((p) => [p.user_id, p]));
+  const now = new Date();
 
-  if (!userId || !senderId || !conversationId) {
-    return new Response("missing sender_id/conversation_id in notification payload", {
-      status: 422,
-    });
-  }
+  const targets = job.recipients.filter((id) => {
+    const prefs = prefsByUser.get(id);
+    if (!categoryEnabled(prefs, job.category)) return false;
+    if (job.category !== "test" && inQuietHours(prefs, now)) return false;
+    if (viewing.has(id)) return false;
+    return true;
+  });
+  if (targets.length === 0) return new Response("all recipients filtered", { status: 200 });
 
-  // Le destinataire a déjà cette conversation ouverte à l'écran (elle lui
-  // affiche le message en direct) — une notif push serait redondante, et
-  // gênante en pleine discussion (voir conversation_presence, migration
-  // 20260914160000). Une ligne présente mais périmée ne compte pas : elle
-  // n'a pas pu être nettoyée à temps, pas une preuve de présence actuelle.
-  const { data: presence } = await admin
-    .from("conversation_presence")
-    .select("updated_at")
-    .eq("user_id", userId)
-    .eq("conversation_id", conversationId)
-    .maybeSingle();
-
-  if (presence && Date.now() - new Date(presence.updated_at).getTime() < PRESENCE_FRESH_MS) {
-    return new Response("recipient viewing conversation, push skipped", { status: 200 });
-  }
-
-  const [{ data: sender }, { data: subscriptions }, { data: nativeTokens }, unreadCount] =
-    await Promise.all([
-    admin.from("profiles").select("full_name").eq("id", senderId).maybeSingle(),
+  const [{ data: subs }, { data: tokens }] = await Promise.all([
     admin
       .from("push_subscriptions")
-      .select("id, endpoint, p256dh, auth, locale")
-      .eq("user_id", userId),
-    admin.from("native_push_tokens").select("id, token, locale").eq("user_id", userId),
-    getUnreadConversationCount(userId),
+      .select("id, user_id, endpoint, p256dh, auth, locale")
+      .in("user_id", targets),
+    admin.from("native_push_tokens").select("id, user_id, token, locale").in("user_id", targets),
   ]);
 
-  const name = (sender?.full_name as string | null) ?? "";
+  const unreadByUser = new Map<string, number>();
+  if (job.includeUnreadCount) {
+    await Promise.all(
+      targets.map(async (id) => unreadByUser.set(id, await getUnreadConversationCount(id)))
+    );
+  }
 
-  await Promise.all(
-    (nativeTokens ?? []).map(async (row) => {
-      const locale = toPushLocale(row.locale as string | null);
+  await Promise.all([
+    ...((tokens ?? []) as NativeTokenRow[]).map(async (row) => {
+      const locale = toPushLocale(row.locale);
       try {
-        const alive = await sendFcm(
-          row.token as string,
-          TITLE[locale](name),
-          conversationPath(locale, conversationId),
-          unreadCount
-        );
+        const alive = await sendFcm(row.token, {
+          title: job.title(locale),
+          url: localizedPath(locale, job.path),
+          tag: job.tag,
+          category: job.category,
+          unreadCount: unreadByUser.get(row.user_id),
+        });
         if (!alive) await admin.from("native_push_tokens").delete().eq("id", row.id);
         else
           await admin
@@ -263,25 +526,20 @@ Deno.serve(async (req) => {
             .update({ last_used_at: new Date().toISOString() })
             .eq("id", row.id);
       } catch {
-        // erreur transitoire : le prochain message réessaiera
+        // erreur transitoire : le prochain envoi réessaiera
       }
-    })
-  );
-
-  if (!subscriptions || subscriptions.length === 0) {
-    return new Response("ok", { status: 200 });
-  }
-
-  await Promise.all(
-    (subscriptions as PushSubscriptionRow[]).map(async (sub) => {
+    }),
+    ...((subs ?? []) as PushSubscriptionRow[]).map(async (sub) => {
       const locale = toPushLocale(sub.locale);
-      const title = TITLE[locale](name);
-      const url = conversationPath(locale, conversationId);
-
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          JSON.stringify({ title, url, unreadCount })
+          JSON.stringify({
+            title: job.title(locale),
+            url: localizedPath(locale, job.path),
+            tag: job.tag,
+            unreadCount: unreadByUser.get(sub.user_id),
+          })
         );
         await admin
           .from("push_subscriptions")
@@ -290,16 +548,11 @@ Deno.serve(async (req) => {
       } catch (err) {
         const status = (err as { statusCode?: number }).statusCode;
         if (status === 404 || status === 410) {
-          // Subscription no longer valid (browser unsubscribed, device
-          // reset, permission revoked, etc.) — delete rather than let dead
-          // rows accumulate and get retried forever.
           await admin.from("push_subscriptions").delete().eq("id", sub.id);
         }
-        // Any other error (transient network/push-service issue): leave the
-        // subscription in place, the next message will retry it.
       }
-    })
-  );
+    }),
+  ]);
 
   return new Response("ok", { status: 200 });
 });

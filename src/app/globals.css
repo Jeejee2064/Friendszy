@@ -170,6 +170,31 @@ p {
   }
 }
 
+/* Squelettes de chargement : reflet qui glisse, teinte menthe. */
+.skeleton {
+  background: linear-gradient(90deg, #cde8e2 0%, #f3fcfa 50%, #cde8e2 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Retour tactile immédiat façon app native : léger enfoncement au toucher. */
+@media (pointer: coarse) {
+  button:not(:disabled),
+  [role="button"],
+  nav a {
+    transition: transform 0.12s ease-out, background-color 0.15s, color 0.15s, opacity 0.15s;
+  }
+  button:not(:disabled):active,
+  [role="button"]:active,
+  nav a:active {
+    transform: scale(0.96);
+  }
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -211,10 +236,33 @@ nav a {
 html.native-app .native-only {
   display: flex;
 }
+/* Éléments réservés au web/PWA (ex. bouton flottant de feedback bêta). */
+html.native-app .web-only {
+  display: none;
+}
 html.native-app aside.app-sidebar {
   display: none;
 }
 html.native-app main.app-main {
   padding-top: var(--native-top, 0px);
   padding-bottom: var(--native-bottom, 0px);
+}
+
+/* Zone de saisie des chats plein écran : reste au-dessus des boutons système
+   (Android edge-to-edge) et de l'indicateur d'accueil iOS. */
+.chat-composer {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+html.native-app .chat-composer {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px), var(--native-bottom, 0px));
+}
+
+/* Barre de progression de navigation (loading.tsx sans squelette fidèle). */
+.route-progress-bar {
+  background-image: var(--grad);
+  animation: route-progress 1.1s ease-in-out infinite;
+}
+@keyframes route-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
 }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useFormatter, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { useChatPresence } from "@/lib/chat/use-chat-presence";
 import {
   listEventMessages,
   sendEventMessage,
@@ -50,6 +51,7 @@ export function EventChatPane({
   initialSenders: ProfileSummary[];
   initialReactions: EventMessageReactionRow[];
 }) {
+  useChatPresence("event", eventId, userId);
   const t = useTranslations("Events");
   const tCommon = useTranslations("Common");
   const format = useFormatter();
@@ -453,8 +455,14 @@ export function EventChatPane({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, userId]);
 
+  // Premier affichage : saut direct en bas (pas d'animation). Ensuite,
+  // défilement doux seulement pour les nouveaux messages.
+  const hasScrolledInitiallyRef = useRef(false);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const first = !hasScrolledInitiallyRef.current;
+    if (first && messages.length === 0) return;
+    hasScrolledInitiallyRef.current = true;
+    bottomRef.current?.scrollIntoView({ behavior: first ? "instant" : "smooth" });
   }, [messages.length]);
 
   // Focus direct sur le champ de saisie quand on choisit de répondre à un
@@ -610,7 +618,7 @@ export function EventChatPane({
         />
       )}
 
-      <form onSubmit={handleSend} className="flex items-end gap-2 border-t border-border p-4">
+      <form onSubmit={handleSend} className="chat-composer flex items-end gap-2 border-t border-border px-4 pt-4">
         <textarea
           ref={messageInputRef}
           rows={1}

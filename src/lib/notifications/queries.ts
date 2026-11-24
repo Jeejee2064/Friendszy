@@ -83,6 +83,7 @@ export async function getUnreadNotificationCount(
     .eq("user_id", userId)
     .neq("type", "new_message")
     .neq("type", "friend_request")
+    .neq("type", "push_test")
     .is("read_at", null);
   if (error) throw error;
 
@@ -113,6 +114,7 @@ export async function getNotificationsWithProfiles(
     .eq("user_id", userId)
     .neq("type", "new_message")
     .neq("type", "friend_request")
+    .neq("type", "push_test")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;

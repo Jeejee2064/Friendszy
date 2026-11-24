@@ -6,11 +6,11 @@
 // Notifications (point si non lues) et Profil. Amis, Admin, langue : voir
 // NativeProfileLinks.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
-import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
+import { useUnreadNotificationsCount } from "@/lib/notifications/notification-center";
+import { useUnreadConversationsCount } from "@/lib/notifications/notification-center";
 import { useActiveConversationId } from "@/lib/messages/active-conversation-context";
 import { Capacitor } from "@capacitor/core";
 import { isNativeApp } from "@/lib/native/is-native-app";
@@ -72,6 +72,78 @@ const ROOT_PATHS = new Set(Object.values(TAB_ROUTES));
 // Chat de groupe plein écran (/groups/<id>, pas /groups/new ni les sous-pages).
 const GROUP_CHAT_RE = /^\/groups\/(?!new(\/|$))[^/]+\/?$/;
 
+type BarsState = {
+  hidden: boolean;
+  // Clavier ouvert : seule la barre d'onglets est masquée (la WebView se redimensionne
+  // et la barre native remontait par-dessus le champ et ses suggestions).
+  tabbarHidden: boolean;
+  active: TabId | null;
+  unreadMessages: number;
+  unreadNotifications: number;
+  labels: Record<"home" | "search" | "discover" | "messages" | "groups" | "notifications" | "profile", string>;
+};
+
+async function applyBars(state: BarsState) {
+  const { NativeNavigation } = await import("@capgo/native-navigation");
+  const { hidden, tabbarHidden, active, labels } = state;
+  await NativeNavigation.setTabbar({
+    hidden: hidden || tabbarHidden,
+    // Limite du plugin (Android) : il ne sait pas « désélectionner ». Hors onglets (profil,
+    // notifications, amis…), on n'envoie pas d'id et le dernier onglet visité reste surligné.
+    ...(active ? { selectedId: active } : {}),
+    labels: true,
+    icons: true,
+    tabs: [
+      { id: "home", title: labels.home, icon: { svg: ICONS.home } },
+      { id: "search", title: labels.search, icon: { svg: ICONS.search } },
+      { id: "discover", title: labels.discover, icon: { svg: ICONS.discover } },
+      {
+        id: "messages",
+        title: labels.messages,
+        icon: { svg: ICONS.messages },
+        ...(state.unreadMessages > 0 ? { badge: state.unreadMessages } : {}),
+      },
+      { id: "groups", title: labels.groups, icon: { svg: ICONS.groups } },
+    ],
+  });
+  await NativeNavigation.setNavbar({
+    hidden,
+    title: "Friendszy",
+    backButton: { visible: false },
+    rightItems: [
+      {
+        id: "notifications",
+        title: labels.notifications,
+        icon: { svg: state.unreadNotifications > 0 ? ICONS.bellDot : ICONS.bell },
+      },
+      { id: "profile", title: labels.profile, icon: { svg: ICONS.user } },
+    ],
+  });
+}
+
+// Boucle « dernier état gagne » : tant qu'un nouvel état a été posé pendant
+// l'application du précédent, on le ré-applique.
+async function flushBars(
+  stateRef: { current: BarsState | null },
+  flushingRef: { current: boolean }
+) {
+  if (flushingRef.current) return;
+  flushingRef.current = true;
+  try {
+    while (stateRef.current) {
+      const next = stateRef.current;
+      stateRef.current = null;
+      try {
+        await applyBars(next);
+      } catch {
+        // plugin indisponible : le prochain changement d'état réessaiera
+      }
+    }
+  } finally {
+    flushingRef.current = false;
+  }
+}
+
 export function NativeChrome() {
   const pathname = usePathname();
   const router = useRouter();
@@ -83,6 +155,35 @@ export function NativeChrome() {
   // propre en-tête (retour, signaler, bloquer) et leur zone de saisie en bas, que les
   // barres natives recouvriraient. On les masque le temps du chat.
   const chatMode = activeConversationId !== null || GROUP_CHAT_RE.test(pathname);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    const editable = (el: EventTarget | null) =>
+      el instanceof HTMLElement &&
+      (el.isContentEditable ||
+        (el instanceof HTMLTextAreaElement && !el.readOnly) ||
+        (el instanceof HTMLInputElement &&
+          !el.readOnly &&
+          !["checkbox", "radio", "button", "submit", "file", "range", "color", "image", "reset"].includes(el.type)));
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onIn = (e: FocusEvent) => {
+      if (!editable(e.target)) return;
+      clearTimeout(timer);
+      setKeyboardOpen(true);
+    };
+    const onOut = () => {
+      clearTimeout(timer);
+      // délai : passer d'un champ à l'autre ne doit pas faire clignoter la barre
+      timer = setTimeout(() => setKeyboardOpen(editable(document.activeElement)), 150);
+    };
+    document.addEventListener("focusin", onIn);
+    document.addEventListener("focusout", onOut);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("focusin", onIn);
+      document.removeEventListener("focusout", onOut);
+    };
+  }, []);
   const pathnameRef = useRef(pathname);
   useEffect(() => {
     pathnameRef.current = pathname;
@@ -158,56 +259,37 @@ export function NativeChrome() {
   }, []);
 
   // État des barres : onglet actif, libellés (langue courante), badges.
+  // Les appels au plugin sont asynchrones et peuvent se terminer dans le
+  // désordre : un ancien état (sans badge) écrasait alors le nouveau. On
+  // sérialise donc tout : un seul appel à la fois, et seul le DERNIER état
+  // demandé est appliqué (les intermédiaires sont ignorés).
+  const barsStateRef = useRef<BarsState | null>(null);
+  const barsFlushingRef = useRef(false);
+
   useEffect(() => {
     if (!isNativeApp()) return;
-    let cancelled = false;
-    (async () => {
-      const { NativeNavigation } = await import("@capgo/native-navigation");
-      if (cancelled) return;
-      // Les barres sont des vues Android indépendantes de la page : elles survivent à un
-      // rechargement complet (ex. déconnexion → /login). On ne les montre donc que sur les
-      // pages avec la sidebar web (AppShell, repérée par data-app-shell) ; partout ailleurs
-      // (connexion, accueil public, CGU, confidentialité…) elles sont masquées.
-      const hidden = chatMode || !document.querySelector("[data-app-shell]");
-      const active = activeTab(pathname);
-      await NativeNavigation.setTabbar({
-        hidden,
-        // Limite du plugin (Android) : il ne sait pas « désélectionner ». Hors onglets (profil,
-        // notifications, amis…), on n'envoie pas d'id et le dernier onglet visité reste surligné.
-        ...(active ? { selectedId: active } : {}),
-        labels: true,
-        icons: true,
-        tabs: [
-          { id: "home", title: t("home"), icon: { svg: ICONS.home } },
-          { id: "search", title: t("search"), icon: { svg: ICONS.search } },
-          { id: "discover", title: t("discover"), icon: { svg: ICONS.discover } },
-          {
-            id: "messages",
-            title: t("messages"),
-            icon: { svg: ICONS.messages },
-            ...(unreadMessages > 0 ? { badge: unreadMessages } : {}),
-          },
-          { id: "groups", title: t("groups"), icon: { svg: ICONS.groups } },
-        ],
-      });
-      await NativeNavigation.setNavbar({
-        hidden,
-        title: "Friendszy",
-        backButton: { visible: false },
-        rightItems: [
-          {
-            id: "notifications",
-            title: t("notifications"),
-            icon: { svg: unreadNotifications > 0 ? ICONS.bellDot : ICONS.bell },
-          },
-          { id: "profile", title: t("profile"), icon: { svg: ICONS.user } },
-        ],
-      });
-    })();
-    return () => {
-      cancelled = true;
+    // Les barres sont des vues Android indépendantes de la page : elles survivent à un
+    // rechargement complet (ex. déconnexion → /login). On ne les montre donc que sur les
+    // pages avec la sidebar web (AppShell, repérée par data-app-shell) ; partout ailleurs
+    // (connexion, accueil public, CGU, confidentialité…) elles sont masquées.
+    barsStateRef.current = {
+      hidden: chatMode || !document.querySelector("[data-app-shell]"),
+      tabbarHidden: keyboardOpen,
+      active: activeTab(pathname),
+      unreadMessages,
+      unreadNotifications,
+      labels: {
+        home: t("home"),
+        search: t("search"),
+        discover: t("discover"),
+        messages: t("messages"),
+        groups: t("groups"),
+        notifications: t("notifications"),
+        profile: t("profile"),
+      },
     };
-  }, [pathname, t, unreadMessages, unreadNotifications, chatMode]);
+    void flushBars(barsStateRef, barsFlushingRef);
+  }, [pathname, t, unreadMessages, unreadNotifications, chatMode, keyboardOpen]);
 
   return null;
 }

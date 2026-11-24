@@ -1,5 +1,6 @@
 "use client";
 
+import { StaggerList } from "@/components/ui/stagger-list";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
@@ -110,11 +111,11 @@ export function NotificationsPageClient({
         {notifications.length === 0 ? (
           <p className="p-6 text-center text-sm text-muted">{t("empty")}</p>
         ) : (
-          <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-3">
+          <StaggerList className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-3">
             {notifications.map((n) => (
               <NotificationRow key={n.id} notification={n} onRead={handleRead} />
             ))}
-          </div>
+          </StaggerList>
         )}
       </div>
     </div>

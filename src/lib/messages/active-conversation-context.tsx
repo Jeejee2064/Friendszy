@@ -4,7 +4,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 // Fait remonter "quelle conversation est actuellement ouverte à l'écran"
 // depuis ConversationPane (voir messages-page-client.tsx, un descendant)
-// jusqu'à UnreadMessagesProvider (voir unread-context.tsx, un ancêtre dans
+// jusqu'à NotificationCenterProvider (voir notification-center.tsx, un ancêtre dans
 // le layout) — pour que le toast "nouveau message" ne s'affiche pas pour
 // une conversation qu'on est déjà en train de regarder. Volontairement
 // séparé de la page /messages elle-même (usePathname/useSearchParams) :

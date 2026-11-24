@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { attachNativePushTapHandler } from "@/lib/push/native";
 
 export function ServiceWorkerRegister() {
+  const router = useRouter();
   useEffect(() => {
     // Shell Capacitor : pas de service worker utile, mais il faut écouter le
     // clic sur les notifications push natives (ouvre la bonne conversation).
-    attachNativePushTapHandler().catch(() => {});
+    attachNativePushTapHandler((url) => router.push(url)).catch(() => {});
     if (
       process.env.NODE_ENV === "production" &&
       "serviceWorker" in navigator
@@ -28,7 +30,7 @@ export function ServiceWorkerRegister() {
           // Installation échouera silencieusement (ex: navigateur non compatible) sans bloquer l'app.
         });
     }
-  }, []);
+  }, [router]);
 
   return null;
 }

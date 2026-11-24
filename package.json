@@ -13,7 +13,8 @@
     "cap:sync": "cap sync android",
     "cap:sync:dev": "CAP_ENV=dev cap sync android",
     "cap:run": "cap run android",
-    "cap:run:dev": "CAP_ENV=dev cap run android"
+    "cap:run:dev": "CAP_ENV=dev cap run android",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
@@ -43,6 +44,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "patch-package": "^8.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "ws": "^8.21.1"

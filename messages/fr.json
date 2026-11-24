@@ -1,4 +1,8 @@
 {
+  "MessageMenu": {
+    "copy": "Copier",
+    "copied": "Copié"
+  },
   "Metadata": {
     "title": "Friendszy – Fais de nouveaux amis près de chez toi",
     "description": "Rencontre des gens qui partagent tes centres d'intérêt : sport, musique, lecture, jeux de société… Une app d'amitié, pas de rencontres amoureuses. Gratuit au Québec.",
@@ -133,7 +137,13 @@
     "groupJoinRequest": "{name} veut rejoindre {group}",
     "groupJoinApproved": "Ta demande pour rejoindre {group} a été approuvée",
     "interestSuggestionApproved": "Ton intérêt suggéré « {label} » a été approuvé !",
-    "interestSuggestionRejected": "Ton intérêt suggéré « {label} » n'a pas été retenu."
+    "interestSuggestionRejected": "Ton intérêt suggéré « {label} » n'a pas été retenu.",
+    "newMessages": "{count} nouveaux messages de {name}",
+    "newGroupMessage": "Nouveau message dans {group}",
+    "newGroupMessages": "{count} nouveaux messages dans {group}",
+    "newEventMessage": "Nouveau message pour {event}",
+    "newEventMessages": "{count} nouveaux messages pour {event}",
+    "pushTest": "Les notifications fonctionnent 🎉"
   },
   "ProfileFields": {
     "photoChoose": "Choisir une photo",
@@ -1164,7 +1174,27 @@
     "deleteConfirmPrompt": "Tape {word} pour confirmer.",
     "deleteConfirmButton": "Supprimer définitivement",
     "deleteError": "Une erreur est survenue. Réessaie.",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "prefsTitle": "Quoi te notifier",
+    "prefsBody": "Choisis les notifications push que tu veux recevoir. Les notifications dans l'app restent toujours visibles.",
+    "prefs_push_messages": "Messages privés",
+    "prefs_push_messages_hint": "Quand quelqu'un t'écrit",
+    "prefs_push_social": "Amis",
+    "prefs_push_social_hint": "Nouveaux amis et demandes",
+    "prefs_push_groups": "Groupes",
+    "prefs_push_groups_hint": "Messages, invitations et demandes d'adhésion",
+    "prefs_push_events": "Événements",
+    "prefs_push_events_hint": "Messages des événements auxquels tu participes",
+    "quietTitle": "Heures calmes",
+    "quietHint": "Aucune notification push pendant cette plage",
+    "quietFrom": "De",
+    "quietTo": "à",
+    "testButton": "Envoyer une notification de test",
+    "testSent": "Notification envoyée — elle devrait arriver dans quelques secondes.",
+    "testWait": "Patiente quelques secondes avant un nouvel essai.",
+    "testError": "Impossible d'envoyer la notification de test.",
+    "prefsSaved": "Préférences enregistrées",
+    "prefsError": "Impossible d'enregistrer, réessaie."
   },
   "Pwa": {
     "installTitle": "Installe Friendszy sur ton téléphone",

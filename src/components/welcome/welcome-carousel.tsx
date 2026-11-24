@@ -504,9 +504,9 @@ export function WelcomeCarousel() {
                 type="button"
                 onClick={() => go(index - 1)}
                 aria-label={t("back")}
-                className="-ml-2 flex h-10 w-10 items-center justify-center rounded-full text-text"
+                className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full text-text"
               >
-                <ChevronLeft className="h-6 w-6" aria-hidden />
+                <ChevronLeft className="h-7 w-7" strokeWidth={2.5} aria-hidden />
               </button>
               <button
                 type="button"

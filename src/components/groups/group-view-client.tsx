@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { BackButton } from "@/components/ui/back-button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { requestToJoinGroup } from "@/lib/groups/queries";
@@ -53,6 +54,7 @@ export function GroupViewClient({
   myPendingJoinRequest: boolean;
 }) {
   const t = useTranslations("Groups");
+  const tCommon = useTranslations("Common");
   const locale = useLocale();
   const router = useRouter();
 
@@ -92,6 +94,7 @@ export function GroupViewClient({
     // screens instead of ever dropping to their own line.
     <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-start sm:gap-4">
       <div className="flex min-w-0 items-start gap-3 sm:flex-1 sm:gap-4">
+        <BackButton href="/groups" label={tCommon("back")} />
         <div
           className="h-11 w-11 shrink-0 overflow-hidden rounded-full sm:h-14 sm:w-14"
           style={!group.avatar_url ? { backgroundImage: "var(--grad)" } : undefined}

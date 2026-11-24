@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getProfilesByIds } from "@/lib/profile/queries";
 import {
@@ -231,6 +232,26 @@ export function MemberList({
   );
 }
 
+function MemberIdentityWrapper({
+  profileId,
+  linked,
+  className,
+  children,
+}: {
+  profileId: string;
+  linked: boolean;
+  className: string;
+  children: ReactNode;
+}) {
+  return linked ? (
+    <Link href={`/profile/${profileId}`} className={`${className} hover:underline`}>
+      {children}
+    </Link>
+  ) : (
+    <div className={className}>{children}</div>
+  );
+}
+
 function MemberRow({
   member,
   deletedUserLabel,
@@ -251,7 +272,11 @@ function MemberRow({
     // reliably triggers before the name gets squeezed illegibly — same fix
     // as the group header above this list.
     <div className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center">
-      <div className="flex min-w-0 items-center gap-3">
+      <MemberIdentityWrapper
+        profileId={member.profile_id}
+        linked={!!member.profile.full_name}
+        className="flex min-w-0 items-center gap-3"
+      >
         <div
           className="h-10 w-10 shrink-0 overflow-hidden rounded-full"
           style={!member.profile.avatar_url ? { backgroundImage: "var(--grad)" } : undefined}
@@ -273,7 +298,7 @@ function MemberRow({
           <p className="truncate font-bold text-text">{displayName}</p>
           {roleLabel && <p className="text-xs font-semibold text-teal-ink">{roleLabel}</p>}
         </div>
-      </div>
+      </MemberIdentityWrapper>
       {actions && <div className="sm:ml-auto">{actions}</div>}
     </div>
   );

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { SPRING } from "@/lib/motion";
 import { useTranslations } from "next-intl";
 
 export function Modal({
@@ -30,16 +32,24 @@ export function Modal({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
-
   return (
-    <div
+    <AnimatePresence>
+      {open && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
       className={`fixed inset-0 z-50 flex justify-center overflow-y-auto overscroll-contain bg-black/40 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] ${
         align === "top" ? "items-start pt-3 sm:pt-6" : "items-start"
       }`}
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.98 }}
+        transition={SPRING.overlay}
         role="dialog"
         aria-modal="true"
         className={`relative w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-lg sm:p-6 ${
@@ -57,7 +67,9 @@ export function Modal({
         </button>
         {title && <h2 className="mb-4 pr-8 text-lg font-extrabold text-text">{title}</h2>}
         {children}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

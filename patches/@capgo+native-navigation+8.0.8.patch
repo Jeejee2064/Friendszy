@@ -1,0 +1,48 @@
+diff --git a/node_modules/@capgo/native-navigation/android/src/main/java/app/capgo/nativenavigation/NativeNavigationPlugin.java b/node_modules/@capgo/native-navigation/android/src/main/java/app/capgo/nativenavigation/NativeNavigationPlugin.java
+--- a/node_modules/@capgo/native-navigation/android/src/main/java/app/capgo/nativenavigation/NativeNavigationPlugin.java
++++ b/node_modules/@capgo/native-navigation/android/src/main/java/app/capgo/nativenavigation/NativeNavigationPlugin.java
+@@ -403,7 +403,7 @@
+                 new ViewOutlineProvider() {
+                     @Override
+                     public void getOutline(View view, Outline outline) {
+-                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), view.getHeight() / 2f);
++                        outline.setRect(0, 0, view.getWidth(), view.getHeight());
+                     }
+                 }
+             );
+@@ -886,7 +886,7 @@
+         if (tabbarContainer != null) {
+             GradientDrawable capsule = new GradientDrawable();
+             capsule.setColor(background);
+-            capsule.setCornerRadius(dp(DEFAULT_TABBAR_DP) / 2f);
++            capsule.setCornerRadius(0f);
+             tabbarContainer.setBackground(capsule);
+         }
+     }
+@@ -921,7 +921,7 @@
+         int bottom = navigationBarInset();
+         int navbarHeight = navbarVisible ? status + dp(DEFAULT_NAVBAR_DP) : 0;
+         int tabbarHeight = dp(DEFAULT_TABBAR_DP);
+-        int tabbarBottomMargin = tabbarVisible ? bottom + dp(10) : bottom;
++        int tabbarBottomMargin = bottom;
+ 
+         if (navbarContainer != null) {
+             FrameLayout.LayoutParams containerParams = new FrameLayout.LayoutParams(
+@@ -941,7 +941,7 @@
+ 
+         if (tabbarContainer != null) {
+             int rootWidth = root.getWidth() > 0 ? root.getWidth() : Resources.getSystem().getDisplayMetrics().widthPixels;
+-            int tabbarWidth = Math.min(Math.max(0, rootWidth - dp(48)), dp(420));
++            int tabbarWidth = rootWidth;
+             FrameLayout.LayoutParams tabbarContainerParams = new FrameLayout.LayoutParams(
+                 tabbarWidth,
+                 tabbarHeight,
+@@ -1017,7 +1017,7 @@
+ 
+     private JSObject currentInsets() {
+         int top = navbarVisible ? statusBarInset() + dp(DEFAULT_NAVBAR_DP) : 0;
+-        int bottom = tabbarVisible ? navigationBarInset() + dp(DEFAULT_TABBAR_DP) + dp(10) : 0;
++        int bottom = tabbarVisible ? navigationBarInset() + dp(DEFAULT_TABBAR_DP) : 0;
+         JSObject insets = new JSObject();
+         insets.put("top", top);
+         insets.put("right", 0);

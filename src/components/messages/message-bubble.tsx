@@ -57,6 +57,7 @@ export function MessageBubble({
         <MessageContextMenu
           align={isMine ? "end" : "start"}
           canDelete={isMine && !isRemoved}
+          copyText={isRemoved ? null : (sharedLink?.text ?? message.content)}
           onReply={onReply}
           onReact={onToggleReaction}
           onDelete={onDelete}

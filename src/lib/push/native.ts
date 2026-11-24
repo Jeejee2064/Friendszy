@@ -12,18 +12,27 @@ export function isNativeApp(): boolean {
   );
 }
 
-// TODO: retirer ce cast après régénération de src/types/supabase.ts via la
-// CLI (npm run supabase:types) une fois la migration native_push_tokens
-// appliquée — le fichier de types ne doit jamais être édité à la main.
-type NativeTokensClient = {
-  from: (t: "native_push_tokens") => {
-    upsert: (
-      row: { user_id: string; token: string; platform: string; locale: string },
-      opts: { onConflict: string }
-    ) => PromiseLike<{ error: unknown }>;
-    delete: () => { eq: (c: string, v: string) => PromiseLike<{ error: unknown }> };
-  };
-};
+// Canaux Android (8+), un par catégorie : l'utilisateur peut régler le son
+// de chacun dans les réglages système. Les identifiants sont ceux référencés
+// par l'Edge Function (ANDROID_CHANNEL dans push-new-message). Créés à chaque
+// démarrage de l'app (idempotent) pour que les installations existantes,
+// qui n'avaient que « messages », reçoivent aussi les nouveaux.
+const CHANNELS: Array<{ id: string; name: string; description: string }> = [
+  { id: "messages", name: "Messages", description: "Messages privés" },
+  { id: "social", name: "Amis", description: "Nouveaux amis et demandes" },
+  { id: "groups", name: "Groupes", description: "Messages, invitations et demandes de groupe" },
+  { id: "events", name: "Événements", description: "Messages des événements" },
+];
+
+export async function ensureNativeChannels(): Promise<void> {
+  if (!isNativeApp()) return;
+  const { PushNotifications } = await import("@capacitor/push-notifications");
+  await Promise.all(
+    CHANNELS.map((c) =>
+      PushNotifications.createChannel({ ...c, importance: 4, visibility: 0 })
+    )
+  );
+}
 
 // Jeton de CET appareil, gardé pour pouvoir le retirer à la déconnexion sans
 // toucher aux autres appareils du même compte.
@@ -56,13 +65,7 @@ export async function subscribeToNativePush(
     const userId = userData.user?.id;
     if (!userId) return false;
 
-    // Canal Android (Android 8+) référencé par l'Edge Function.
-    await PushNotifications.createChannel({
-      id: "messages",
-      name: "Messages",
-      importance: 4,
-      visibility: 0,
-    });
+    await ensureNativeChannels();
 
     const token = await new Promise<string | null>((resolve) => {
       const timer = setTimeout(() => resolve(null), 15000);
@@ -78,7 +81,7 @@ export async function subscribeToNativePush(
     });
     if (!token) return false;
 
-    const { error } = await (supabase as unknown as NativeTokensClient)
+    const { error } = await supabase
       .from("native_push_tokens")
       .upsert(
         { user_id: userId, token, platform: "android", locale },
@@ -107,7 +110,7 @@ export async function removeNativePushToken(supabase: SupabaseClient<Database>):
   try {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY);
     if (!token) return;
-    await (supabase as unknown as NativeTokensClient)
+    await supabase
       .from("native_push_tokens")
       .delete()
       .eq("token", token);
@@ -121,14 +124,18 @@ export async function removeNativePushToken(supabase: SupabaseClient<Database>):
 // conversation. `url` est un chemin relatif posé par l'Edge Function ;
 // on refuse tout ce qui n'est pas un chemin interne.
 let tapListenerAttached = false;
-export async function attachNativePushTapHandler(): Promise<void> {
+export async function attachNativePushTapHandler(
+  navigate: (url: string) => void
+): Promise<void> {
   if (!isNativeApp() || tapListenerAttached) return;
   tapListenerAttached = true;
+  await ensureNativeChannels().catch(() => {});
   const { PushNotifications } = await import("@capacitor/push-notifications");
   void PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
     const url = action.notification.data?.url;
+    // Navigation interne (routeur) : pas de rechargement complet de la WebView.
     if (typeof url === "string" && url.startsWith("/") && !url.startsWith("//")) {
-      window.location.assign(url);
+      navigate(url);
     }
   });
 }

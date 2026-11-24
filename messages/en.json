@@ -1,4 +1,8 @@
 {
+  "MessageMenu": {
+    "copy": "Copy",
+    "copied": "Copied"
+  },
   "Metadata": {
     "title": "Friendszy – Make new friends near you",
     "description": "Meet people who share your interests: sports, music, reading, board games… A friendship app, not a dating app. Free to join.",
@@ -133,7 +137,13 @@
     "groupJoinRequest": "{name} wants to join {group}",
     "groupJoinApproved": "Your request to join {group} was approved",
     "interestSuggestionApproved": "Your suggested interest \"{label}\" was approved!",
-    "interestSuggestionRejected": "Your suggested interest \"{label}\" wasn't accepted."
+    "interestSuggestionRejected": "Your suggested interest \"{label}\" wasn't accepted.",
+    "newMessages": "{count} new messages from {name}",
+    "newGroupMessage": "New message in {group}",
+    "newGroupMessages": "{count} new messages in {group}",
+    "newEventMessage": "New message for {event}",
+    "newEventMessages": "{count} new messages for {event}",
+    "pushTest": "Notifications are working 🎉"
   },
   "ProfileFields": {
     "photoChoose": "Choose a photo",
@@ -1164,7 +1174,27 @@
     "deleteConfirmPrompt": "Type {word} to confirm.",
     "deleteConfirmButton": "Permanently delete",
     "deleteError": "Something went wrong. Try again.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "prefsTitle": "What to notify you about",
+    "prefsBody": "Choose which push notifications you want to receive. In-app notifications are always shown.",
+    "prefs_push_messages": "Private messages",
+    "prefs_push_messages_hint": "When someone writes to you",
+    "prefs_push_social": "Friends",
+    "prefs_push_social_hint": "New friends and requests",
+    "prefs_push_groups": "Groups",
+    "prefs_push_groups_hint": "Messages, invitations and join requests",
+    "prefs_push_events": "Events",
+    "prefs_push_events_hint": "Messages from events you take part in",
+    "quietTitle": "Quiet hours",
+    "quietHint": "No push notifications during this window",
+    "quietFrom": "From",
+    "quietTo": "to",
+    "testButton": "Send a test notification",
+    "testSent": "Notification sent — it should arrive in a few seconds.",
+    "testWait": "Please wait a few seconds before trying again.",
+    "testError": "Couldn't send the test notification.",
+    "prefsSaved": "Preferences saved",
+    "prefsError": "Couldn't save, please try again."
   },
   "Pwa": {
     "installTitle": "Install Friendszy on your phone",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "friendszy-shell-v7";
+const CACHE_NAME = "friendszy-shell-v8";
 const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 // Paths safe to runtime-cache: build assets (immutable, hashed filenames)
@@ -115,6 +115,9 @@ self.addEventListener("push", (event) => {
       self.registration.showNotification(title, {
         icon: "/icons/icon-192.png",
         badge: "/icons/icon-badge.png",
+        // Même tag = remplace la notif précédente de la même conversation
+        // au lieu de les empiler ; renotify refait quand même vibrer/sonner.
+        ...(data.tag ? { tag: data.tag, renotify: true } : {}),
         data: { url },
       }),
       setAppIconBadge(data.unreadCount),

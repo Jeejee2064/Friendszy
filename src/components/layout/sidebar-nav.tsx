@@ -1,9 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
+import { SPRING } from "@/lib/motion";
 import { Link, usePathname } from "@/i18n/navigation";
-import { useUnreadNotificationsCount } from "@/lib/notifications/notifications-context";
-import { useUnreadConversationsCount } from "@/lib/messages/unread-context";
+import { useUnreadNotificationsCount } from "@/lib/notifications/notification-center";
+import { useUnreadConversationsCount } from "@/lib/notifications/notification-center";
 import { NAV_ITEMS, ADMIN_NAV_ITEM, navTourTargetId } from "./nav-items";
 
 export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
@@ -40,22 +42,34 @@ export function SidebarNav({ isAdmin = false }: { isAdmin?: boolean }) {
             href={item.href}
             aria-label={t(item.key)}
             aria-current={active ? "page" : undefined}
-            className={`flex min-h-11 items-center justify-center gap-3 rounded-xl px-3 py-2.5 md:justify-start text-sm font-semibold transition-colors ${
-              active ? "bg-bg text-teal-ink" : "text-muted hover:bg-bg"
+            className={`relative flex min-h-11 items-center justify-center gap-3 rounded-xl px-3 py-2.5 md:justify-start text-sm font-semibold transition-colors ${
+              active ? "text-teal-ink" : "text-muted hover:bg-bg"
             }`}
           >
+            {active && (
+              <motion.span
+                layoutId="sidebar-active-pill"
+                transition={SPRING.ui}
+                className="absolute inset-0 rounded-xl bg-bg"
+                aria-hidden
+              />
+            )}
             <span className="relative flex h-[18px] w-[18px] items-center justify-center">
               <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
               {badgeCount > 0 && (
-                <span
+                <motion.span
+                  key={badgeCount}
+                  initial={{ scale: 0.6 }}
+                  animate={{ scale: 1 }}
+                  transition={SPRING.pop}
                   className="absolute -right-2.5 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold text-white"
                   style={{ backgroundImage: "var(--grad)" }}
                 >
                   {badgeCount}
-                </span>
+                </motion.span>
               )}
             </span>
-            <span className="hidden md:inline">{t(item.key)}</span>
+            <span className="relative hidden md:inline">{t(item.key)}</span>
           </Link>
         );
       })}
