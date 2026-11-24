@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "ca.friendszy.app",
       "sha256_cert_fingerprints": [
-        "21:A1:50:3B:80:17:ED:C0:E0:68:D7:79:A6:73:51:86:66:7B:86:9C:FC:B9:14:64:51:A1:87:55:4C:77:BF:CA"
+        "21:A1:50:3B:80:17:ED:C0:E0:68:D7:79:A6:73:51:86:66:7B:86:9C:FC:B9:14:64:51:A1:87:55:4C:77:BF:CA",
+        "45:86:73:39:42:5C:19:7B:BA:14:6E:6D:FB:B4:E9:F2:F5:F9:1B:33:C8:B2:F9:25:F8:53:B2:06:C9:A4:A0:C5"
       ]
     }
   }
