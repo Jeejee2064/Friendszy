@@ -59,5 +59,10 @@ android/app/google-services.json
 # Clé APNs Apple (push iOS) : secret, jamais dans le repo
 *.p8
 
+# Certificats et profils de signature iOS : secrets, jamais dans le repo
+*.p12
+*.cer
+*.mobileprovision
+
 # Clé de compte de service Firebase : secret, jamais dans le repo
 *-firebase-adminsdk-*.json
