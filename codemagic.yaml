@@ -16,6 +16,9 @@ workflows:
       xcode: latest
       vars:
         APP_STORE_APPLE_ID: 6839190066
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: ca.friendszy.app
     triggering:
       events: []   # build manuel uniquement (bouton « Start new build »)
     scripts:
@@ -23,24 +26,7 @@ workflows:
         script: npm ci
       - name: Synchroniser Capacitor (iOS)
         script: npx cap sync ios
-      - name: Initialiser le trousseau de signature
-        script: keychain initialize
-      - name: Créer / récupérer certificat et profil (API App Store Connect)
-        # Pas d'écran « Code signing identities » nécessaire : la clé API de
-        # l'intégration crée le certificat de distribution et le profil chez
-        # Apple. ATTENTION : une clé neuve à chaque build = un nouveau certificat
-        # chez Apple à chaque build (limite ~3) ; si le build échoue pour cette
-        # raison, révoquer les anciens sur developer.apple.com → Certificates.
-        script: |
-          ssh-keygen -t rsa -b 2048 -m PEM -f /tmp/cert_key -q -N ""
-          app-store-connect fetch-signing-files "ca.friendszy.app" \
-            --type IOS_APP_STORE \
-            --platform IOS \
-            --create \
-            --certificate-key @file:/tmp/cert_key
-      - name: Importer le certificat dans le trousseau
-        script: keychain add-certificates
-      - name: Appliquer la signature au projet
+      - name: Appliquer la signature
         script: xcode-project use-profiles
       - name: Numéro de build = dernier TestFlight + 1
         script: |
