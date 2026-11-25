@@ -2,9 +2,8 @@
 # Réglages à faire dans l'interface Codemagic (aucun secret dans ce fichier) :
 #   1. Teams → Integrations → App Store Connect : ajouter la clé API (.p8, Key ID,
 #      Issuer ID) sous le nom « Codemagic » (nom repris dans `integrations` ci-dessous).
-#   2. Dans l'app : Environment variables → groupe « appstore » avec
-#      APP_STORE_APPLE_ID = identifiant numérique de l'app (App Store Connect →
-#      App Information → Apple ID).
+#   (APP_STORE_APPLE_ID, l'identifiant numérique de l'app dans App Store Connect,
+#   n'est pas un secret : il est défini plus bas dans `vars`.)
 workflows:
   ios-testflight:
     name: iOS → TestFlight
@@ -15,8 +14,8 @@ workflows:
     environment:
       node: 22
       xcode: latest
-      groups:
-        - appstore
+      vars:
+        APP_STORE_APPLE_ID: 6839190066
       ios_signing:
         distribution_type: app_store
         bundle_identifier: ca.friendszy.app
