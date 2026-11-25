@@ -44,4 +44,7 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true
+        # Envoi seulement : les testeurs INTERNES (équipe App Store Connect) voient le
+        # build sans revue Apple. `true` déclenche la revue bêta EXTERNE, qui exige
+        # d'abord les « Test Information » (courriel de retour, contact de revue).
+        submit_to_testflight: false
