@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Friendszy";
+"NSCameraUsageDescription" = "Friendszy utilise la caméra pour prendre ta photo de profil.";
+"NSPhotoLibraryUsageDescription" = "Friendszy accède à tes photos pour choisir ta photo de profil.";
+"NSLocationWhenInUseUsageDescription" = "Friendszy utilise ta position pour te montrer des amis et des activités près de toi.";

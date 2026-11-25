@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["TEAMID_A_REMPLACER.ca.friendszy.app"],
+        "appIDs": ["52GBZTGZ4Z.ca.friendszy.app"],
         "components": [{ "/": "/*" }]
       }
     ]

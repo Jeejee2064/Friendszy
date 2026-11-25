@@ -5,6 +5,13 @@ import type { Database } from "@/types/supabase";
 // + VAPID) ne fonctionne pas dans le WebView Android — voir subscribe.ts qui
 // bascule ici quand isNativeApp() est vrai.
 
+// "ios" ou "android" : écrit dans native_push_tokens.platform pour que le
+// serveur sache par quel canal (APNs / FCM) joindre l'appareil.
+function nativePlatform(): "ios" | "android" {
+  const cap = (window as { Capacitor?: { getPlatform?: () => string } }).Capacitor;
+  return cap?.getPlatform?.() === "ios" ? "ios" : "android";
+}
+
 export function isNativeApp(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -84,7 +91,7 @@ export async function subscribeToNativePush(
     const { error } = await supabase
       .from("native_push_tokens")
       .upsert(
-        { user_id: userId, token, platform: "android", locale },
+        { user_id: userId, token, platform: nativePlatform(), locale },
         { onConflict: "token" }
       );
     if (!error) {
