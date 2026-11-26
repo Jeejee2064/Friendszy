@@ -248,6 +248,16 @@ html.native-app main.app-main {
   padding-bottom: var(--native-bottom, 0px);
 }
 
+/* En-têtes plein écran (chats, pages sans barre native) : marge haute au-dessus de la
+   barre d'état / encoche. env() vaut 0 dans la WebView Android edge-to-edge, d'où le
+   plancher de 2rem en natif (barres natives masquées en chat, --native-top à 0). */
+.safe-top {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+}
+html.native-app .safe-top {
+  padding-top: max(2rem, env(safe-area-inset-top, 0px), var(--native-top, 0px));
+}
+
 /* Zone de saisie des chats plein écran : reste au-dessus des boutons système
    (Android edge-to-edge) et de l'indicateur d'accueil iOS. */
 .chat-composer {

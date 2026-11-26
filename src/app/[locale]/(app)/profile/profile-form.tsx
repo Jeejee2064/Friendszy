@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Settings } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { createClient } from "@/lib/supabase/client";
 import { upsertMyProfile, setMyInterests, setMyPartnerInterests } from "@/lib/profile/queries";
 import type { Gender, Interest, LookingFor } from "@/lib/profile/types";
@@ -55,6 +56,7 @@ export function ProfileForm({
 }) {
   const t = useTranslations("Profile");
   const router = useRouter();
+  const tNav = useTranslations("Nav");
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("info");
   const [form, setForm] = useState<FormState>(initial);
@@ -170,7 +172,10 @@ export function ProfileForm({
 
   return (
     <div className="p-6 md:p-10">
-      <h1 className="mb-4 text-2xl font-extrabold text-text">{t("title")}</h1>
+      <div className="mb-4 flex items-center gap-3">
+        <BackButton href="/" label={tNav("home")} />
+        <h1 className="text-2xl font-extrabold text-text">{t("title")}</h1>
+      </div>
 
       <ProfileTabs
         active={activeTab}

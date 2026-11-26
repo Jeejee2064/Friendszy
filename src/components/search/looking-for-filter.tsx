@@ -48,6 +48,7 @@ export function LookingForFilter({
               onPartnerInterestsChange([]);
             }
           }}
+          closeOnPick={["activity_partner"]}
           placeholder={t("lookingForAny")}
           options={LOOKING_FOR_OPTIONS.filter((option) => option !== "other").map((option) => ({
             value: option,
@@ -58,6 +59,7 @@ export function LookingForFilter({
           <CustomMultiSelect
             value={partnerInterestIds.map(String)}
             onChange={(v) => onPartnerInterestsChange(v.map(Number))}
+            defaultOpen
             max={MAX_PARTNER_INTERESTS}
             searchPlaceholder={tFields("partnerInterestsSearch")}
             priorityValues={myInterestIds.map(String)}

@@ -1184,7 +1184,7 @@ function ConversationPane({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-3 border-b border-border p-4">
+      <div className="safe-top flex items-center gap-3 border-b border-border p-4">
         <BackButton href="/messages" label={t("back")} />
         <Link
           href={`/profile/${otherProfile.id}`}

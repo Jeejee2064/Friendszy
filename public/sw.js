@@ -1,4 +1,4 @@
-const CACHE_NAME = "friendszy-shell-v8";
+const CACHE_NAME = "friendszy-shell-v9";
 const APP_SHELL = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 // Paths safe to runtime-cache: build assets (immutable, hashed filenames)

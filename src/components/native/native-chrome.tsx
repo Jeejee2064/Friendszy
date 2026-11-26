@@ -38,7 +38,7 @@ const ICONS = {
   home: svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/>'),
   search: svg('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
   discover: svg('<circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/>'),
-  messages: svg('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>'),
+  messages: svg('<circle cx="12" cy="11.5" r="8.5"/><path d="M6.5 18 3 21.5l1.2-5"/>'),
   groups: svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17.5 14.5a5 5 0 0 1 4 5"/>'),
   bell: svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
   // Le plugin n'a pas de badge sur la barre du haut : un point plein signale les non lues.
@@ -110,14 +110,8 @@ async function applyBars(state: BarsState) {
     hidden,
     title: "Friendszy",
     backButton: { visible: false },
-    rightItems: [
-      {
-        id: "notifications",
-        title: labels.notifications,
-        icon: { svg: state.unreadNotifications > 0 ? ICONS.bellDot : ICONS.bell },
-      },
-      { id: "profile", title: labels.profile, icon: { svg: ICONS.user } },
-    ],
+    // Profil / Notifications / Déconnexion : déplacés dans l'en-tête de l'accueil.
+    rightItems: [],
   });
 }
 

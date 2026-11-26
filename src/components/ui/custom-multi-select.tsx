@@ -20,6 +20,7 @@ export function CustomMultiSelect({
   searchPlaceholder,
   priorityValues,
   defaultOpen = false,
+  closeOnPick,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
@@ -30,6 +31,9 @@ export function CustomMultiSelect({
   priorityValues?: string[];
   // Ouvert dès le montage (ex. champ qui apparaît juste après un choix).
   defaultOpen?: boolean;
+  // Valeurs qui referment la liste quand on les coche (ex. un choix qui fait
+  // apparaître un second champ juste en dessous).
+  closeOnPick?: string[];
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState("");
@@ -52,6 +56,10 @@ export function CustomMultiSelect({
       onChange(value.filter((v) => v !== optionValue));
     } else if (max === undefined || value.length < max) {
       onChange([...value, optionValue]);
+      if (closeOnPick?.includes(optionValue)) {
+        setOpen(false);
+        setQuery("");
+      }
     }
   }
 

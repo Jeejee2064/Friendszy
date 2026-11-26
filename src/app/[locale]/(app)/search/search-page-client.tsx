@@ -434,9 +434,28 @@ export function SearchPageClient({
         </div>
       ) : step === "interests" ? (
         <div className="max-w-md">
-          <h2 className="mb-3 text-lg font-bold text-text">
-            {t("interestsStepTitle")}
-          </h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-text">
+              {t("interestsStepTitle")}
+            </h2>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setStep("city")}
+                className="rounded-full border border-border px-4 py-1.5 text-sm font-bold text-text"
+              >
+                {t("back")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep("ageGender")}
+                className="rounded-full px-4 py-1.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ backgroundImage: "var(--grad)" }}
+              >
+                {t("next")}
+              </button>
+            </div>
+          </div>
           <InterestPicker
             interests={interests}
             selectedIds={interestIds}
@@ -445,23 +464,6 @@ export function SearchPageClient({
             userId={userId}
             collapsible={false}
           />
-          <div className="mt-5 flex gap-3">
-            <button
-              type="button"
-              onClick={() => setStep("city")}
-              className="flex-1 rounded-full border border-border py-2.5 font-bold text-text"
-            >
-              {t("back")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep("ageGender")}
-              className="flex-1 rounded-full py-2.5 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ backgroundImage: "var(--grad)" }}
-            >
-              {t("next")}
-            </button>
-          </div>
         </div>
       ) : step === "ageGender" ? (
         <div className="max-w-md">

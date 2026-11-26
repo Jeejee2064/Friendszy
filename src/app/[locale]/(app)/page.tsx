@@ -11,6 +11,7 @@ import { getPublicMapPoints } from "@/lib/publicMap/queries";
 import { HAS_CHOSEN_DISCOVER_COOKIE_NAME } from "@/lib/intent/cookie";
 import { localeAlternates } from "@/lib/seo/site";
 import { PageHeader } from "@/components/layout/page-header";
+import { HomeHeaderActions } from "@/components/layout/home-header-actions";
 import { NotificationRow } from "@/components/notifications/notification-row";
 import { PublicLanding } from "@/components/landing/public-landing";
 import { IntentRedirect } from "@/components/landing/intent-redirect";
@@ -83,7 +84,7 @@ export default async function DashboardPage({
           account that has already seen it before, so nothing ever calls it
           twice. See src/components/landing/intent-redirect.tsx. */}
       {profile?.has_seen_nav_tour && <IntentRedirect />}
-      <PageHeader title={tNav("home")} />
+      <PageHeader title={tNav("home")} actions={<HomeHeaderActions />} />
 
       <div className="p-6 md:p-10">
         <div

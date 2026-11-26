@@ -12,7 +12,7 @@ export function MessagesOpenSkeleton() {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-40 flex h-dvh min-w-0 flex-col overflow-hidden bg-card">
-      <div className="flex items-center gap-3 border-b border-border p-4">
+      <div className="safe-top flex items-center gap-3 border-b border-border p-4">
         <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
         <SkeletonAvatar size="h-10 w-10" />
         <Skeleton className="h-5 w-40 rounded-md" />
