@@ -157,7 +157,8 @@ export async function attachNativePushTapHandler(
 // catégorie « messages ». Ne lève jamais.
 export async function clearDeliveredMessageNotifications(
   activeConversationId: string | null,
-  unreadMessages: number
+  unreadMessages: number,
+  attempt = 0
 ): Promise<void> {
   if (!isNativeApp()) return;
   try {
@@ -179,6 +180,13 @@ export async function clearDeliveredMessageNotifications(
       await PushNotifications.removeAllDeliveredNotifications();
     }
   } catch {
-    // le nettoyage est cosmétique : ne jamais gêner l'app
+    // iOS refuse tant que l'enregistrement push n'est pas terminé (juste
+    // après le lancement) : un second essai suffit. Cosmétique, sinon ignoré.
+    if (attempt < 2) {
+      setTimeout(
+        () => void clearDeliveredMessageNotifications(activeConversationId, unreadMessages, attempt + 1),
+        4000
+      );
+    }
   }
 }
