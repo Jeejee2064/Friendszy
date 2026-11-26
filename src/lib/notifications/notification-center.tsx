@@ -28,6 +28,7 @@ import {
   markMessageDelivered,
 } from "@/lib/messages/queries";
 import { onResync } from "@/lib/realtime/resync";
+import { clearDeliveredMessageNotifications } from "@/lib/push/native";
 import { getUnreadNotificationCount, type NotificationRow } from "./queries";
 import { buildNotificationToast } from "./build-toast";
 import type { Database } from "@/types/supabase";
@@ -67,12 +68,14 @@ export function NotificationCenterProvider({ children }: { children: ReactNode }
   const showToastRef = useRef(showToast);
   const pathnameRef = useRef(pathname);
   const activeConversationRef = useRef<string | null>(activeConversationId);
+  const countsRef = useRef(counts);
   useEffect(() => {
     tRef.current = t;
     showToastRef.current = showToast;
     pathnameRef.current = pathname;
     activeConversationRef.current = activeConversationId;
-  }, [t, showToast, pathname, activeConversationId]);
+    countsRef.current = counts;
+  }, [t, showToast, pathname, activeConversationId, counts]);
 
   // Badge d'icône (PWA installée : iOS 16.4+, Chrome/Edge desktop) — pendant
   // « app ouverte » du setAppBadge de sw.js ; reflète le compte exact.
@@ -81,6 +84,18 @@ export function NotificationCenterProvider({ children }: { children: ReactNode }
     const apply = counts.messages > 0 ? navigator.setAppBadge(counts.messages) : navigator.clearAppBadge();
     apply.catch(() => {});
   }, [counts.messages]);
+
+  // Notifications système (app native) : retirées dès que les messages sont
+  // lus, et revérifiées au retour au premier plan (lecture faite ailleurs).
+  useEffect(() => {
+    void clearDeliveredMessageNotifications(activeConversationId, counts.messages);
+    const onVisible = () => {
+      if (document.visibilityState === "visible")
+        void clearDeliveredMessageNotifications(activeConversationRef.current, countsRef.current.messages);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [activeConversationId, counts.messages]);
 
   useEffect(() => {
     const supabase = createClient();

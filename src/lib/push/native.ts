@@ -149,3 +149,36 @@ export async function attachNativePushTapHandler(
     }
   });
 }
+
+// Nettoie la zone de notifications du système (et le badge d'icône sur iOS)
+// quand les messages ont été lus : sans ça la notification « Nouveau message
+// de … » restait affichée après lecture. Retire celles de la conversation
+// ouverte ; si plus aucun message n'est non lu, retire toutes celles de la
+// catégorie « messages ». Ne lève jamais.
+export async function clearDeliveredMessageNotifications(
+  activeConversationId: string | null,
+  unreadMessages: number
+): Promise<void> {
+  if (!isNativeApp()) return;
+  try {
+    const { PushNotifications } = await import("@capacitor/push-notifications");
+    const { notifications } = await PushNotifications.getDeliveredNotifications();
+    const toRemove = notifications.filter((n) => {
+      const data = (n.data ?? {}) as { url?: unknown; category?: unknown };
+      if (data.category !== "messages") return false;
+      if (unreadMessages === 0) return true;
+      const url = typeof data.url === "string" ? data.url : "";
+      return !!activeConversationId && url.includes(`c=${activeConversationId}`);
+    });
+    if (toRemove.length > 0) {
+      await PushNotifications.removeDeliveredNotifications({ notifications: toRemove });
+    }
+    // removeAll remet aussi le badge d'icône iOS à 0 ; sans danger quand il
+    // ne reste plus aucune notification affichée.
+    if (unreadMessages === 0 && toRemove.length === notifications.length) {
+      await PushNotifications.removeAllDeliveredNotifications();
+    }
+  } catch {
+    // le nettoyage est cosmétique : ne jamais gêner l'app
+  }
+}
