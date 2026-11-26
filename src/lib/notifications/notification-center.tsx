@@ -24,6 +24,7 @@ import { useToast } from "@/components/ui/toast-context";
 import { useActiveConversationId } from "@/lib/messages/active-conversation-context";
 import {
   getUnreadConversationsCount,
+  MESSAGES_READ_EVENT,
   markAllReceivedMessagesDelivered,
   markMessageDelivered,
 } from "@/lib/messages/queries";
@@ -307,6 +308,10 @@ export function NotificationCenterProvider({ children }: { children: ReactNode }
       seen.clear();
     }
 
+    // Conversation marquée lue sur cet appareil : relecture immédiate du compte.
+    const onMessagesRead = () => void refreshMessages();
+    window.addEventListener(MESSAGES_READ_EVENT, onMessagesRead);
+
     supabase.auth.getUser().then(({ data }) => {
       if (!cancelled && data.user) void start(data.user.id);
     });
@@ -321,6 +326,7 @@ export function NotificationCenterProvider({ children }: { children: ReactNode }
 
     return () => {
       cancelled = true;
+      window.removeEventListener(MESSAGES_READ_EVENT, onMessagesRead);
       stop();
       listener.subscription.unsubscribe();
     };

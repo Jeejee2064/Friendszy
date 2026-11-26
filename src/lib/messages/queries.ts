@@ -313,6 +313,8 @@ export async function removeMessageReaction(
   if (error) throw error;
 }
 
+export const MESSAGES_READ_EVENT = "friendszy:messages-read";
+
 export async function markConversationRead(
   supabase: Client,
   conversationId: string,
@@ -325,6 +327,10 @@ export async function markConversationRead(
     .neq("sender_id", myId)
     .is("read_at", null);
   if (error) throw error;
+  // Prévient le centre de notifications tout de suite : sans ça, la pastille
+  // de la barre native attendait l'événement Realtime (absent sur iOS) ou le
+  // sondage de 30 s.
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(MESSAGES_READ_EVENT));
 }
 
 // Heartbeat "je regarde cette conversation" — voir
