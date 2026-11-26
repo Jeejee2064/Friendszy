@@ -101,7 +101,9 @@ async function applyBars(state: BarsState) {
         id: "messages",
         title: labels.messages,
         icon: { svg: ICONS.messages },
-        ...(state.unreadMessages > 0 ? { badge: state.unreadMessages } : {}),
+        // Toujours envoyé, « 0 » compris (le plugin masque la pastille à 0, iOS
+        // comme Android) : omettre la clé laissait l'ancienne pastille affichée.
+        badge: state.unreadMessages,
       },
       { id: "groups", title: labels.groups, icon: { svg: ICONS.groups } },
     ],
