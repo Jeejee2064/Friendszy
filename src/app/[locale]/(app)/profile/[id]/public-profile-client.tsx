@@ -105,7 +105,7 @@ export function PublicProfileClient({
 
   return (
     <div className="flex flex-col">
-      <PageHeader title={displayName} />
+      <PageHeader title={displayName} onBack={() => router.back()} backLabel={tCommon("back")} />
 
       <div className="p-6 md:p-10">
         <div className="mx-auto flex max-w-lg flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 text-center">

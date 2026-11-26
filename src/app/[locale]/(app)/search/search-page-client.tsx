@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -33,6 +33,8 @@ import { track } from "@/lib/analytics/track";
 
 type Tab = "name" | "discover" | "map";
 type DiscoverStep = "city" | "interests" | "ageGender" | "results";
+
+const SEARCH_STATE_KEY = "friendszy:search-state";
 
 export function SearchPageClient({
   userId,
@@ -107,6 +109,66 @@ export function SearchPageClient({
     longitude: number;
   } | null>(null);
 
+  // La recherche vit dans l'état local : ouvrir un profil démonte la page et
+  // tout se perdait au retour. On garde les critères en sessionStorage et on
+  // relance la recherche à la restauration (résultats toujours à jour).
+  const [hydrated, setHydrated] = useState(false);
+  const [rerunDiscover, setRerunDiscover] = useState(false);
+  const restoringRef = useRef(false);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(SEARCH_STATE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.userId === userId) {
+          restoringRef.current = true;
+          if (saved.tab === "discover" || saved.tab === "name" || saved.tab === "map") setTab(saved.tab);
+          setName(saved.name ?? "");
+          setCity(saved.city ?? "");
+          setMinAge(saved.minAge ?? AGE_MIN);
+          setMaxAge(saved.maxAge ?? AGE_MAX);
+          setGenders(saved.genders ?? []);
+          setInterestIds(saved.interestIds ?? []);
+          setLookingFor(saved.lookingFor ?? []);
+          setPartnerInterestIds(saved.partnerInterestIds ?? []);
+          if (saved.tab === "discover" && saved.step === "results") {
+            setStep("results");
+            setRerunDiscover(true);
+          }
+        }
+      }
+    } catch {
+      // stockage indisponible : on repart d'une recherche vide
+    }
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!rerunDiscover) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setRerunDiscover(false);
+    void runDiscoverSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rerunDiscover]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      sessionStorage.setItem(
+        SEARCH_STATE_KEY,
+        JSON.stringify({
+          userId, tab, step, name, city, minAge, maxAge, genders, interestIds, lookingFor, partnerInterestIds,
+        })
+      );
+    } catch {
+      // ignoré
+    }
+  }, [hydrated, userId, tab, step, name, city, minAge, maxAge, genders, interestIds, lookingFor, partnerInterestIds]);
+
   const interestLabel = (id: number) => {
     const interest = interests.find((i) => i.id === id);
     if (!interest) return "";
@@ -116,11 +178,14 @@ export function SearchPageClient({
   async function applyResults(mode: "name" | "discover", searchResults: SearchResult[]) {
     const supabase = createClient();
     setResults(searchResults);
-    track(
-      "search_performed",
-      { mode, resultCount: searchResults.length, city: mode === "discover" ? city || null : null },
-      userId
-    );
+    // Restauration au retour d'un profil : pas une nouvelle recherche.
+    if (restoringRef.current) restoringRef.current = false;
+    else
+      track(
+        "search_performed",
+        { mode, resultCount: searchResults.length, city: mode === "discover" ? city || null : null },
+        userId
+      );
     const [shared, fMap] = await Promise.all([
       getInterestsForProfiles(
         supabase,
