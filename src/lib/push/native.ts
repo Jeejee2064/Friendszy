@@ -32,7 +32,10 @@ const CHANNELS: Array<{ id: string; name: string; description: string }> = [
 ];
 
 export async function ensureNativeChannels(): Promise<void> {
-  if (!isNativeApp()) return;
+  // Les canaux n'existent que sur Android : sur iOS createChannel rejette
+  // (« Not available on iOS »), ce qui faisait échouer tout l'enregistrement
+  // du jeton avant même register().
+  if (!isNativeApp() || nativePlatform() !== "android") return;
   const { PushNotifications } = await import("@capacitor/push-notifications");
   await Promise.all(
     CHANNELS.map((c) =>

@@ -131,6 +131,76 @@ async function sendFcm(
   return true; // erreur transitoire : on garde le jeton
 }
 
+// --- APNs (appareils iOS, envoi direct sans Firebase) -----------------------
+// Secrets : APNS_KEY_P8 (contenu du .p8), APNS_KEY_ID, APNS_TEAM_ID,
+// APNS_BUNDLE_ID (ca.friendszy.app). APNS_SANDBOX=true pour un build Xcode
+// de développement (TestFlight/App Store = production). Absent → ignoré.
+const APNS_KEY_P8 = Deno.env.get("APNS_KEY_P8");
+const APNS_KEY_ID = Deno.env.get("APNS_KEY_ID");
+const APNS_TEAM_ID = Deno.env.get("APNS_TEAM_ID");
+const APNS_BUNDLE_ID = Deno.env.get("APNS_BUNDLE_ID") ?? "ca.friendszy.app";
+const APNS_HOST =
+  Deno.env.get("APNS_SANDBOX") === "true" ? "api.sandbox.push.apple.com" : "api.push.apple.com";
+
+let cachedApnsJwt: { value: string; exp: number } | null = null;
+
+async function getApnsJwt(): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  // Apple exige un jeton renouvelé entre 20 et 60 min.
+  if (cachedApnsJwt && cachedApnsJwt.exp > now) return cachedApnsJwt.value;
+  const pem = (APNS_KEY_P8 ?? "")
+    .replace(/\\n/g, "\n")
+    .replace(/-----[A-Z ]+-----/g, "")
+    .replace(/\s+/g, "");
+  const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    der,
+    { name: "ECDSA", namedCurve: "P-256" },
+    false,
+    ["sign"]
+  );
+  const header = b64url(JSON.stringify({ alg: "ES256", kid: APNS_KEY_ID }));
+  const payload = b64url(JSON.stringify({ iss: APNS_TEAM_ID, iat: now }));
+  const sig = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" },
+    key,
+    new TextEncoder().encode(`${header}.${payload}`)
+  );
+  const value = `${header}.${payload}.${b64url(sig)}`;
+  cachedApnsJwt = { value, exp: now + 40 * 60 };
+  return value;
+}
+
+// Retourne false si le jeton est mort (à supprimer).
+async function sendApns(
+  token: string,
+  msg: { title: string; url: string; tag: string; category: Category; unreadCount?: number }
+): Promise<boolean> {
+  if (!APNS_KEY_P8 || !APNS_KEY_ID || !APNS_TEAM_ID) return true;
+  const jwt = await getApnsJwt();
+  const aps: Record<string, unknown> = { alert: { title: msg.title }, sound: "default" };
+  if (msg.unreadCount !== undefined) aps.badge = msg.unreadCount;
+  const res = await fetch(`https://${APNS_HOST}/3/device/${token}`, {
+    method: "POST",
+    headers: {
+      authorization: `bearer ${jwt}`,
+      "apns-topic": APNS_BUNDLE_ID,
+      "apns-push-type": "alert",
+      "apns-priority": "10",
+      "apns-collapse-id": msg.tag.slice(0, 64),
+    },
+    body: JSON.stringify({ aps, url: msg.url, category: msg.category }),
+  });
+  if (res.ok) return true;
+  if (res.status === 410) return false;
+  if (res.status === 400) {
+    const err = await res.json().catch(() => null);
+    if (err?.reason === "BadDeviceToken" || err?.reason === "DeviceTokenNotForTopic") return false;
+  }
+  return true; // erreur transitoire : on garde le jeton
+}
+
 // Heartbeat client toutes les 15 s tant que le chat est ouvert ; une ligne
 // plus vieille = onglet fermé sans nettoyage, pas une présence réelle.
 const PRESENCE_FRESH_MS = 20_000;
@@ -460,7 +530,13 @@ type PushSubscriptionRow = {
   locale: string | null;
 };
 
-type NativeTokenRow = { id: string; user_id: string; token: string; locale: string | null };
+type NativeTokenRow = {
+  id: string;
+  user_id: string;
+  token: string;
+  locale: string | null;
+  platform: string;
+};
 
 Deno.serve(async (req) => {
   if (req.headers.get("x-push-trigger-secret") !== PUSH_TRIGGER_SECRET) {
@@ -498,7 +574,7 @@ Deno.serve(async (req) => {
       .from("push_subscriptions")
       .select("id, user_id, endpoint, p256dh, auth, locale")
       .in("user_id", targets),
-    admin.from("native_push_tokens").select("id, user_id, token, locale").in("user_id", targets),
+    admin.from("native_push_tokens").select("id, user_id, token, locale, platform").in("user_id", targets),
   ]);
 
   const unreadByUser = new Map<string, number>();
@@ -512,7 +588,8 @@ Deno.serve(async (req) => {
     ...((tokens ?? []) as NativeTokenRow[]).map(async (row) => {
       const locale = toPushLocale(row.locale);
       try {
-        const alive = await sendFcm(row.token, {
+        const send = row.platform === "ios" ? sendApns : sendFcm;
+        const alive = await send(row.token, {
           title: job.title(locale),
           url: localizedPath(locale, job.path),
           tag: job.tag,
