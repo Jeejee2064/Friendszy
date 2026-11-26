@@ -84,7 +84,28 @@ export default async function DashboardPage({
           account that has already seen it before, so nothing ever calls it
           twice. See src/components/landing/intent-redirect.tsx. */}
       {profile?.has_seen_nav_tour && <IntentRedirect />}
-      <PageHeader title={tNav("home")} actions={<HomeHeaderActions />} />
+      <PageHeader
+        title={tNav("home")}
+        leading={
+          // Sidebar web cachée en app native : on remet la photo en haut à gauche.
+          <Link
+            href="/profile"
+            aria-label={tNav("profile")}
+            className="native-only h-10 w-10 shrink-0 overflow-hidden rounded-full"
+            style={!profile?.avatar_url ? { backgroundImage: "var(--grad)" } : undefined}
+          >
+            {profile?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-sm font-bold text-white">
+                {(profile?.full_name ?? "?").charAt(0).toUpperCase()}
+              </span>
+            )}
+          </Link>
+        }
+        actions={<HomeHeaderActions />}
+      />
 
       <div className="p-6 md:p-10">
         <div
