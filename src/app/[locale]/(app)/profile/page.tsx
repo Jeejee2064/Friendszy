@@ -56,7 +56,6 @@ export default async function ProfilePage({
 
   return (
     <>
-    <NativeProfileLinks isAdmin={profile?.is_admin ?? false} />
     <ProfileForm
       userId={user.id}
       interests={interests}
@@ -82,6 +81,7 @@ export default async function ProfilePage({
         languages: profile?.languages ?? [],
       }}
     />
+    <NativeProfileLinks isAdmin={profile?.is_admin ?? false} />
     </>
   );
 }

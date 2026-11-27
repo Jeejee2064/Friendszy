@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { CustomMultiSelect } from "@/components/ui/custom-multi-select";
 import { localizedInterestLabel } from "@/lib/interests/label";
@@ -32,6 +33,8 @@ export function LookingForFilter({
   const tLookingFor = useTranslations("LookingFor");
   const tFields = useTranslations("ProfileFields");
   const locale = useLocale();
+  // Ouvert seul uniquement après un clic, pas à la restauration d'une recherche.
+  const [openPartner, setOpenPartner] = useState(false);
 
   return (
     <div>
@@ -43,6 +46,9 @@ export function LookingForFilter({
           value={lookingFor}
           onChange={(v) => {
             const next = v as LookingFor[];
+            if (next.includes("activity_partner") && !lookingFor.includes("activity_partner")) {
+              setOpenPartner(true);
+            }
             onLookingForChange(next);
             if (!next.includes("activity_partner") && partnerInterestIds.length > 0) {
               onPartnerInterestsChange([]);
@@ -59,7 +65,7 @@ export function LookingForFilter({
           <CustomMultiSelect
             value={partnerInterestIds.map(String)}
             onChange={(v) => onPartnerInterestsChange(v.map(Number))}
-            defaultOpen
+            defaultOpen={openPartner}
             max={MAX_PARTNER_INTERESTS}
             searchPlaceholder={tFields("partnerInterestsSearch")}
             priorityValues={myInterestIds.map(String)}

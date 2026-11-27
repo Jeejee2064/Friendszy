@@ -140,6 +140,14 @@ async function flushBars(
   }
 }
 
+const isEditable = (el: EventTarget | null) =>
+  el instanceof HTMLElement &&
+  (el.isContentEditable ||
+    (el instanceof HTMLTextAreaElement && !el.readOnly) ||
+    (el instanceof HTMLInputElement &&
+      !el.readOnly &&
+      !["checkbox", "radio", "button", "submit", "file", "range", "color", "image", "reset"].includes(el.type)));
+
 export function NativeChrome() {
   const pathname = usePathname();
   const router = useRouter();
@@ -154,23 +162,16 @@ export function NativeChrome() {
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   useEffect(() => {
     if (!isNativeApp()) return;
-    const editable = (el: EventTarget | null) =>
-      el instanceof HTMLElement &&
-      (el.isContentEditable ||
-        (el instanceof HTMLTextAreaElement && !el.readOnly) ||
-        (el instanceof HTMLInputElement &&
-          !el.readOnly &&
-          !["checkbox", "radio", "button", "submit", "file", "range", "color", "image", "reset"].includes(el.type)));
     let timer: ReturnType<typeof setTimeout> | undefined;
     const onIn = (e: FocusEvent) => {
-      if (!editable(e.target)) return;
+      if (!isEditable(e.target)) return;
       clearTimeout(timer);
       setKeyboardOpen(true);
     };
     const onOut = () => {
       clearTimeout(timer);
       // délai : passer d'un champ à l'autre ne doit pas faire clignoter la barre
-      timer = setTimeout(() => setKeyboardOpen(editable(document.activeElement)), 150);
+      timer = setTimeout(() => setKeyboardOpen(isEditable(document.activeElement)), 150);
     };
     document.addEventListener("focusin", onIn);
     document.addEventListener("focusout", onOut);
@@ -180,6 +181,12 @@ export function NativeChrome() {
       document.removeEventListener("focusout", onOut);
     };
   }, []);
+  // Le champ focalisé disparaît avec la page sans émettre de focusout (ex. quitter le
+  // profil) : sans ce recalage, keyboardOpen restait vrai et la barre d'onglets masquée.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    setKeyboardOpen(isEditable(document.activeElement));
+  }, [pathname]);
   const pathnameRef = useRef(pathname);
   useEffect(() => {
     pathnameRef.current = pathname;

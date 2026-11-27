@@ -37,6 +37,10 @@ export function LookingForSelect({
   // Incrémenté quand « Partenaire de… » vient d'être coché : remonte le premier
   // menu (donc le referme) pendant que le second s'ouvre tout seul.
   const [closeKey, setCloseKey] = useState(0);
+  // Le second menu ne s'ouvre seul que si l'utilisateur vient de cocher
+  // « Partenaire de… » — pas au chargement d'un profil déjà rempli (sinon le
+  // focus auto fait défiler la page jusqu'à lui).
+  const [openPartner, setOpenPartner] = useState(false);
 
   return (
     <div className="flex flex-col gap-2">
@@ -47,6 +51,7 @@ export function LookingForSelect({
           const next = v as LookingFor[];
           if (next.includes("activity_partner") && !value.includes("activity_partner")) {
             setCloseKey((k) => k + 1);
+            setOpenPartner(true);
           }
           onChange(next);
           // Les intérêts de partenaire n'ont de sens que si « Partenaire de… »
@@ -60,7 +65,7 @@ export function LookingForSelect({
       />
       {value.includes("activity_partner") && (
         <CustomMultiSelect
-          defaultOpen
+          defaultOpen={openPartner}
           value={partnerInterestIds.map(String)}
           onChange={(v) => onPartnerInterestsChange(v.map(Number))}
           max={MAX_PARTNER_INTERESTS}
